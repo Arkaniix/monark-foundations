@@ -11,7 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DevUiRouteImport } from './routes/_dev.ui'
+import { Route as Char91_devChar93UiRouteImport } from './routes/[_dev].ui'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -23,40 +23,40 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DevUiRoute = DevUiRouteImport.update({
+const Char91_devChar93UiRoute = Char91_devChar93UiRouteImport.update({
   id: '/_dev/ui',
-  path: '/ui',
+  path: '/_dev/ui',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/ui': typeof DevUiRoute
+  '/_dev/ui': typeof Char91_devChar93UiRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/ui': typeof DevUiRoute
+  '/_dev/ui': typeof Char91_devChar93UiRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/_dev/ui': typeof DevUiRoute
+  '/_dev/ui': typeof Char91_devChar93UiRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/ui'
+  fullPaths: '/' | '/auth' | '/_dev/ui'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/ui'
+  to: '/' | '/auth' | '/_dev/ui'
   id: '__root__' | '/' | '/auth' | '/_dev/ui'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
-  DevUiRoute: typeof DevUiRoute
+  Char91_devChar93UiRoute: typeof Char91_devChar93UiRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -77,9 +77,9 @@ declare module '@tanstack/react-router' {
     }
     '/_dev/ui': {
       id: '/_dev/ui'
-      path: '/ui'
-      fullPath: '/ui'
-      preLoaderRoute: typeof DevUiRouteImport
+      path: '/_dev/ui'
+      fullPath: '/_dev/ui'
+      preLoaderRoute: typeof Char91_devChar93UiRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -88,7 +88,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
-  DevUiRoute: DevUiRoute,
+  Char91_devChar93UiRoute: Char91_devChar93UiRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
