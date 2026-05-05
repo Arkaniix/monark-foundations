@@ -10,15 +10,18 @@ type CounterProps = {
 
 export function Counter({
   value,
-  duration = 1500,
+  duration = 1600,
   suffix = "",
   prefix = "",
   decimals = 0,
 }: CounterProps) {
-  const [display, setDisplay] = useState(0);
+  const [v, setV] = useState(0);
   const rafRef = useRef<number | null>(null);
+  const startedRef = useRef(false);
 
   useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
     const start = performance.now();
     const from = 0;
     const to = value;
@@ -26,9 +29,8 @@ export function Counter({
     const tick = (now: number) => {
       const elapsed = now - start;
       const t = Math.min(1, elapsed / duration);
-      // ease-out cubic
       const eased = 1 - Math.pow(1 - t, 3);
-      setDisplay(from + (to - from) * eased);
+      setV(from + (to - from) * eased);
       if (t < 1) {
         rafRef.current = requestAnimationFrame(tick);
       }
@@ -40,15 +42,15 @@ export function Counter({
     };
   }, [value, duration]);
 
-  const formatted = display.toLocaleString("fr-FR", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
+  const display =
+    decimals === 0
+      ? Math.round(v).toLocaleString("fr-FR")
+      : v.toFixed(decimals).replace(".", ",");
 
   return (
     <span className="font-mono tabular-nums">
       {prefix}
-      {formatted}
+      {display}
       {suffix}
     </span>
   );
