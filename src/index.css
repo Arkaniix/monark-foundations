@@ -1,0 +1,8 @@
+/**
+ * Monark v2 — point d'entrée CSS.
+ *
+ * Toutes les déclarations globales (tokens, body, radial glow, .lift-1/.lift-2)
+ * vivent dans `src/styles.css` (chargé par TanStack Start dans __root.tsx).
+ * Ce fichier existe pour respecter la convention demandée et ré-exporter.
+ */
+@import "./styles.css";
