@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { Counter } from "@/components/ui";
+import MockupBrowser from "@/components/landing/MockupBrowser";
 
 export default function Hero() {
   return (
@@ -52,9 +53,7 @@ export default function Hero() {
           </div>
         </div>
         <div className="col-span-12 lg:col-span-7 fade-up" style={{ animationDelay: "200ms" }}>
-          <div className="mk-card aspect-[4/3] flex items-center justify-center">
-            <span className="font-mono text-xs text-zinc-600 tracking-wider">[ MOCKUP NAVIGATEUR — P1.3 ]</span>
-          </div>
+          <MockupBrowser />
         </div>
       </div>
     </section>
