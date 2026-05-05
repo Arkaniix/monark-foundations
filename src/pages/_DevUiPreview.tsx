@@ -1,8 +1,9 @@
 /**
- * Monark v2 — démo P0.2 : 5 primitives partagées.
+ * Page de référence visuelle pour les 5 primitives partagées (P0.2).
+ * Accessible sur /_dev/ui pendant tout le projet, supprimée en fin de chantier.
  */
-import { SectionLabel, Counter, Sparkline, Pill } from "./components/ui";
-import { useInView } from "./hooks/useInView";
+import { SectionLabel, Counter, Sparkline, Pill } from "../components/ui";
+import { useInView } from "../hooks/useInView";
 
 function InViewDemo() {
   const [ref, inView] = useInView(0.3);
@@ -27,7 +28,7 @@ function DemoBlock({ name, children }: { name: string; children: React.ReactNode
   );
 }
 
-export default function App() {
+export default function _DevUiPreview() {
   return (
     <div className="relative z-10 min-h-screen px-8 py-16">
       <div className="mx-auto flex max-w-2xl flex-col gap-12">
