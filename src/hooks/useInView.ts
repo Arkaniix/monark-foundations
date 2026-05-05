@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 export function useInView(
   threshold: number = 0.1
 ): [React.RefObject<HTMLElement>, boolean] {
-  const ref = useRef<HTMLElement>(null);
+  const ref = useRef<HTMLElement>(null as unknown as HTMLElement);
   const [inView, setInView] = useState(false);
 
   useEffect(() => {
