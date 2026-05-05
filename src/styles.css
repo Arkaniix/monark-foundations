@@ -142,3 +142,44 @@
     color: var(--color-foreground);
   }
 }
+
+/* ============================================================
+ * Monark v2 — fondations
+ * Tokens projet (couleurs + fonts) en plus du design system shadcn.
+ * ============================================================ */
+
+@theme inline {
+  --color-bg-base: #0A0A0B;
+  --color-accent-primary: #3B82F6;
+  --color-trading-foncer: #10B981;
+  --color-trading-passer: #EF4444;
+  --color-trading-negocier: #F59E0B;
+  --color-trading-tenter: #8B5CF6;
+
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+body {
+  background: #0A0A0B;
+  color: #f4f4f5;
+  font-family: "Inter", system-ui, sans-serif;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(circle at 85% 12%, rgba(59, 130, 246, 0.08), transparent 50%);
+}
+
+.lift-1 {
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.lift-2 {
+  background: rgba(255, 255, 255, 0.015);
+}
