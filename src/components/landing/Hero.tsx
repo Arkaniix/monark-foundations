@@ -1,8 +1,11 @@
 import { ArrowRight } from "lucide-react";
 import { Counter } from "@/components/ui";
 import MockupBrowser from "@/components/landing/MockupBrowser";
+import { HERO_SCENES } from "@/components/landing/scenes";
+import LbcMockup from "@/components/landing/LbcMockup";
 
 export default function Hero() {
+  const lbcScene = HERO_SCENES[0];
   return (
     <section className="relative">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -53,7 +56,9 @@ export default function Hero() {
           </div>
         </div>
         <div className="col-span-12 lg:col-span-7 fade-up" style={{ animationDelay: "200ms" }}>
-          <MockupBrowser />
+          <MockupBrowser domain={lbcScene.domain} platformLabel={lbcScene.platformLabel}>
+            <LbcMockup s={lbcScene} />
+          </MockupBrowser>
         </div>
       </div>
     </section>
