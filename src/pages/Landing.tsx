@@ -5,6 +5,9 @@ import LensSection from "@/components/landing/LensSection";
 import EstimatorSection from "@/components/landing/EstimatorSection";
 import StockRepairSection from "@/components/landing/StockRepairSection";
 import ConstellationSection from "@/components/landing/ConstellationSection";
+import PricingSection from "@/components/landing/PricingSection";
+import FinalCtaSection from "@/components/landing/FinalCtaSection";
+import FooterSection from "@/components/landing/FooterSection";
 
 export default function Landing() {
   return (
@@ -16,6 +19,9 @@ export default function Landing() {
       <EstimatorSection />
       <StockRepairSection />
       <ConstellationSection />
+      <PricingSection />
+      <FinalCtaSection />
+      <FooterSection />
     </div>
   );
 }
