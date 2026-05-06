@@ -2,6 +2,7 @@ import TopNav from "@/components/landing/TopNav";
 import Hero from "@/components/landing/Hero";
 import ProblemSection from "@/components/landing/ProblemSection";
 import LensSection from "@/components/landing/LensSection";
+import EstimatorSection from "@/components/landing/EstimatorSection";
 
 export default function Landing() {
   return (
@@ -10,6 +11,7 @@ export default function Landing() {
       <Hero />
       <ProblemSection />
       <LensSection />
+      <EstimatorSection />
     </div>
   );
 }
