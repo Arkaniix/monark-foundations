@@ -398,3 +398,12 @@ body::before {
 .progress-fill {
   animation: progress-fill 7s linear forwards;
 }
+
+@keyframes pulse-soft { 0%, 100% { opacity: 0.6; transform: scale(1); } 50% { opacity: 1; transform: scale(1.15); } }
+.pulse-soft { animation: pulse-soft 1.4s ease-in-out infinite; transform-origin: center; }
+
+@keyframes toast-in { 0% { opacity: 0; transform: translateX(20px); } 10%, 90% { opacity: 1; transform: translateX(0); } 100% { opacity: 0; transform: translateX(20px); } }
+.toast-anim { animation: toast-in 3.2s ease forwards; }
+
+@keyframes blink-caret { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+.caret { display: inline-block; width: 7px; height: 14px; background: #10B981; vertical-align: text-bottom; animation: blink-caret 1s steps(1) infinite; margin-left: 2px; }
