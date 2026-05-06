@@ -5,6 +5,7 @@ import { LENS_SCENARIOS, type LensScenario, type LensScenarioKey } from "./lens"
 import PlatformMockup from "./PlatformMockup";
 import type { Scene } from "./scenes";
 import KpiTile from "./KpiTile";
+import VerdictCrystal from "./VerdictCrystal";
 
 type RevealState = { overlay: boolean; fair: boolean; margin: boolean; liq: boolean; verdict: boolean };
 
@@ -161,11 +162,9 @@ export default function LensSection() {
                     </div>
                   </div>
                   <div className="p-4 flex gap-4 items-center">
-                    {/* PLACEHOLDER CRYSTAL — sera remplacé par VerdictCrystal Three.js en P2.2b */}
-                    <div
-                      className="w-20 h-20 rounded-md shrink-0 ease-expo"
-                      style={{ background: crystalColor, transition: "background 300ms", boxShadow: `0 0 40px -10px ${crystalColor}` }}
-                    />
+                    <div className="shrink-0" style={{ filter: `drop-shadow(0 0 20px ${crystalColor}88)` }}>
+                      <VerdictCrystal color={crystalColor} size={80} />
+                    </div>
                     <div className="flex-1">
                       <div className="font-mono text-[9px] text-zinc-500 mb-1 tracking-wider">VERDICT</div>
                       {reveal.verdict ? (
