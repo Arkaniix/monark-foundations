@@ -389,3 +389,12 @@ body::before {
 .pulse-dot {
   animation: pulse-dot 1.6s ease-in-out infinite;
 }
+
+@keyframes progress-fill {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+.progress-fill {
+  animation: progress-fill 7s linear forwards;
+}
