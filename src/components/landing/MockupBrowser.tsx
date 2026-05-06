@@ -5,12 +5,16 @@ type MockupBrowserProps = {
   domain?: string;
   platformLabel?: string;
   children?: ReactNode;
+  progressCount?: number;
+  progressActiveIdx?: number;
 };
 
 export default function MockupBrowser({
   domain = "l*boncoin.fr/ad/informatique/_id_29844",
   platformLabel = "LEBONCOIN",
   children,
+  progressCount,
+  progressActiveIdx = 0,
 }: MockupBrowserProps) {
   return (
     <div className="relative w-full" style={{ aspectRatio: "16 / 11" }}>
@@ -40,6 +44,24 @@ export default function MockupBrowser({
             </div>
           )}
         </div>
+        {progressCount && progressCount > 0 ? (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+            {Array.from({ length: progressCount }).map((_, i) => (
+              <div key={i} className="h-[3px] w-9 rounded-full bg-white/10 overflow-hidden">
+                <div
+                  key={i + "-" + progressActiveIdx}
+                  className={
+                    i === progressActiveIdx
+                      ? "h-full bg-zinc-300 progress-fill"
+                      : i < progressActiveIdx
+                      ? "h-full bg-zinc-300 w-full"
+                      : "h-full bg-zinc-300 w-0"
+                  }
+                />
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
     </div>
   );
