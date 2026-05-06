@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { Counter } from "@/components/ui";
 import MockupBrowser from "@/components/landing/MockupBrowser";
 import { HERO_SCENES } from "@/components/landing/scenes";
-import LbcMockup from "@/components/landing/LbcMockup";
+import PlatformMockup from "@/components/landing/PlatformMockup";
 
 export default function Hero() {
-  const lbcScene = HERO_SCENES[0];
+  // DEBUG P1.5 — à retirer en P1.6
+  const [sceneIdx, setSceneIdx] = useState(0);
+  const scene = HERO_SCENES[sceneIdx];
   return (
     <section className="relative">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -56,8 +59,20 @@ export default function Hero() {
           </div>
         </div>
         <div className="col-span-12 lg:col-span-7 fade-up" style={{ animationDelay: "200ms" }}>
-          <MockupBrowser domain={lbcScene.domain} platformLabel={lbcScene.platformLabel}>
-            <LbcMockup s={lbcScene} />
+          {/* DEBUG P1.5 — à retirer en P1.6 */}
+          <div className="mb-3 flex gap-2 font-mono text-[10px]">
+            {HERO_SCENES.map((sc, i) => (
+              <button
+                key={sc.key}
+                onClick={() => setSceneIdx(i)}
+                className={"px-2 py-1 rounded " + (i === sceneIdx ? "bg-blue-500/20 text-blue-300" : "bg-white/5 text-zinc-500 hover:text-zinc-300")}
+              >
+                {sc.key.toUpperCase()}
+              </button>
+            ))}
+          </div>
+          <MockupBrowser domain={scene.domain} platformLabel={scene.platformLabel}>
+            <PlatformMockup s={scene} />
           </MockupBrowser>
         </div>
       </div>
