@@ -72,8 +72,8 @@ export default function Hero() {
             {HERO_SCENES.map((sc, i) => (
               <div
                 key={sc.key}
-                className="absolute inset-0 transition-opacity ease-expo"
-                style={{ opacity: i === sceneIdx ? 1 : 0, transitionDuration: "600ms" }}
+                className="absolute inset-0 transition-opacity"
+                style={{ opacity: i === sceneIdx ? 1 : 0, transitionDuration: "1000ms", transitionTimingFunction: "linear" }}
               >
                 <div className={"absolute inset-0 bg-gradient-to-br " + sc.bg + " pointer-events-none"} />
                 <div className="relative h-full overflow-hidden">
