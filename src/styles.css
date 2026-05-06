@@ -407,3 +407,8 @@ body::before {
 
 @keyframes blink-caret { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
 .caret { display: inline-block; width: 7px; height: 14px; background: #10B981; vertical-align: text-bottom; animation: blink-caret 1s steps(1) infinite; margin-left: 2px; }
+
+.const-mask {
+  -webkit-mask-image: radial-gradient(ellipse 95% 90% at center, black 55%, transparent 100%);
+  mask-image: radial-gradient(ellipse 95% 90% at center, black 55%, transparent 100%);
+}

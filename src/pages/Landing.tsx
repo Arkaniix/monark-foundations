@@ -4,6 +4,7 @@ import ProblemSection from "@/components/landing/ProblemSection";
 import LensSection from "@/components/landing/LensSection";
 import EstimatorSection from "@/components/landing/EstimatorSection";
 import StockRepairSection from "@/components/landing/StockRepairSection";
+import ConstellationSection from "@/components/landing/ConstellationSection";
 
 export default function Landing() {
   return (
@@ -14,6 +15,7 @@ export default function Landing() {
       <LensSection />
       <EstimatorSection />
       <StockRepairSection />
+      <ConstellationSection />
     </div>
   );
 }
