@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { AlertCircle, Check, Eye, EyeOff, ArrowRight, Mail, Github as GithubIcon } from "lucide-react";
+import { AlertCircle, Check, Eye, EyeOff, ArrowRight, Mail } from "lucide-react";
+
+const GithubIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+    <path d="M12 .5C5.73.5.66 5.57.66 11.85c0 5.02 3.25 9.27 7.76 10.77.57.1.78-.25.78-.55 0-.27-.01-1-.02-1.96-3.16.69-3.83-1.52-3.83-1.52-.52-1.31-1.27-1.66-1.27-1.66-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.25 3.34.96.1-.74.4-1.25.73-1.54-2.52-.29-5.18-1.26-5.18-5.6 0-1.24.44-2.25 1.17-3.04-.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.15 1.16.91-.25 1.89-.38 2.86-.39.97.01 1.95.14 2.86.39 2.18-1.47 3.14-1.16 3.14-1.16.62 1.57.23 2.73.11 3.02.73.79 1.17 1.8 1.17 3.04 0 4.35-2.66 5.31-5.2 5.59.41.35.78 1.05.78 2.12 0 1.53-.01 2.77-.01 3.15 0 .3.21.66.79.55 4.51-1.5 7.75-5.75 7.75-10.77C23.34 5.57 18.27.5 12 .5z"/>
+  </svg>
+);
 import Logo from "@/components/ui/Logo";
 import Field from "./Field";
 import PasswordStrength from "./PasswordStrength";
