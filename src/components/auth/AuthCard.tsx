@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { AlertCircle, Check, Eye, EyeOff, ArrowRight, Mail, Github } from "lucide-react";
+import { AlertCircle, Check, Eye, EyeOff, ArrowRight, Mail, Github as GithubIcon } from "lucide-react";
 import Logo from "@/components/ui/Logo";
 import Field from "./Field";
 import PasswordStrength from "./PasswordStrength";
@@ -198,7 +198,7 @@ export default function AuthCard() {
               <Mail className="w-4 h-4 text-zinc-400"/> Google
             </button>
             <button type="button" onClick={oauthClick} className="h-10 rounded-lg bg-white/[0.02] hover:bg-white/[0.04] text-zinc-300 text-[13px] flex items-center justify-center gap-2 transition-colors">
-              <Github className="w-4 h-4 text-zinc-400"/> GitHub
+              <GithubIcon className="w-4 h-4 text-zinc-400"/> GitHub
             </button>
           </div>
 
