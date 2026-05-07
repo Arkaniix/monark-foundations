@@ -1,5 +1,6 @@
 import TopNav from "@/components/landing/TopNav";
 import Hero from "@/components/landing/Hero";
+import TickerStrip from "@/components/landing/TickerStrip";
 import ProblemSection from "@/components/landing/ProblemSection";
 import LensSection from "@/components/landing/LensSection";
 import EstimatorSection from "@/components/landing/EstimatorSection";
@@ -14,6 +15,7 @@ export default function Landing() {
     <div className="min-h-screen">
       <TopNav />
       <Hero />
+      <TickerStrip />
       <ProblemSection />
       <LensSection />
       <EstimatorSection />

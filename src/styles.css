@@ -412,3 +412,6 @@ body::before {
   -webkit-mask-image: radial-gradient(ellipse 95% 90% at center, black 55%, transparent 100%);
   mask-image: radial-gradient(ellipse 95% 90% at center, black 55%, transparent 100%);
 }
+
+@keyframes ticker-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+.ticker-track { animation: ticker-scroll 60s linear infinite; }
