@@ -4,6 +4,7 @@ import { Counter } from "@/components/ui";
 import MockupBrowser from "@/components/landing/MockupBrowser";
 import { HERO_SCENES } from "@/components/landing/scenes";
 import PlatformMockup from "@/components/landing/PlatformMockup";
+import LensHeroOverlay from "./LensHeroOverlay";
 
 export default function Hero() {
   const [sceneIdx, setSceneIdx] = useState(0);
@@ -81,6 +82,7 @@ export default function Hero() {
                 </div>
               </div>
             ))}
+            <LensHeroOverlay scene={HERO_SCENES[sceneIdx]} />
           </MockupBrowser>
         </div>
       </div>
