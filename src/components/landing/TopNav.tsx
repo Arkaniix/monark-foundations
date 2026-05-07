@@ -41,13 +41,12 @@ export default function TopNav() {
 
   const recomputePill = useCallback(() => {
     const target = hoverId || activeId;
-    if (!target || !containerRef.current || !linkRefs.current[target]) {
+    if (!target || !linkRefs.current[target]) {
       setPill((p) => ({ ...p, visible: false }));
       return;
     }
-    const cRect = containerRef.current.getBoundingClientRect();
-    const lRect = linkRefs.current[target]!.getBoundingClientRect();
-    setPill({ left: lRect.left - cRect.left, width: lRect.width, visible: true });
+    const link = linkRefs.current[target]!;
+    setPill({ left: link.offsetLeft, width: link.offsetWidth, visible: true });
   }, [hoverId, activeId]);
 
   useEffect(() => {
