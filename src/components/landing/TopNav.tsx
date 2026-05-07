@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import Logo from "@/components/ui/Logo";
 
-type PillState = { left: number; width: number; visible: boolean };
+type PillState = { left: number; top: number; width: number; height: number; visible: boolean };
 
 export default function TopNav() {
   const links = [
@@ -15,7 +15,7 @@ export default function TopNav() {
   const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
   const [hoverId, setHoverId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [pill, setPill] = useState<PillState>({ left: 0, width: 0, visible: false });
+  const [pill, setPill] = useState<PillState>({ left: 0, top: 0, width: 0, height: 0, visible: false });
 
   useEffect(() => {
     const ids = links.map((l) => l.id);
@@ -46,7 +46,13 @@ export default function TopNav() {
       return;
     }
     const link = linkRefs.current[target]!;
-    setPill({ left: link.offsetLeft, width: link.offsetWidth, visible: true });
+    setPill({
+      left: link.offsetLeft,
+      top: link.offsetTop,
+      width: link.offsetWidth,
+      height: link.offsetHeight,
+      visible: true,
+    });
   }, [hoverId, activeId]);
 
   useEffect(() => {
@@ -90,15 +96,16 @@ export default function TopNav() {
           >
             <div
               aria-hidden
-              className="absolute top-1/2 -translate-y-1/2 rounded-md bg-white/[0.06] border border-white/10 pointer-events-none"
+              className="absolute rounded-md bg-white/[0.06] border border-white/10 pointer-events-none"
               style={{
                 left: pill.left,
+                top: pill.top,
                 width: pill.width,
-                height: 28,
+                height: pill.height,
                 opacity: pill.visible ? 1 : 0,
-                transform: `translateY(-50%) scale(${pill.visible ? 1 : 0.96})`,
+                transform: `scale(${pill.visible ? 1 : 0.96})`,
                 transition:
-                  "left 380ms cubic-bezier(0.16,1,0.3,1), width 380ms cubic-bezier(0.16,1,0.3,1), opacity 220ms ease, transform 380ms cubic-bezier(0.16,1,0.3,1)",
+                  "left 380ms cubic-bezier(0.16,1,0.3,1), top 380ms cubic-bezier(0.16,1,0.3,1), width 380ms cubic-bezier(0.16,1,0.3,1), height 380ms cubic-bezier(0.16,1,0.3,1), opacity 220ms ease, transform 380ms cubic-bezier(0.16,1,0.3,1)",
               }}
             />
             {links.map((l) => {
