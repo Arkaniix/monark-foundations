@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import Logo from "@/components/ui/Logo";
 
@@ -39,7 +39,7 @@ export default function TopNav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
+  const recomputePill = useCallback(() => {
     const target = hoverId || activeId;
     if (!target || !containerRef.current || !linkRefs.current[target]) {
       setPill((p) => ({ ...p, visible: false }));
@@ -49,6 +49,25 @@ export default function TopNav() {
     const lRect = linkRefs.current[target]!.getBoundingClientRect();
     setPill({ left: lRect.left - cRect.left, width: lRect.width, visible: true });
   }, [hoverId, activeId]);
+
+  useEffect(() => {
+    recomputePill();
+  }, [recomputePill]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (typeof document !== "undefined" && document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => {
+        if (!cancelled) recomputePill();
+      });
+    }
+    const onResize = () => recomputePill();
+    window.addEventListener("resize", onResize);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("resize", onResize);
+    };
+  }, [recomputePill]);
 
   const onClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
