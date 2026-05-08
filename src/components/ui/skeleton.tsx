@@ -1,7 +1,11 @@
-import { cn } from "@/lib/utils";
+type SkeletonProps = {
+  className?: string;
+  animated?: boolean;
+};
 
-function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("animate-pulse rounded-md bg-primary/10", className)} {...props} />;
+export function Skeleton({ className = "", animated = true }: SkeletonProps) {
+  const cls = animated ? "mk-skeleton" : "mk-skeleton mk-skeleton-static";
+  return <div className={`${cls} ${className}`} aria-hidden="true" />;
 }
 
-export { Skeleton };
+export default Skeleton;
