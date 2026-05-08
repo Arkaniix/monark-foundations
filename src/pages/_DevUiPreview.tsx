@@ -2,8 +2,9 @@
  * Page de référence visuelle pour les 5 primitives partagées (P0.2).
  * Accessible sur /_dev/ui pendant tout le projet, supprimée en fin de chantier.
  */
-import { SectionLabel, Counter, Sparkline, Pill } from "../components/ui";
+import { SectionLabel, Counter, Sparkline, Pill, Skeleton, EmptyState } from "../components/ui";
 import { useInView } from "../hooks/useInView";
+import { Inbox } from "lucide-react";
 
 function InViewDemo() {
   const [ref, inView] = useInView(0.3);
@@ -55,6 +56,24 @@ export default function _DevUiPreview() {
             <Pill label="FONCER" color="#10B981" />
             <Pill label="PASSER" color="#EF4444" />
           </div>
+        </DemoBlock>
+
+        <DemoBlock name="Skeleton">
+          <div className="flex flex-col gap-3">
+            <Skeleton className="h-4 w-3/4 rounded" />
+            <Skeleton className="h-4 w-1/2 rounded" />
+            <Skeleton className="h-20 w-full rounded-md" />
+            <Skeleton animated={false} className="h-4 w-2/3 rounded" />
+          </div>
+        </DemoBlock>
+
+        <DemoBlock name="EmptyState">
+          <EmptyState
+            icon={Inbox}
+            title="Aucune estimation pour l'instant"
+            description="Lance une première estimation pour voir tes résultats apparaître ici."
+            cta={{ label: "Nouvelle estimation", onClick: () => alert("→ /estimator") }}
+          />
         </DemoBlock>
 
         <DemoBlock name="useInView">
