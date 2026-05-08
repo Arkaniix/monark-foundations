@@ -485,3 +485,26 @@ body::before {
 
 .no-sb::-webkit-scrollbar { display: none; }
 .no-sb { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ============================================================
+ * Skeleton primitive (chantier A1)
+ * ============================================================ */
+@keyframes skeleton-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+.mk-skeleton {
+  position: relative;
+  background: var(--mk-surface-2);
+  overflow: hidden;
+  border-radius: 6px;
+}
+.mk-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.04) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: skeleton-shimmer 1.6s linear infinite;
+}
+.mk-skeleton-static::after { animation: none; opacity: 0; }
