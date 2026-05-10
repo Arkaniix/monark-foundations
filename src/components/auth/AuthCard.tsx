@@ -110,7 +110,7 @@ export default function AuthCard() {
     setPhase("exiting");
     setTimeout(() => {
       setPhase("done");
-      navigate({ to: "/" });
+      navigate({ to: "/dashboard" });
     }, 380);
   };
 
