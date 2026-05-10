@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as Char91_devChar93UiRouteImport } from './routes/[_dev].ui'
 import { Route as Char91_devChar93AppshellRouteImport } from './routes/[_dev].appshell'
 
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -39,12 +45,14 @@ const Char91_devChar93AppshellRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/dashboard': typeof DashboardRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/dashboard': typeof DashboardRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
 }
@@ -52,26 +60,35 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/dashboard': typeof DashboardRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/_dev/appshell' | '/_dev/ui'
+  fullPaths: '/' | '/auth' | '/dashboard' | '/_dev/appshell' | '/_dev/ui'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/_dev/appshell' | '/_dev/ui'
-  id: '__root__' | '/' | '/auth' | '/_dev/appshell' | '/_dev/ui'
+  to: '/' | '/auth' | '/dashboard' | '/_dev/appshell' | '/_dev/ui'
+  id: '__root__' | '/' | '/auth' | '/dashboard' | '/_dev/appshell' | '/_dev/ui'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  DashboardRoute: typeof DashboardRoute
   Char91_devChar93AppshellRoute: typeof Char91_devChar93AppshellRoute
   Char91_devChar93UiRoute: typeof Char91_devChar93UiRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -106,6 +123,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  DashboardRoute: DashboardRoute,
   Char91_devChar93AppshellRoute: Char91_devChar93AppshellRoute,
   Char91_devChar93UiRoute: Char91_devChar93UiRoute,
 }
