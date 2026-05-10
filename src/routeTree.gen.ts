@@ -12,7 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as Char91_devChar93UiRouteImport } from './routes/[_dev].ui'
-import { Route as Char91_devChar93AppshellPartsRouteImport } from './routes/[_dev].appshell-parts'
+import { Route as Char91_devChar93AppshellRouteImport } from './routes/[_dev].appshell'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -29,44 +29,44 @@ const Char91_devChar93UiRoute = Char91_devChar93UiRouteImport.update({
   path: '/_dev/ui',
   getParentRoute: () => rootRouteImport,
 } as any)
-const Char91_devChar93AppshellPartsRoute =
-  Char91_devChar93AppshellPartsRouteImport.update({
-    id: '/_dev/appshell-parts',
-    path: '/_dev/appshell-parts',
+const Char91_devChar93AppshellRoute =
+  Char91_devChar93AppshellRouteImport.update({
+    id: '/_dev/appshell',
+    path: '/_dev/appshell',
     getParentRoute: () => rootRouteImport,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/_dev/appshell-parts': typeof Char91_devChar93AppshellPartsRoute
+  '/_dev/appshell': typeof Char91_devChar93AppshellRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/_dev/appshell-parts': typeof Char91_devChar93AppshellPartsRoute
+  '/_dev/appshell': typeof Char91_devChar93AppshellRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/_dev/appshell-parts': typeof Char91_devChar93AppshellPartsRoute
+  '/_dev/appshell': typeof Char91_devChar93AppshellRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/_dev/appshell-parts' | '/_dev/ui'
+  fullPaths: '/' | '/auth' | '/_dev/appshell' | '/_dev/ui'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/_dev/appshell-parts' | '/_dev/ui'
-  id: '__root__' | '/' | '/auth' | '/_dev/appshell-parts' | '/_dev/ui'
+  to: '/' | '/auth' | '/_dev/appshell' | '/_dev/ui'
+  id: '__root__' | '/' | '/auth' | '/_dev/appshell' | '/_dev/ui'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
-  Char91_devChar93AppshellPartsRoute: typeof Char91_devChar93AppshellPartsRoute
+  Char91_devChar93AppshellRoute: typeof Char91_devChar93AppshellRoute
   Char91_devChar93UiRoute: typeof Char91_devChar93UiRoute
 }
 
@@ -93,11 +93,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91_devChar93UiRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_dev/appshell-parts': {
-      id: '/_dev/appshell-parts'
-      path: '/_dev/appshell-parts'
-      fullPath: '/_dev/appshell-parts'
-      preLoaderRoute: typeof Char91_devChar93AppshellPartsRouteImport
+    '/_dev/appshell': {
+      id: '/_dev/appshell'
+      path: '/_dev/appshell'
+      fullPath: '/_dev/appshell'
+      preLoaderRoute: typeof Char91_devChar93AppshellRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -106,9 +106,18 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
-  Char91_devChar93AppshellPartsRoute: Char91_devChar93AppshellPartsRoute,
+  Char91_devChar93AppshellRoute: Char91_devChar93AppshellRoute,
   Char91_devChar93UiRoute: Char91_devChar93UiRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
