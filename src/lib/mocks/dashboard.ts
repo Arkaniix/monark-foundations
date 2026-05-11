@@ -1,12 +1,8 @@
 /**
  * Mock implementation Dashboard API.
  *
- * Étendu en C2a avec `recent_estimations` : 5 dernières estimations fictives
- * couvrant les 6 catégories et les 4 verdicts pour montrer la variété visuelle.
- *
- * Les modèles sont des références réelles du marché (RTX 4070 SUPER, 7800X3D,
- * DDR5-6000, etc.) mais sans données d'annonces individuelles — uniquement
- * des prix synthétiques cohérents (cf. component_market_stats backend Monark).
+ * Étendu en C2b avec `watchlist_preview` : 4 modèles suivis fictifs montrant
+ * la diversité (différentes catégories, deltas mixtes positifs/négatifs).
  */
 
 import { mockDelay, MOCK_USER } from "./fixtures";
@@ -14,6 +10,7 @@ import type {
   DashboardOverview,
   StatTileData,
   RecentEstimation,
+  WatchlistItem,
 } from "../../components/dashboard/datasets";
 
 function generateSeries(target: number, n: number, amplitude = 0.12): number[] {
@@ -28,11 +25,6 @@ function generateSeries(target: number, n: number, amplitude = 0.12): number[] {
 
 const PLAN_CAPS = { free: 10, standard: 180, pro: 600 } as const;
 
-/**
- * Dates relatives par rapport à "maintenant" pour que la table garde une
- * cohérence temporelle même si elle est rendue plusieurs fois ("il y a 2h"
- * doit rester "il y a 2h" et pas "il y a une semaine").
- */
 function hoursAgo(h: number): string {
   return new Date(Date.now() - h * 3600 * 1000).toISOString();
 }
@@ -82,6 +74,41 @@ const MOCK_RECENT_ESTIMATIONS: RecentEstimation[] = [
     listing_price_eur: 140,
     net_margin_eur: 35,
     created_at: hoursAgo(72),
+  },
+];
+
+const MOCK_WATCHLIST_PREVIEW: WatchlistItem[] = [
+  {
+    id: "wl_01",
+    model_name: "RTX 4080 SUPER",
+    category: "GPU",
+    average_price_7d: 920,
+    delta_pct_vs_14d: -3.8,
+    sparkline: generateSeries(920, 7, 0.04),
+  },
+  {
+    id: "wl_02",
+    model_name: "7900X3D",
+    category: "CPU",
+    average_price_7d: 425,
+    delta_pct_vs_14d: 2.1,
+    sparkline: generateSeries(425, 7, 0.03),
+  },
+  {
+    id: "wl_03",
+    model_name: "990 PRO 2TB",
+    category: "SSD",
+    average_price_7d: 165,
+    delta_pct_vs_14d: -7.2,
+    sparkline: generateSeries(165, 7, 0.06),
+  },
+  {
+    id: "wl_04",
+    model_name: "X670E HERO",
+    category: "MOBO",
+    average_price_7d: 380,
+    delta_pct_vs_14d: 0.4,
+    sparkline: generateSeries(380, 7, 0.02),
   },
 ];
 
@@ -139,6 +166,7 @@ export async function getOverview(): Promise<DashboardOverview> {
   return {
     stats,
     recent_estimations: MOCK_RECENT_ESTIMATIONS,
+    watchlist_preview: MOCK_WATCHLIST_PREVIEW,
     generated_at: new Date().toISOString(),
   };
 }
