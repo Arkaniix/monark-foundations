@@ -48,7 +48,7 @@ export function Sparkline({
     return () => ro.disconnect();
   }, [stretch]);
 
-  const renderW = stretch ? measuredW ?? w : w;
+  const renderW = stretch ? (measuredW ?? w) : w;
 
   const max = Math.max(...points);
   const min = Math.min(...points);
