@@ -9,19 +9,10 @@ type DashboardStatTileProps = {
 /**
  * Tuile stat du Dashboard.
  *
- * Layout :
- *   - Label mono uppercase tracking-[0.2em] zinc-500
- *   - Valeur grande (Counter animé) en font-mono tabular-nums
- *   - Suffixe ou ratio à côté (ex. "/ 180" pour crédits)
- *   - Delta % en bas-gauche avec icône arrow + couleur sémantique
- *   - Sparkline 30j en bas-droite, coloré selon accent_color
- *
- * Le format est dérivé de data.format_hint :
- *   - "integer" : entier (ex. 12)
- *   - "euro"    : entier + suffix " €" (ex. 85 €)
- *   - "ratio"   : valeur + " / " + cap (ex. 89 / 180), récupéré du context
- *                  (pour cet itération, cap codé en dur à partir de credits_cap
- *                  inférable, à raffiner plus tard via prop dédiée)
+ * Note (C3a+) : la sparkline est rendue **sans animation** (`animate={false}`)
+ * pour préserver le comportement d'origine : §01 affiche des KPIs cumulés où
+ * l'animation Counter sur la valeur suffit à donner la narration "ça monte".
+ * L'animation de tracé progressif est réservée à §03 watchlist preview.
  */
 export function DashboardStatTile({ data }: DashboardStatTileProps) {
   const isPositiveDelta = data.delta_pct !== null && data.delta_pct >= 0;
@@ -80,6 +71,7 @@ export function DashboardStatTile({ data }: DashboardStatTileProps) {
           w={80}
           h={24}
           fill
+          animate={false}
         />
       </div>
     </div>
