@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 type SparklineProps = {
   points: number[];
@@ -6,41 +6,24 @@ type SparklineProps = {
   w?: number;
   h?: number;
   fill?: boolean;
-  /**
-   * Active l'animation de tracé progressif au mount et à chaque changement
-   * de `points`. Défaut : true.
-   *
-   * Implémentation : stroke-dasharray = pathLength + stroke-dashoffset
-   * qui s'anime de pathLength → 0 via transition CSS 1800ms easeInOutCubic.
-   * Le fill (area) apparaît en fade-in opacity 0 → 1 décalé de 900ms
-   * (commence quand le tracé est à mi-chemin), pour renforcer la sensation
-   * "la ligne dessine puis la zone se remplit derrière elle".
-   *
-   * Passer `animate={false}` pour rendre la sparkline statique.
-   */
+  /** Animation de tracé progressif au mount / changement de `points`. Défaut true. */
   animate?: boolean;
-  /**
-   * Délai en millisecondes avant le démarrage de l'animation. Utile pour
-   * créer un effet de stagger entre plusieurs sparklines rendues côte à
-   * côte (ex. cards watchlist : delay = index * 120ms produit un "wave"
-   * qui balaie la rangée). Défaut : 0. Ignoré si `animate={false}`.
-   */
+  /** Délai (ms) avant démarrage — utile pour le stagger entre cards. Défaut 0. */
   delay?: number;
   /**
-   * Si true, la sparkline s'étire à 100% de la largeur de son parent
-   * (viewBox + preserveAspectRatio="none"). Les coordonnées internes
-   * restent calculées sur `w` × `h` (viewBox), mais le rendu remplit
-   * le conteneur. Le stroke utilise `vector-effect="non-scaling-stroke"`
-   * pour éviter la distorsion de l'épaisseur. Défaut : false.
+   * Si true, la sparkline mesure la largeur réelle de son conteneur via
+   * ResizeObserver et calcule ses coordonnées dans cette largeur — le
+   * tracé occupe 100% du parent sans distorsion ni dash incorrect
+   * (contrairement à viewBox + preserveAspectRatio="none" qui casse
+   * getTotalLength). Défaut false → utilise la prop `w`.
    */
   stretch?: boolean;
 };
 
-// Constantes d'animation centralisées pour cohérence + lisibilité
 const TRACE_DURATION_MS = 1800;
-const FILL_DELAY_MS = 900; // moitié du tracé : le fill commence quand la ligne est à mi-parcours
+const FILL_DELAY_MS = 900;
 const FILL_DURATION_MS = TRACE_DURATION_MS - FILL_DELAY_MS;
-const EASING = "cubic-bezier(0.65, 0, 0.35, 1)"; // easeInOutCubic — démarre lent, finit lent
+const EASING = "cubic-bezier(0.65, 0, 0.35, 1)";
 
 export function Sparkline({
   points,
@@ -52,23 +35,38 @@ export function Sparkline({
   delay = 0,
   stretch = false,
 }: SparklineProps) {
+  const containerRef = useRef<HTMLSpanElement | null>(null);
+  const [measuredW, setMeasuredW] = useState<number | null>(null);
+
+  useLayoutEffect(() => {
+    if (!stretch || !containerRef.current) return;
+    const el = containerRef.current;
+    const update = () => setMeasuredW(el.clientWidth);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [stretch]);
+
+  const renderW = stretch ? measuredW ?? w : w;
+
   const max = Math.max(...points);
   const min = Math.min(...points);
   const range = max - min || 1;
 
   const path = points
     .map((p, i) => {
-      const x = (i / (points.length - 1)) * w;
+      const x = (i / (points.length - 1)) * renderW;
       const y = h - ((p - min) / range) * h;
       return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
     })
     .join(" ");
 
-  const area = fill ? `${path} L${w},${h} L0,${h} Z` : null;
+  const area = fill ? `${path} L${renderW},${h} L0,${h} Z` : null;
 
   const pathRef = useRef<SVGPathElement | null>(null);
   const [pathLength, setPathLength] = useState<number | null>(null);
-  const [progress, setProgress] = useState(0); // 0 = caché, 1 = entièrement tracé
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     if (!animate) {
@@ -76,40 +74,25 @@ export function Sparkline({
       setProgress(1);
       return;
     }
-
     if (!pathRef.current) return;
 
     const length = pathRef.current.getTotalLength();
     setPathLength(length);
     setProgress(0);
 
-    // Double rAF pour garantir que le browser applique l'état initial
-    // (dashOffset = pathLength) AVANT le passage à 1 — sinon la transition
-    // est ignorée car même tick de rendu.
     const id = requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         setProgress(1);
       });
     });
-
     return () => cancelAnimationFrame(id);
   }, [animate, path]);
 
   const dashOffset = pathLength !== null ? pathLength * (1 - progress) : 0;
   const dashArray = pathLength !== null ? pathLength : undefined;
 
-  return (
-    <svg
-      {...(stretch
-        ? {
-            viewBox: `0 0 ${w} ${h}`,
-            width: "100%",
-            height: h,
-            preserveAspectRatio: "none",
-          }
-        : { width: w, height: h })}
-      className="overflow-visible"
-    >
+  const svg = (
+    <svg width={renderW} height={h} className="overflow-visible block">
       {fill && area && (
         <path
           d={area}
@@ -131,7 +114,6 @@ export function Sparkline({
         strokeWidth="1.4"
         strokeLinecap="round"
         strokeLinejoin="round"
-        vectorEffect={stretch ? "non-scaling-stroke" : undefined}
         strokeDasharray={dashArray}
         strokeDashoffset={dashOffset}
         style={{
@@ -142,6 +124,15 @@ export function Sparkline({
       />
     </svg>
   );
+
+  if (stretch) {
+    return (
+      <span ref={containerRef} className="block w-full" style={{ height: h }}>
+        {measuredW !== null ? svg : null}
+      </span>
+    );
+  }
+  return svg;
 }
 
 export default Sparkline;
