@@ -6,6 +6,8 @@ type WatchlistPreviewProps = {
   data: WatchlistItem[];
 };
 
+const STAGGER_MS = 220;
+
 /**
  * Preview de la watchlist (§03 du Dashboard).
  *
@@ -19,8 +21,8 @@ type WatchlistPreviewProps = {
 export function WatchlistPreview({ data }: WatchlistPreviewProps) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {data.map((item) => (
-        <Card key={item.id} item={item} />
+      {data.map((item, index) => (
+        <Card key={item.id} item={item} index={index} />
       ))}
     </div>
   );
@@ -28,9 +30,10 @@ export function WatchlistPreview({ data }: WatchlistPreviewProps) {
 
 type CardProps = {
   item: WatchlistItem;
+  index: number;
 };
 
-function Card({ item }: CardProps) {
+function Card({ item, index }: CardProps) {
   const isPositive = item.delta_pct_vs_14d >= 0;
   const deltaColor = isPositive ? "#10B981" : "#EF4444";
   const DeltaIcon = isPositive ? ArrowUp : ArrowDown;
@@ -87,6 +90,7 @@ function Card({ item }: CardProps) {
           h={36}
           fill
           stretch
+          delay={index * STAGGER_MS}
         />
       </div>
 

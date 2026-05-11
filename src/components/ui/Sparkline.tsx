@@ -36,9 +36,9 @@ type SparklineProps = {
   stretch?: boolean;
 };
 
-const TRACE_DURATION_MS = 1600;
+const TRACE_DURATION_MS = 3000;
 const FILL_FADE_DURATION_MS = 600;
-const FILL_FADE_DELAY_MS = 800; // après ~moitié du tracé
+const FILL_FADE_DELAY_MS = 1500; // après ~moitié du tracé
 const EASING = "cubic-bezier(0.16,1,0.3,1)";
 const DASH_LENGTH = 500; // valeur fixe, dépasse la longueur du path quel que soit le viewBox
 
