@@ -11,14 +11,28 @@ type SparklineProps = {
    * de `points`. Défaut : true.
    *
    * Implémentation : stroke-dasharray = pathLength + stroke-dashoffset
-   * qui s'anime de pathLength → 0 via transition CSS. Le fill (area)
-   * apparaît en fade-in (opacity 0 → 1) sur la même durée.
+   * qui s'anime de pathLength → 0 via transition CSS 1800ms easeInOutCubic.
+   * Le fill (area) apparaît en fade-in opacity 0 → 1 décalé de 900ms
+   * (commence quand le tracé est à mi-chemin), pour renforcer la sensation
+   * "la ligne dessine puis la zone se remplit derrière elle".
    *
-   * Passer `animate={false}` pour rendre la sparkline statique (utile en
-   * contextes où l'animation distrairait, ex. tooltips, exports, tests).
+   * Passer `animate={false}` pour rendre la sparkline statique.
    */
   animate?: boolean;
+  /**
+   * Délai en millisecondes avant le démarrage de l'animation. Utile pour
+   * créer un effet de stagger entre plusieurs sparklines rendues côte à
+   * côte (ex. cards watchlist : delay = index * 120ms produit un "wave"
+   * qui balaie la rangée). Défaut : 0. Ignoré si `animate={false}`.
+   */
+  delay?: number;
 };
+
+// Constantes d'animation centralisées pour cohérence + lisibilité
+const TRACE_DURATION_MS = 1800;
+const FILL_DELAY_MS = 900; // moitié du tracé : le fill commence quand la ligne est à mi-parcours
+const FILL_DURATION_MS = TRACE_DURATION_MS - FILL_DELAY_MS;
+const EASING = "cubic-bezier(0.65, 0, 0.35, 1)"; // easeInOutCubic — démarre lent, finit lent
 
 export function Sparkline({
   points,
@@ -27,6 +41,7 @@ export function Sparkline({
   h = 18,
   fill = false,
   animate = true,
+  delay = 0,
 }: SparklineProps) {
   const max = Math.max(...points);
   const min = Math.min(...points);
@@ -42,7 +57,6 @@ export function Sparkline({
 
   const area = fill ? `${path} L${w},${h} L0,${h} Z` : null;
 
-  // Animation state
   const pathRef = useRef<SVGPathElement | null>(null);
   const [pathLength, setPathLength] = useState<number | null>(null);
   const [progress, setProgress] = useState(0); // 0 = caché, 1 = entièrement tracé
@@ -56,24 +70,23 @@ export function Sparkline({
 
     if (!pathRef.current) return;
 
-    // Mesure la longueur du path. Doit être appelé après le render initial
-    // car getTotalLength() nécessite que le path soit dans le DOM.
     const length = pathRef.current.getTotalLength();
     setPathLength(length);
-
-    // Reset à 0 puis transition vers 1 au tick suivant pour déclencher le browser
-    // (sinon, le passage 0 → 1 dans le même tick est ignoré par la transition).
     setProgress(0);
+
+    // Double rAF pour garantir que le browser applique l'état initial
+    // (dashOffset = pathLength) AVANT le passage à 1 — sinon la transition
+    // est ignorée car même tick de rendu.
     const id = requestAnimationFrame(() => {
-      setProgress(1);
+      requestAnimationFrame(() => {
+        setProgress(1);
+      });
     });
 
     return () => cancelAnimationFrame(id);
   }, [animate, path]);
 
-  // Calcul du dashoffset : pathLength au démarrage, 0 à la fin
-  const dashOffset =
-    pathLength !== null ? pathLength * (1 - progress) : 0;
+  const dashOffset = pathLength !== null ? pathLength * (1 - progress) : 0;
   const dashArray = pathLength !== null ? pathLength : undefined;
 
   return (
@@ -85,7 +98,9 @@ export function Sparkline({
           fillOpacity="0.15"
           style={{
             opacity: animate ? progress : 1,
-            transition: animate ? "opacity 900ms ease-out" : undefined,
+            transition: animate
+              ? `opacity ${FILL_DURATION_MS}ms ${EASING} ${delay + FILL_DELAY_MS}ms`
+              : undefined,
           }}
         />
       )}
@@ -101,7 +116,7 @@ export function Sparkline({
         strokeDashoffset={dashOffset}
         style={{
           transition: animate
-            ? "stroke-dashoffset 900ms cubic-bezier(0.22, 1, 0.36, 1)"
+            ? `stroke-dashoffset ${TRACE_DURATION_MS}ms ${EASING} ${delay}ms`
             : undefined,
         }}
       />
