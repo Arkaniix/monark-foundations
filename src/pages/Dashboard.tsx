@@ -1,50 +1,99 @@
+import { useEffect, useState } from "react";
+import { dashboardApi } from "@/lib/api";
+import { Skeleton } from "@/components/ui";
+import { DashboardStatTile } from "@/components/dashboard/DashboardStatTile";
+import type { DashboardOverview } from "@/components/dashboard/datasets";
+
 /**
- * Page Dashboard — version placeholder C0.
+ * Page Dashboard — chantier C1.
  *
- * Cette version sert UNIQUEMENT à valider le câblage RequireAuth + AppShell +
- * redirection post-signin. Elle sera entièrement réécrite au chantier C1
- * avec le vrai contenu : stat tiles, recent estimations, watchlist preview.
+ * Section §01 (Vue d'ensemble) avec 4 stat tiles peuplées via dashboardApi.getOverview().
+ * Comportement :
+ *   - Au mount, fetch l'overview (mock ou real selon VITE_USE_MOCK_API)
+ *   - Pendant le fetch : affiche 4 skeletons de la même forme que les tiles
+ *   - Après succès : affiche les tiles avec Counter animé + sparkline 30j
+ *   - En cas d'erreur : affiche un placeholder simple (sera amélioré en C3)
  *
- * Ne pas ajouter de contenu métier ici en attendant — toute logique doit
- * vivre dans des sous-composants `src/components/dashboard/*` créés à C1.
+ * Sections §02 (dernières estimations) et §03 (watchlist preview) arrivent en C2.
+ * États empty/loading/error détaillés arrivent en C3.
  */
 
+type FetchState =
+  | { status: "loading" }
+  | { status: "success"; data: DashboardOverview }
+  | { status: "error"; message: string };
+
 export default function Dashboard() {
+  const [state, setState] = useState<FetchState>({ status: "loading" });
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const data = await dashboardApi.getOverview();
+        if (cancelled) return;
+        setState({ status: "success", data });
+      } catch (err) {
+        if (cancelled) return;
+        const message =
+          err instanceof Error ? err.message : "Erreur de chargement";
+        setState({ status: "error", message });
+      }
+    };
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center gap-3">
         <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-600">
-          § 00
+          § 01
         </div>
         <div className="h-px w-10 bg-white/10" />
         <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-500">
-          PLACEHOLDER C0
+          VUE D'ENSEMBLE
         </div>
       </div>
 
-      <div className="mk-card fade-up p-8">
-        <h1 className="text-[18px] font-semibold text-zinc-100">
-          Dashboard
-        </h1>
-        <p className="mt-2 max-w-xl text-[13px] leading-relaxed text-zinc-500">
-          Placeholder du chantier C0 — sert à valider end-to-end le flow
-          signin → redirection /dashboard → RequireAuth → AppShell rendu.
-        </p>
-        <p className="mt-1 max-w-xl text-[12px] leading-relaxed text-zinc-600">
-          Le vrai contenu (stat tiles, dernières estimations, watchlist)
-          arrivera au chantier C1.
-        </p>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {state.status === "loading" && (
+          <>
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="mk-card flex flex-col gap-3 p-5">
+                <Skeleton className="h-3 w-24 rounded" />
+                <Skeleton className="mt-1 h-7 w-32 rounded" />
+                <Skeleton className="mt-2 h-2 w-full rounded" />
+              </div>
+            ))}
+          </>
+        )}
 
-        <div
-          className="mt-5 rounded-md p-3 font-mono text-[11px] leading-relaxed text-zinc-400"
-          style={{ background: "var(--mk-surface-2)" }}
-        >
-          {`status === "authenticated"  →  RequireAuth pass-through`}
-          <br />
-          {`AppShell wraps Dashboard with sidebar + topbar + main`}
-          <br />
-          {`User loaded from authApi.getMe() (mock or real)`}
-        </div>
+        {state.status === "success" &&
+          state.data.stats.map((stat) => (
+            <DashboardStatTile key={stat.id} data={stat} />
+          ))}
+
+        {state.status === "error" && (
+          <div className="mk-card col-span-full p-6">
+            <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500">
+              ERREUR
+            </div>
+            <div className="mt-2 text-[13px] text-zinc-300">
+              Impossible de charger la vue d'ensemble.
+            </div>
+            <div className="mt-1 font-mono text-[11px] text-zinc-600">
+              {state.message}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Sections §02 et §03 arrivent en C2. */}
+      <div className="font-mono text-[10px] tracking-wider text-zinc-700">
+        // §02 — DERNIÈRES ESTIMATIONS · §03 — WATCHLIST PREVIEW · à venir (chantier C2)
       </div>
     </div>
   );
