@@ -20,7 +20,7 @@ const PLAN_LABELS: Record<UserMenuUser["subscription_tier"], string> = {
 
 export function UserMenu({ user, onLogout }: UserMenuProps) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onClickOutside = (e: MouseEvent) => {
@@ -44,49 +44,73 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white/[0.06] font-mono text-[10px] tracking-wider text-zinc-200">
+        <div
+          className="flex h-6 w-6 items-center justify-center rounded-full font-mono text-[10px] text-zinc-200"
+          style={{ background: "var(--mk-surface-3)" }}
+        >
           {initials}
+        </div>
+        <span className="hidden max-w-[160px] truncate text-[12.5px] text-zinc-300 sm:inline">
+          {user.email}
         </span>
-        <span className="text-[13px] text-zinc-300">{user.email}</span>
-        <ChevronDown className="h-3.5 w-3.5 text-zinc-500" />
+        <ChevronDown
+          className="h-4 w-4 text-zinc-500"
+          strokeWidth={1.5}
+        />
       </button>
 
       {open && (
         <div
-          className="mk-card-flat fade-up absolute right-0 top-[calc(100%+6px)] z-50 w-64 overflow-hidden p-1.5"
+          className="mk-card-flat fade-up absolute right-0 mt-2 w-64 overflow-hidden"
+          style={{ animationDuration: "220ms" }}
           role="menu"
         >
-          <div className="px-2.5 py-2">
-            <div className="truncate text-[12px] text-zinc-400">
+          <div className="p-3">
+            <div className="truncate text-[12px] text-zinc-300">
               {user.email}
             </div>
-            <div className="mt-1.5 flex items-center justify-between">
-              <span className="font-mono text-[9px] tracking-widest text-zinc-500">
+            <div className="mt-1 flex items-center gap-2">
+              <span className="font-mono text-[10px] tracking-wider text-zinc-500">
                 PLAN
               </span>
-              <span className="rounded bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] tracking-wider text-zinc-200">
+              <span
+                className="rounded px-1.5 py-0.5 font-mono text-[10px]"
+                style={{
+                  background: "rgba(59,130,246,0.12)",
+                  color: "#60A5FA",
+                }}
+              >
                 {planLabel}
               </span>
             </div>
           </div>
-
-          <div className="my-1 h-px bg-white/[0.06]" />
-
+          <div
+            style={{
+              height: 1,
+              background: "var(--mk-divider-soft)",
+            }}
+          />
           <a
             href="/settings"
-            className="ease-expo flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] text-zinc-300 transition-colors hover:bg-white/[0.04] hover:text-zinc-100"
+            className="ease-expo flex items-center gap-2.5 px-3 py-2.5 text-[12.5px] text-zinc-300 transition-colors hover:bg-white/[0.03] hover:text-zinc-50"
             role="menuitem"
           >
-            <SettingsIcon className="h-3.5 w-3.5 text-zinc-500" />
+            <SettingsIcon
+              className="h-4 w-4 text-zinc-500"
+              strokeWidth={1.5}
+            />
             Paramètres
           </a>
           <button
             type="button"
             onClick={onLogout}
-            className="ease-expo flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-[13px] text-zinc-300 transition-colors hover:bg-white/[0.04] hover:text-zinc-100"
+            className="ease-expo flex w-full items-center gap-2.5 px-3 py-2.5 text-[12.5px] text-zinc-300 transition-colors hover:bg-white/[0.03] hover:text-zinc-50"
             role="menuitem"
           >
-            <LogOut className="h-3.5 w-3.5 text-zinc-500" />
+            <LogOut
+              className="h-4 w-4 text-zinc-500"
+              strokeWidth={1.5}
+            />
             Déconnexion
           </button>
         </div>
