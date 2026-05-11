@@ -27,6 +27,13 @@ type SparklineProps = {
    * Défaut : 0. Ignoré si animate={false}.
    */
   delay?: number;
+  /**
+   * Si true, le SVG occupe 100% de la largeur du parent (width="100%")
+   * tout en conservant son viewBox interne. Le viewBox + DASH_LENGTH fixe
+   * garantissent que l'animation reste cohérente quelle que soit la
+   * largeur rendue. Défaut : false.
+   */
+  stretch?: boolean;
 };
 
 const TRACE_DURATION_MS = 1600;
@@ -43,6 +50,7 @@ export function Sparkline({
   fill = false,
   animate = true,
   delay = 0,
+  stretch = false,
 }: SparklineProps) {
   const [ref, seen] = useInView(0.25);
   const playing = animate ? seen : true; // animate=false → toujours révélé
@@ -66,9 +74,10 @@ export function Sparkline({
     <svg
       ref={ref as unknown as React.RefObject<SVGSVGElement>}
       viewBox={`0 0 ${w} ${h}`}
-      width={w}
+      width={stretch ? "100%" : w}
       height={h}
-      className="overflow-visible"
+      className="overflow-visible block"
+      preserveAspectRatio={stretch ? "none" : undefined}
     >
       {fill && area && (
         <path
