@@ -82,14 +82,15 @@ function Card({ item, index }: CardProps) {
         <span className="font-mono text-[10px] text-zinc-600">vs 14j</span>
       </div>
 
-      {/* Sparkline 7 points — animée avec délai stagger */}
-      <div className="mt-1">
+      {/* Sparkline 7 points — animée avec délai stagger, fluide pleine largeur */}
+      <div className="mt-1 w-full">
         <Sparkline
           points={item.sparkline}
           color={deltaColor}
           w={200}
-          h={28}
+          h={36}
           fill
+          stretch
           delay={index * STAGGER_MS}
         />
       </div>
