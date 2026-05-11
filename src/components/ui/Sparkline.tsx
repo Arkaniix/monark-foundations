@@ -13,38 +13,38 @@ type SparklineProps = {
    */
   animate?: boolean;
   /**
-   * Délai en millisecondes avant le démarrage de l'animation, additionné à
-   * transition-delay. Utilisé pour le stagger entre plusieurs sparklines.
+   * Délai en millisecondes avant le démarrage de l'animation (transition-delay).
    * Défaut : 0.
    */
   delay?: number;
   /**
-   * Active le tooltip au hover sur la courbe.
-   * Si activé, le composant ajoute une couche d'interaction (vertical line,
-   * dot, rectangle tooltip) qui affiche : date calendaire FR + prix + delta
-   * vs point précédent.
-   * Le tooltip nécessite au moins 2 points pour calculer le delta. Hover
-   * désactivé pendant l'animation de tracé pour ne pas interférer.
+   * Active le tooltip au hover sur la courbe : date FR + prix + delta vs J−1.
+   * Le tooltip est positionné en haut-droit du point hovered avec bascule
+   * automatique (haut-gauche, bas-droit, bas-gauche) si trop proche d'un bord.
+   * Désactivé pendant l'animation de tracé pour ne pas interférer.
    * Défaut : false.
    */
   hover?: boolean;
   /**
-   * Suffixe ajouté au prix dans le tooltip. Défaut : " €".
-   * Ignoré si hover=false.
+   * Suffixe ajouté au prix dans le tooltip. Défaut : " €". Ignoré si hover=false.
    */
   unit?: string;
 };
 
+// Animation
 const TRACE_DURATION_MS = 3000;
 const FILL_FADE_DURATION_MS = 600;
 const FILL_FADE_DELAY_MS = 1500;
 const EASING = "cubic-bezier(0.16,1,0.3,1)";
 const DASH_LENGTH = 500;
 
-// Tooltip
-const TOOLTIP_W = 84;
-const TOOLTIP_H = 42;
-const TOOLTIP_PAD = 6;
+// Tooltip — dimensions et offsets
+const TOOLTIP_W = 140;
+const TOOLTIP_H = 56;
+const TOOLTIP_OFFSET = 12; // gap entre le point et le tooltip
+const TOOLTIP_PAD_X = 8;
+const TOOLTIP_PAD_TOP = 14;
+const TOOLTIP_LINE_GAP = 14; // espacement vertical entre les 3 lignes du tooltip
 
 const DAYS_FR = ["dim", "lun", "mar", "mer", "jeu", "ven", "sam"];
 const MONTHS_FR = [
@@ -62,22 +62,44 @@ const MONTHS_FR = [
   "déc",
 ];
 
-/**
- * Formate une date en "lun 5 mai" (jour 3 lettres + jour du mois + mois 3 lettres).
- */
 function formatDateFR(date: Date): string {
   return `${DAYS_FR[date.getDay()]} ${date.getDate()} ${MONTHS_FR[date.getMonth()]}`;
 }
 
-/**
- * Étant donné un index dans un tableau de N points (où le dernier point = aujourd'hui),
- * retourne la Date correspondante en reculant jour par jour.
- */
 function dateForIndex(index: number, totalPoints: number): Date {
   const daysAgo = totalPoints - 1 - index;
   const d = new Date();
   d.setDate(d.getDate() - daysAgo);
   return d;
+}
+
+/**
+ * Calcule la position du tooltip avec bascule selon disponibilité.
+ * Ordre de priorité : haut-droit → haut-gauche → bas-droit → bas-gauche.
+ *
+ * Le SVG a overflow-visible, donc on peut déborder du viewBox vers le haut /
+ * gauche / droite. La contrainte principale est :
+ *   - ne pas dépasser la largeur visuelle du SVG (sinon on entre dans la card voisine)
+ *   - laisser un peu d'air en haut (-TOOLTIP_H au-dessus du svg = 56px, OK car mk-card padding p-5)
+ */
+function computeTooltipPosition(
+  pointX: number,
+  pointY: number,
+  svgW: number,
+): { x: number; y: number } {
+  const rightX = pointX + TOOLTIP_OFFSET;
+  const leftX = pointX - TOOLTIP_OFFSET - TOOLTIP_W;
+  const aboveY = pointY - TOOLTIP_OFFSET - TOOLTIP_H;
+  const belowY = pointY + TOOLTIP_OFFSET;
+
+  const fitsRight = rightX + TOOLTIP_W <= svgW;
+  const fitsLeft = leftX >= 0;
+  const fitsAbove = aboveY >= -TOOLTIP_H; // tolère un débordement sup avec overflow-visible
+
+  if (fitsRight && fitsAbove) return { x: rightX, y: aboveY };
+  if (fitsLeft && fitsAbove) return { x: leftX, y: aboveY };
+  if (fitsRight) return { x: rightX, y: belowY };
+  return { x: leftX, y: belowY };
 }
 
 type HoverState = {
@@ -105,7 +127,6 @@ export function Sparkline({
   const min = Math.min(...points);
   const range = max - min || 1;
 
-  // Pré-calcul des coordonnées de chaque point pour réutilisation (path + hover)
   const coords = points.map((p, i) => ({
     x: (i / (points.length - 1)) * w,
     y: h - ((p - min) / range) * h,
@@ -115,7 +136,6 @@ export function Sparkline({
   const path = `M ${coords.map((c) => `${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(" ")}`;
   const area = fill ? `${path} L${w},${h} L0,${h} Z` : null;
 
-  // Hover désactivé tant que l'animation tracé n'est pas terminée
   const hoverEnabled = hover && playing;
 
   const handleMove = (e: React.MouseEvent<SVGSVGElement>) => {
@@ -136,27 +156,23 @@ export function Sparkline({
     setHoverState(null);
   };
 
-  // Données du tooltip si hoverState actif
   let tooltipNode: React.ReactNode = null;
   if (hoverState) {
     const date = dateForIndex(hoverState.idx, points.length);
     const dateLabel = formatDateFR(date);
-    const currentValue = coords[hoverState.idx].value;
-    const price = Math.round(currentValue);
+    const price = Math.round(hoverState.value);
     const prevValue =
       hoverState.idx > 0 ? coords[hoverState.idx - 1].value : null;
     const deltaPct =
       prevValue !== null && prevValue !== 0
-        ? ((currentValue - prevValue) / prevValue) * 100
+        ? ((hoverState.value - prevValue) / prevValue) * 100
         : null;
 
-    // Clamp pour éviter le débordement horizontal
-    const tooltipX = Math.min(
-      w - TOOLTIP_W - 2,
-      Math.max(2, hoverState.x - TOOLTIP_W / 2),
+    const { x: tx, y: ty } = computeTooltipPosition(
+      hoverState.x,
+      hoverState.y,
+      w,
     );
-    // Tooltip toujours au-dessus du point quand possible, sinon en dessous
-    const tooltipY = Math.max(2, hoverState.y - TOOLTIP_H - TOOLTIP_PAD);
 
     const deltaColor =
       deltaPct === null
@@ -171,7 +187,7 @@ export function Sparkline({
 
     tooltipNode = (
       <g style={{ pointerEvents: "none" }}>
-        {/* Vertical line */}
+        {/* Vertical guide line + dot */}
         <line
           x1={hoverState.x}
           y1={0}
@@ -182,54 +198,53 @@ export function Sparkline({
           strokeDasharray="2 2"
           strokeWidth="0.6"
         />
-        {/* Dot */}
-        <circle cx={hoverState.x} cy={hoverState.y} r={2.2} fill={color} />
-        {/* Tooltip background */}
+        <circle cx={hoverState.x} cy={hoverState.y} r={2.6} fill={color} />
+        {/* Tooltip rectangle */}
         <rect
-          x={tooltipX}
-          y={tooltipY}
+          x={tx}
+          y={ty}
           width={TOOLTIP_W}
           height={TOOLTIP_H}
-          rx={4}
+          rx={5}
           fill="#0A0A0B"
           stroke="#fafafa"
-          strokeOpacity="0.18"
-          strokeWidth="0.6"
+          strokeOpacity="0.2"
+          strokeWidth="0.7"
         />
-        {/* Date */}
+        {/* Ligne 1 : date */}
         <text
-          x={tooltipX + TOOLTIP_W / 2}
-          y={tooltipY + 11}
-          textAnchor="middle"
+          x={tx + TOOLTIP_PAD_X}
+          y={ty + TOOLTIP_PAD_TOP}
           fontFamily="JetBrains Mono, monospace"
-          fontSize="7"
+          fontSize="9"
           fill="#a1a1aa"
         >
           {dateLabel}
         </text>
-        {/* Prix */}
+        {/* Ligne 2 : prix (plus grand, semibold) */}
         <text
-          x={tooltipX + TOOLTIP_W / 2}
-          y={tooltipY + 23}
-          textAnchor="middle"
+          x={tx + TOOLTIP_PAD_X}
+          y={ty + TOOLTIP_PAD_TOP + TOOLTIP_LINE_GAP}
           fontFamily="JetBrains Mono, monospace"
-          fontSize="9"
+          fontSize="12"
           fontWeight="600"
           fill="#fafafa"
         >
           {price}
           {unit}
         </text>
-        {/* Delta */}
+        {/* Ligne 3 : delta J−1 */}
         <text
-          x={tooltipX + TOOLTIP_W / 2}
-          y={tooltipY + 34}
-          textAnchor="middle"
+          x={tx + TOOLTIP_PAD_X}
+          y={ty + TOOLTIP_PAD_TOP + TOOLTIP_LINE_GAP * 2}
           fontFamily="JetBrains Mono, monospace"
-          fontSize="7"
+          fontSize="9"
           fill={deltaColor}
         >
           {deltaLabel}
+          {deltaPct !== null && (
+            <tspan fill="#52525b"> vs veille</tspan>
+          )}
         </text>
       </g>
     );
