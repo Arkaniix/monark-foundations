@@ -20,12 +20,13 @@ type SparklineProps = {
   stretch?: boolean;
 };
 
-const TRACE_DURATION_MS = 2600;
-const FILL_DELAY_MS = 1300;
+const TRACE_DURATION_MS = 2400;
+const FILL_DELAY_MS = 1200;
 const FILL_DURATION_MS = TRACE_DURATION_MS - FILL_DELAY_MS;
-// Easing inspiré du tracé "à la main" — démarrage doux, vitesse soutenue
-// au milieu, arrivée lente. Plus fluide qu'un easeInOutCubic standard.
-const EASING = "cubic-bezier(0.45, 0.05, 0.25, 1)";
+// Même easing que la courbe Diagnostic de la landing (VolatilityViz) :
+// expo-out — démarrage franc, décélération longue → sensation de trait
+// dessiné à la main, fluide.
+const EASING = "cubic-bezier(0.16, 1, 0.3, 1)";
 
 export function Sparkline({
   points,
