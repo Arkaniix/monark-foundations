@@ -26,6 +26,14 @@ type SparklineProps = {
    * qui balaie la rangée). Défaut : 0. Ignoré si `animate={false}`.
    */
   delay?: number;
+  /**
+   * Si true, la sparkline s'étire à 100% de la largeur de son parent
+   * (viewBox + preserveAspectRatio="none"). Les coordonnées internes
+   * restent calculées sur `w` × `h` (viewBox), mais le rendu remplit
+   * le conteneur. Le stroke utilise `vector-effect="non-scaling-stroke"`
+   * pour éviter la distorsion de l'épaisseur. Défaut : false.
+   */
+  stretch?: boolean;
 };
 
 // Constantes d'animation centralisées pour cohérence + lisibilité
@@ -42,6 +50,7 @@ export function Sparkline({
   fill = false,
   animate = true,
   delay = 0,
+  stretch = false,
 }: SparklineProps) {
   const max = Math.max(...points);
   const min = Math.min(...points);
@@ -90,7 +99,17 @@ export function Sparkline({
   const dashArray = pathLength !== null ? pathLength : undefined;
 
   return (
-    <svg width={w} height={h} className="overflow-visible">
+    <svg
+      {...(stretch
+        ? {
+            viewBox: `0 0 ${w} ${h}`,
+            width: "100%",
+            height: h,
+            preserveAspectRatio: "none",
+          }
+        : { width: w, height: h })}
+      className="overflow-visible"
+    >
       {fill && area && (
         <path
           d={area}
@@ -112,6 +131,7 @@ export function Sparkline({
         strokeWidth="1.4"
         strokeLinecap="round"
         strokeLinejoin="round"
+        vectorEffect={stretch ? "non-scaling-stroke" : undefined}
         strokeDasharray={dashArray}
         strokeDashoffset={dashOffset}
         style={{
