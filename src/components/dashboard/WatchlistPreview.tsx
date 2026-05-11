@@ -10,22 +10,20 @@ type WatchlistPreviewProps = {
  * Preview de la watchlist (§03 du Dashboard).
  *
  * Grid 1 / 2 / 4 cols responsive — même pattern que les stat tiles §01.
- * 4 cards mk-card avec :
- *   - Header : modèle (mono semibold) + catégorie (mono uppercase plus discrète)
- *   - Sparkline 7 points (fill) en arrière-plan visuel léger
- *   - Prix moyen 7j (€ mono tabular-nums grand)
- *   - Delta % vs 14j avec ArrowUp/ArrowDown coloré
- *   - Bouton "Voir le détail →" subtle en bas, chevron lucide
  *
- * Le bouton est no-op pour l'instant — la route /watchlist/<id> sera créée
- * dans un chantier ultérieur, on garde la signature visuelle dès maintenant
- * pour ne pas avoir à refaire la card.
+ * Animation : chaque card reçoit un `index` qui calcule un délai
+ * `index * STAGGER_MS` passé à sa Sparkline → effet "wave" qui balaie
+ * la rangée de gauche à droite. Combiné au tracé progressif 1800ms
+ * (Sparkline v3), donne une apparition narrative cinématographique.
  */
+
+const STAGGER_MS = 120;
+
 export function WatchlistPreview({ data }: WatchlistPreviewProps) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {data.map((item) => (
-        <Card key={item.id} item={item} />
+      {data.map((item, index) => (
+        <Card key={item.id} item={item} index={index} />
       ))}
     </div>
   );
@@ -33,9 +31,10 @@ export function WatchlistPreview({ data }: WatchlistPreviewProps) {
 
 type CardProps = {
   item: WatchlistItem;
+  index: number;
 };
 
-function Card({ item }: CardProps) {
+function Card({ item, index }: CardProps) {
   const isPositive = item.delta_pct_vs_14d >= 0;
   const deltaColor = isPositive ? "#10B981" : "#EF4444";
   const DeltaIcon = isPositive ? ArrowUp : ArrowDown;
@@ -83,7 +82,7 @@ function Card({ item }: CardProps) {
         <span className="font-mono text-[10px] text-zinc-600">vs 14j</span>
       </div>
 
-      {/* Sparkline 7 points */}
+      {/* Sparkline 7 points — animée avec délai stagger */}
       <div className="mt-1">
         <Sparkline
           points={item.sparkline}
@@ -91,6 +90,7 @@ function Card({ item }: CardProps) {
           w={200}
           h={28}
           fill
+          delay={index * STAGGER_MS}
         />
       </div>
 
