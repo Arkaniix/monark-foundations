@@ -3,16 +3,17 @@ import { dashboardApi } from "@/lib/api";
 import { Skeleton } from "@/components/ui";
 import { DashboardStatTile } from "@/components/dashboard/DashboardStatTile";
 import { RecentEstimations } from "@/components/dashboard/RecentEstimations";
+import { WatchlistPreview } from "@/components/dashboard/WatchlistPreview";
 import type { DashboardOverview } from "@/components/dashboard/datasets";
 
 /**
- * Page Dashboard — chantier C2a.
+ * Page Dashboard — chantier C2b.
  *
  * Sections livrées :
  *   §01 Vue d'ensemble (4 stat tiles)
  *   §02 Dernières estimations (table compacte 5 lignes, 6 colonnes)
+ *   §03 Watchlist preview (4 cards horizontales avec sparkline 7j)
  *
- * Section §03 (watchlist preview) arrive en C2b.
  * États empty/loading/error détaillés arrivent en C3.
  */
 
@@ -146,10 +147,46 @@ export default function Dashboard() {
         )}
       </section>
 
-      {/* §03 arrive en C2b. */}
-      <div className="font-mono text-[10px] tracking-wider text-zinc-700">
-        // §03 — WATCHLIST PREVIEW · à venir (chantier C2b)
-      </div>
+      {/* §03 — Watchlist preview */}
+      <section className="flex flex-col gap-5">
+        <div className="flex items-center gap-3">
+          <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-600">
+            § 03
+          </div>
+          <div className="h-px w-10 bg-white/10" />
+          <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-500">
+            WATCHLIST
+          </div>
+        </div>
+
+        {state.status === "loading" && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="mk-card flex flex-col gap-3 p-5">
+                <Skeleton className="h-4 w-32 rounded" />
+                <Skeleton className="mt-1 h-7 w-24 rounded" />
+                <Skeleton className="h-3 w-20 rounded" />
+                <Skeleton className="mt-2 h-7 w-full rounded" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {state.status === "success" && (
+          <WatchlistPreview data={state.data.watchlist_preview} />
+        )}
+
+        {state.status === "error" && (
+          <div className="mk-card p-6">
+            <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500">
+              ERREUR
+            </div>
+            <div className="mt-2 text-[13px] text-zinc-300">
+              Impossible de charger la watchlist.
+            </div>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

@@ -77,11 +77,36 @@ export type RecentEstimation = {
 };
 
 // ============================================================================
+// §03 — Watchlist preview (4 cards horizontales)
+// ============================================================================
+
+/**
+ * Un modèle suivi par le user dans sa watchlist.
+ *
+ * Données issues de `component_market_stats` backend :
+ *   - average_price_7d : médiane pondérée demi-vie 14j sur les 7 derniers jours
+ *   - delta_pct_vs_14d : variation vs moyenne 14j (peut être négative)
+ *   - sparkline : 7 points (prix moyen quotidien des 7 derniers jours)
+ *
+ * Le bouton "Voir le détail" pointe vers /watchlist/<id> (route à créer
+ * dans un chantier ultérieur — pour l'instant no-op).
+ */
+export type WatchlistItem = {
+  id: string;
+  model_name: string;
+  category: HardwareCategory;
+  average_price_7d: number;
+  delta_pct_vs_14d: number;
+  sparkline: number[]; // 7 points
+};
+
+// ============================================================================
 // Wrapper DashboardOverview
 // ============================================================================
 
 export type DashboardOverview = {
   stats: StatTileData[];
   recent_estimations: RecentEstimation[];
+  watchlist_preview: WatchlistItem[];
   generated_at: string; // ISO 8601 UTC
 };
