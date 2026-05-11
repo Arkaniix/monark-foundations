@@ -1,31 +1,24 @@
 /**
  * Mock implementation Dashboard API.
  *
- * Retourne un overview synthétique cohérent avec MOCK_USER (89/180 crédits)
- * et représentatif de ce qu'un user pro standard verrait après quelques mois
- * d'utilisation : ~12 estimations/mois, marge moyenne ~85€, watchlist
- * d'une trentaine de modèles suivis.
+ * Étendu en C2a avec `recent_estimations` : 5 dernières estimations fictives
+ * couvrant les 6 catégories et les 4 verdicts pour montrer la variété visuelle.
  *
- * Les sparklines 30 jours sont générées avec une légère variabilité pour
- * paraître naturelles sans être trop bruyantes — moyenne stable + bruit
- * gaussien ±10%.
+ * Les modèles sont des références réelles du marché (RTX 4070 SUPER, 7800X3D,
+ * DDR5-6000, etc.) mais sans données d'annonces individuelles — uniquement
+ * des prix synthétiques cohérents (cf. component_market_stats backend Monark).
  */
 
-import { mockDelay } from "./fixtures";
-import { MOCK_USER } from "./fixtures";
+import { mockDelay, MOCK_USER } from "./fixtures";
 import type {
   DashboardOverview,
   StatTileData,
+  RecentEstimation,
 } from "../../components/dashboard/datasets";
 
-/**
- * Génère une série de N points oscillant autour d'une valeur cible.
- * Utilisé pour les sparklines 30 jours. Variabilité ±amplitude%.
- */
 function generateSeries(target: number, n: number, amplitude = 0.12): number[] {
   const out: number[] = [];
   for (let i = 0; i < n; i++) {
-    // Légère tendance + bruit
     const trend = (i / n) * target * 0.05;
     const noise = (Math.random() - 0.5) * 2 * target * amplitude;
     out.push(Math.max(0, target + trend + noise));
@@ -34,6 +27,63 @@ function generateSeries(target: number, n: number, amplitude = 0.12): number[] {
 }
 
 const PLAN_CAPS = { free: 10, standard: 180, pro: 600 } as const;
+
+/**
+ * Dates relatives par rapport à "maintenant" pour que la table garde une
+ * cohérence temporelle même si elle est rendue plusieurs fois ("il y a 2h"
+ * doit rester "il y a 2h" et pas "il y a une semaine").
+ */
+function hoursAgo(h: number): string {
+  return new Date(Date.now() - h * 3600 * 1000).toISOString();
+}
+
+const MOCK_RECENT_ESTIMATIONS: RecentEstimation[] = [
+  {
+    id: "est_01",
+    model_name: "RTX 4070 SUPER",
+    category: "GPU",
+    verdict: "FONCER",
+    listing_price_eur: 480,
+    net_margin_eur: 95,
+    created_at: hoursAgo(2),
+  },
+  {
+    id: "est_02",
+    model_name: "7800X3D",
+    category: "CPU",
+    verdict: "NÉGOCIER",
+    listing_price_eur: 320,
+    net_margin_eur: 42,
+    created_at: hoursAgo(8),
+  },
+  {
+    id: "est_03",
+    model_name: "DDR5-6000 32GB",
+    category: "RAM",
+    verdict: "TENTER",
+    listing_price_eur: 110,
+    net_margin_eur: 18,
+    created_at: hoursAgo(26),
+  },
+  {
+    id: "est_04",
+    model_name: "RTX 4090",
+    category: "GPU",
+    verdict: "PASSER",
+    listing_price_eur: 1850,
+    net_margin_eur: -45,
+    created_at: hoursAgo(48),
+  },
+  {
+    id: "est_05",
+    model_name: "B650 TOMAHAWK",
+    category: "MOBO",
+    verdict: "FONCER",
+    listing_price_eur: 140,
+    net_margin_eur: 35,
+    created_at: hoursAgo(72),
+  },
+];
 
 export async function getOverview(): Promise<DashboardOverview> {
   await mockDelay(280);
@@ -88,6 +138,7 @@ export async function getOverview(): Promise<DashboardOverview> {
 
   return {
     stats,
+    recent_estimations: MOCK_RECENT_ESTIMATIONS,
     generated_at: new Date().toISOString(),
   };
 }

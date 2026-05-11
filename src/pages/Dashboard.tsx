@@ -2,19 +2,17 @@ import { useEffect, useState } from "react";
 import { dashboardApi } from "@/lib/api";
 import { Skeleton } from "@/components/ui";
 import { DashboardStatTile } from "@/components/dashboard/DashboardStatTile";
+import { RecentEstimations } from "@/components/dashboard/RecentEstimations";
 import type { DashboardOverview } from "@/components/dashboard/datasets";
 
 /**
- * Page Dashboard — chantier C1.
+ * Page Dashboard — chantier C2a.
  *
- * Section §01 (Vue d'ensemble) avec 4 stat tiles peuplées via dashboardApi.getOverview().
- * Comportement :
- *   - Au mount, fetch l'overview (mock ou real selon VITE_USE_MOCK_API)
- *   - Pendant le fetch : affiche 4 skeletons de la même forme que les tiles
- *   - Après succès : affiche les tiles avec Counter animé + sparkline 30j
- *   - En cas d'erreur : affiche un placeholder simple (sera amélioré en C3)
+ * Sections livrées :
+ *   §01 Vue d'ensemble (4 stat tiles)
+ *   §02 Dernières estimations (table compacte 5 lignes, 6 colonnes)
  *
- * Sections §02 (dernières estimations) et §03 (watchlist preview) arrivent en C2.
+ * Section §03 (watchlist preview) arrive en C2b.
  * États empty/loading/error détaillés arrivent en C3.
  */
 
@@ -47,53 +45,110 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex items-center gap-3">
-        <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-600">
-          § 01
+    <div className="flex flex-col gap-10">
+      {/* §01 — Vue d'ensemble */}
+      <section className="flex flex-col gap-5">
+        <div className="flex items-center gap-3">
+          <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-600">
+            § 01
+          </div>
+          <div className="h-px w-10 bg-white/10" />
+          <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-500">
+            VUE D'ENSEMBLE
+          </div>
         </div>
-        <div className="h-px w-10 bg-white/10" />
-        <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-500">
-          VUE D'ENSEMBLE
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {state.status === "loading" && (
+            <>
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="mk-card flex flex-col gap-3 p-5">
+                  <Skeleton className="h-3 w-24 rounded" />
+                  <Skeleton className="mt-1 h-7 w-32 rounded" />
+                  <Skeleton className="mt-2 h-2 w-full rounded" />
+                </div>
+              ))}
+            </>
+          )}
+
+          {state.status === "success" &&
+            state.data.stats.map((stat) => (
+              <DashboardStatTile key={stat.id} data={stat} />
+            ))}
+
+          {state.status === "error" && (
+            <div className="mk-card col-span-full p-6">
+              <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500">
+                ERREUR
+              </div>
+              <div className="mt-2 text-[13px] text-zinc-300">
+                Impossible de charger la vue d'ensemble.
+              </div>
+              <div className="mt-1 font-mono text-[11px] text-zinc-600">
+                {state.message}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* §02 — Dernières estimations */}
+      <section className="flex flex-col gap-5">
+        <div className="flex items-center gap-3">
+          <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-600">
+            § 02
+          </div>
+          <div className="h-px w-10 bg-white/10" />
+          <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-500">
+            DERNIÈRES ESTIMATIONS
+          </div>
+        </div>
+
         {state.status === "loading" && (
-          <>
-            {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="mk-card flex flex-col gap-3 p-5">
-                <Skeleton className="h-3 w-24 rounded" />
-                <Skeleton className="mt-1 h-7 w-32 rounded" />
-                <Skeleton className="mt-2 h-2 w-full rounded" />
+          <div className="mk-card overflow-hidden">
+            <div
+              className="px-5 py-3"
+              style={{ borderBottom: "1px solid var(--mk-divider-soft)" }}
+            >
+              <Skeleton className="h-3 w-32 rounded" />
+            </div>
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="flex items-center gap-4 px-5 py-3"
+                style={{
+                  borderBottom:
+                    i === 4 ? "none" : "1px solid var(--mk-divider-soft)",
+                }}
+              >
+                <Skeleton className="h-4 w-40 rounded" />
+                <div className="flex-1" />
+                <Skeleton className="h-4 w-16 rounded" />
+                <Skeleton className="h-4 w-20 rounded" />
               </div>
             ))}
-          </>
+          </div>
         )}
 
-        {state.status === "success" &&
-          state.data.stats.map((stat) => (
-            <DashboardStatTile key={stat.id} data={stat} />
-          ))}
+        {state.status === "success" && (
+          <RecentEstimations data={state.data.recent_estimations} />
+        )}
 
         {state.status === "error" && (
-          <div className="mk-card col-span-full p-6">
+          <div className="mk-card p-6">
             <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500">
               ERREUR
             </div>
             <div className="mt-2 text-[13px] text-zinc-300">
-              Impossible de charger la vue d'ensemble.
-            </div>
-            <div className="mt-1 font-mono text-[11px] text-zinc-600">
-              {state.message}
+              Impossible de charger les estimations.
             </div>
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Sections §02 et §03 arrivent en C2. */}
+      {/* §03 arrive en C2b. */}
       <div className="font-mono text-[10px] tracking-wider text-zinc-700">
-        // §02 — DERNIÈRES ESTIMATIONS · §03 — WATCHLIST PREVIEW · à venir (chantier C2)
+        // §03 — WATCHLIST PREVIEW · à venir (chantier C2b)
       </div>
     </div>
   );
