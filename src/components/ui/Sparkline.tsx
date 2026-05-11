@@ -5,35 +5,37 @@ type SparklineProps = {
   points: number[];
   color?: string;
   /**
-   * Largeur de référence utilisée pour le viewBox SVG.
-   * Note : le SVG est rendu en width="100%" et s'étire à la largeur de son
-   * conteneur. La valeur `w` détermine seulement la résolution interne du
-   * viewBox (plus elle est élevée, plus le path a de détail). Pour les
-   * sparklines watchlist on utilise 320 par défaut pour un compromis
-   * détail / coût render.
+   * Largeur de référence du viewBox SVG. Le SVG est rendu en width="100%"
+   * et s'étire horizontalement. Cette valeur sert seulement à fixer la
+   * résolution interne du viewBox.
    */
   w?: number;
+  /**
+   * Hauteur de référence du viewBox SVG.
+   *
+   * Si `fillHeight=false` (default) : le SVG est rendu à `height={h}` en
+   * pixels absolus (mode legacy pour les stat tiles §01).
+   *
+   * Si `fillHeight=true` : le SVG est rendu en `height="100%"` et remplit
+   * son conteneur parent. Le ratio est défini par l'`aspect-ratio` CSS
+   * du conteneur (ex. wrapper `aspect-ratio: 9/1` dans WatchlistPreview).
+   * Le viewBox reste `w × h` en unités virtuelles.
+   */
   h?: number;
+  fillHeight?: boolean;
   fill?: boolean;
   animate?: boolean;
   delay?: number;
-  /**
-   * Active le tooltip au hover : date FR + prix + delta vs J−1.
-   * Positionnement mouse-aware avec bascule de quadrant et débordement
-   * autorisé au-dessus de la card pour préserver la lisibilité.
-   */
   hover?: boolean;
   unit?: string;
 };
 
-// Animation
 const TRACE_DURATION_MS = 3000;
 const FILL_FADE_DURATION_MS = 600;
 const FILL_FADE_DELAY_MS = 1500;
 const EASING = "cubic-bezier(0.16,1,0.3,1)";
 const DASH_LENGTH = 500;
 
-// Tooltip — dimensions en unités viewBox (même système que les coords des points)
 const TOOLTIP_W = 150;
 const TOOLTIP_H = 64;
 const TOOLTIP_OFFSET = 10;
@@ -68,23 +70,6 @@ function dateForIndex(index: number, totalPoints: number): Date {
   return d;
 }
 
-/**
- * Positionnement du tooltip avec bascule de quadrant.
- *
- * Le SVG a overflow-visible et la mk-card parente n'a pas overflow:hidden,
- * donc le tooltip peut déborder vers le haut au-dessus de la card. C'est
- * le comportement souhaité pour préserver la lisibilité — quitte à
- * chevaucher légèrement la card voisine du dessus.
- *
- * Le seul clipping strict est horizontal : on évite que le tooltip dépasse
- * du viewBox en X (sinon il finirait dans la card voisine de droite ou
- * passerait à gauche, hors zone cliquable).
- *
- * Ordre :
- *   - défaut : haut-droit du point (gap TOOLTIP_OFFSET)
- *   - si point trop à droite : bascule haut-gauche
- *   - on ne bascule jamais en bas (débordement haut autorisé)
- */
 function computeTooltipPosition(
   pointX: number,
   pointY: number,
@@ -97,9 +82,6 @@ function computeTooltipPosition(
   const fitsRight = rightX + TOOLTIP_W <= svgW;
 
   if (fitsRight) return { x: rightX, y: aboveY };
-  // Fallback : haut-gauche (et si ça déborde encore à gauche, on l'accepte
-  // car au pire le tooltip touche le bord gauche du conteneur — moins
-  // gênant qu'un débordement à droite qui empiéterait sur la card voisine)
   return { x: Math.max(0, leftX), y: aboveY };
 }
 
@@ -114,6 +96,7 @@ export function Sparkline({
   color = "#10B981",
   w = 320,
   h = 28,
+  fillHeight = false,
   fill = false,
   animate = true,
   delay = 0,
@@ -142,7 +125,6 @@ export function Sparkline({
   const handleMove = (e: React.MouseEvent<SVGSVGElement>) => {
     if (!hoverEnabled) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    // Conversion pixel → unité viewBox via la largeur réelle du SVG
     const relativeX = ((e.clientX - rect.left) / rect.width) * w;
     const idx = Math.max(
       0,
@@ -162,13 +144,12 @@ export function Sparkline({
   if (hoverState) {
     const date = dateForIndex(hoverState.idx, points.length);
     const dateLabel = formatDateFR(date);
-    const currentValue = coords[hoverState.idx].value;
-    const price = Math.round(currentValue);
+    const price = Math.round(hoverState.value);
     const prevValue =
       hoverState.idx > 0 ? coords[hoverState.idx - 1].value : null;
     const deltaPct =
       prevValue !== null && prevValue !== 0
-        ? ((currentValue - prevValue) / prevValue) * 100
+        ? ((hoverState.value - prevValue) / prevValue) * 100
         : null;
 
     const { x: tx, y: ty } = computeTooltipPosition(
@@ -251,7 +232,7 @@ export function Sparkline({
       ref={ref as unknown as React.RefObject<SVGSVGElement>}
       viewBox={`0 0 ${w} ${h}`}
       width="100%"
-      height={h}
+      height={fillHeight ? "100%" : h}
       preserveAspectRatio="none"
       className="overflow-visible"
       onMouseMove={handleMove}

@@ -9,13 +9,18 @@ type WatchlistPreviewProps = {
 /**
  * Preview de la watchlist (§03 du Dashboard).
  *
- * Grid 1 / 2 / 4 cols responsive — même pattern que les stat tiles §01.
+ * Grid 1 / 2 / 4 cols responsive.
  *
  * Animation : stagger 220ms entre les 4 cards (effet wave gauche → droite).
- * Hover : tooltip sur la sparkline (date FR + prix + delta J−1).
+ * Hover : tooltip sur la sparkline (date FR + prix + delta vs J−1).
+ *
+ * La sparkline est wrappée dans un conteneur `aspect-ratio: 9/1` pour que la
+ * hauteur scale proportionnellement à la largeur de la card. Évite l'effet
+ * "aplati" en preview pleine taille (cards plus larges → sparkline plus haute).
  */
 
 const STAGGER_MS = 220;
+const SPARKLINE_ASPECT_RATIO = "9 / 1";
 
 export function WatchlistPreview({ data }: WatchlistPreviewProps) {
   return (
@@ -80,13 +85,15 @@ function Card({ item, index }: CardProps) {
         <span className="font-mono text-[10px] text-zinc-600">vs 14j</span>
       </div>
 
-      {/* Sparkline 7 points — animée avec stagger + hover tooltip */}
-      <div className="mt-1">
+      {/* Sparkline wrappée pour ratio constant 9:1 — pas d'aplatissement en preview pleine taille */}
+      <div
+        className="mt-1 w-full"
+        style={{ aspectRatio: SPARKLINE_ASPECT_RATIO }}
+      >
         <Sparkline
           points={item.sparkline}
           color={deltaColor}
-          w={200}
-          h={28}
+          fillHeight
           fill
           delay={index * STAGGER_MS}
           hover
