@@ -160,12 +160,13 @@ export function Sparkline({
   if (hoverState) {
     const date = dateForIndex(hoverState.idx, points.length);
     const dateLabel = formatDateFR(date);
-    const price = Math.round(hoverState.value);
+    const currentValue = coords[hoverState.idx].value;
+    const price = Math.round(currentValue);
     const prevValue =
       hoverState.idx > 0 ? coords[hoverState.idx - 1].value : null;
     const deltaPct =
       prevValue !== null && prevValue !== 0
-        ? ((hoverState.value - prevValue) / prevValue) * 100
+        ? ((currentValue - prevValue) / prevValue) * 100
         : null;
 
     const { x: tx, y: ty } = computeTooltipPosition(
