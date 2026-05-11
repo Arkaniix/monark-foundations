@@ -11,19 +11,16 @@ type WatchlistPreviewProps = {
  *
  * Grid 1 / 2 / 4 cols responsive — même pattern que les stat tiles §01.
  *
- * Animation : chaque card reçoit un `index` qui calcule un délai
- * `index * STAGGER_MS` passé à sa Sparkline → effet "wave" qui balaie
- * la rangée de gauche à droite. Combiné au tracé progressif 1800ms
- * (Sparkline v3), donne une apparition narrative cinématographique.
+ * Animation : toutes les sparklines démarrent en même temps et se
+ * tracent progressivement de gauche à droite (≈2.6s), donnant la
+ * sensation d'un trait dessiné à la main. Pas de stagger.
  */
-
-const STAGGER_MS = 120;
 
 export function WatchlistPreview({ data }: WatchlistPreviewProps) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {data.map((item, index) => (
-        <Card key={item.id} item={item} index={index} />
+      {data.map((item) => (
+        <Card key={item.id} item={item} />
       ))}
     </div>
   );
@@ -31,10 +28,9 @@ export function WatchlistPreview({ data }: WatchlistPreviewProps) {
 
 type CardProps = {
   item: WatchlistItem;
-  index: number;
 };
 
-function Card({ item, index }: CardProps) {
+function Card({ item }: CardProps) {
   const isPositive = item.delta_pct_vs_14d >= 0;
   const deltaColor = isPositive ? "#10B981" : "#EF4444";
   const DeltaIcon = isPositive ? ArrowUp : ArrowDown;
@@ -91,7 +87,6 @@ function Card({ item, index }: CardProps) {
           h={36}
           fill
           stretch
-          delay={index * STAGGER_MS}
         />
       </div>
 
