@@ -1,22 +1,28 @@
 /**
  * Point d'entrée du module API Monark.
  *
- * Selon VITE_USE_MOCK_API :
- *   - true  → authApi (et futurs domaines) pointent vers src/lib/mocks/*
- *   - false → authApi pointe vers les vraies implémentations src/lib/api/*
+ * Pour chaque domaine, choisit entre vraie implémentation et mock selon
+ * VITE_USE_MOCK_API. Côté consommateur, l'API publique est stable :
+ * `import { authApi, dashboardApi } from "@/lib/api"` fonctionne dans les
+ * deux modes.
  *
- * Côté consommateur, aucune différence : `import { authApi } from "@/lib/api"`
- * fonctionne dans les deux modes.
- *
- * Voir src/lib/mocks/README ou les commentaires de src/lib/mocks/index.ts pour
- * l'extension à d'autres domaines (dashboard, estimator, etc.).
+ * Pour ajouter un nouveau domaine (estimator, catalogue, etc.) :
+ *   1. Créer src/lib/api/<domaine>.ts (real impl, placeholder OK)
+ *   2. Créer src/lib/mocks/<domaine>.ts (mock impl, signatures alignées)
+ *   3. Ajouter le réexport dans src/lib/mocks/index.ts
+ *   4. Ajouter le routing real/mock ci-dessous (même pattern que dashboardApi)
  */
 
 import * as realAuth from "./auth";
+import * as realDashboard from "./dashboard";
 import * as mockAuth from "../mocks/auth";
+import * as mockDashboard from "../mocks/dashboard";
 import { USE_MOCK_API } from "../mocks";
 
 export * from "./client";
 export * from "./endpoints";
 
 export const authApi: typeof realAuth = USE_MOCK_API ? mockAuth : realAuth;
+export const dashboardApi: typeof realDashboard = USE_MOCK_API
+  ? mockDashboard
+  : realDashboard;
