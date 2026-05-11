@@ -68,7 +68,7 @@ export function Sparkline({
   const [pathLength, setPathLength] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!animate) {
       setPathLength(null);
       setProgress(1);
@@ -117,8 +117,9 @@ export function Sparkline({
         strokeDasharray={dashArray}
         strokeDashoffset={dashOffset}
         style={{
+          opacity: animate && pathLength === null ? 0 : 1,
           transition: animate
-            ? `stroke-dashoffset ${TRACE_DURATION_MS}ms ${EASING} ${delay}ms`
+            ? `opacity 0ms linear ${delay}ms, stroke-dashoffset ${TRACE_DURATION_MS}ms ${EASING} ${delay}ms`
             : undefined,
         }}
       />
