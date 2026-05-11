@@ -6,17 +6,16 @@ type WatchlistPreviewProps = {
   data: WatchlistItem[];
 };
 
-const STAGGER_MS = 220;
-
 /**
  * Preview de la watchlist (§03 du Dashboard).
  *
  * Grid 1 / 2 / 4 cols responsive — même pattern que les stat tiles §01.
  *
- * Animation : toutes les sparklines démarrent en même temps et se
- * tracent progressivement de gauche à droite (≈2.6s), donnant la
- * sensation d'un trait dessiné à la main. Pas de stagger.
+ * Animation : stagger 220ms entre les 4 cards (effet wave gauche → droite).
+ * Hover : tooltip sur la sparkline (date FR + prix + delta J−1).
  */
+
+const STAGGER_MS = 220;
 
 export function WatchlistPreview({ data }: WatchlistPreviewProps) {
   return (
@@ -81,16 +80,16 @@ function Card({ item, index }: CardProps) {
         <span className="font-mono text-[10px] text-zinc-600">vs 14j</span>
       </div>
 
-      {/* Sparkline 7 points — animée avec délai stagger, fluide pleine largeur */}
-      <div className="mt-1 w-full">
+      {/* Sparkline 7 points — animée avec stagger + hover tooltip */}
+      <div className="mt-1">
         <Sparkline
           points={item.sparkline}
           color={deltaColor}
           w={200}
-          h={36}
+          h={28}
           fill
-          stretch
           delay={index * STAGGER_MS}
+          hover
         />
       </div>
 
