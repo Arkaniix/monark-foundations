@@ -1,20 +1,32 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { dashboardApi } from "@/lib/api";
 import { Skeleton } from "@/components/ui";
 import { DashboardStatTile } from "@/components/dashboard/DashboardStatTile";
 import { RecentEstimations } from "@/components/dashboard/RecentEstimations";
 import { WatchlistPreview } from "@/components/dashboard/WatchlistPreview";
+import { EmptyEstimations } from "@/components/dashboard/EmptyEstimations";
+import { EmptyWatchlist } from "@/components/dashboard/EmptyWatchlist";
+import { DashboardError } from "@/components/dashboard/DashboardError";
 import type { DashboardOverview } from "@/components/dashboard/datasets";
 
 /**
- * Page Dashboard — chantier C2b.
+ * Page Dashboard — chantier C3a.
  *
  * Sections livrées :
  *   §01 Vue d'ensemble (4 stat tiles)
- *   §02 Dernières estimations (table compacte 5 lignes, 6 colonnes)
- *   §03 Watchlist preview (4 cards horizontales avec sparkline 7j)
+ *   §02 Dernières estimations (table OU empty state)
+ *   §03 Watchlist preview (4 cards OU empty state)
  *
- * États empty/loading/error détaillés arrivent en C3.
+ * États gérés par le composant :
+ *   - loading      → 3 skeletons sections
+ *   - success      → rendu sections (avec empty inline si tableaux vides)
+ *   - error        → DashboardError pleine page avec Retry
+ *
+ * Le state `empty` n'est pas un FetchState séparé : un fetch réussi qui
+ * retourne des tableaux vides reste en `status: "success"`, et chaque
+ * section décide elle-même d'afficher son empty state. Logique cohérente
+ * avec la réalité backend (un user nouveau retourne `recent_estimations: []`
+ * sans pour autant être en erreur).
  */
 
 type FetchState =
@@ -25,9 +37,21 @@ type FetchState =
 export default function Dashboard() {
   const [state, setState] = useState<FetchState>({ status: "loading" });
 
+  const load = useCallback(async () => {
+    setState({ status: "loading" });
+    try {
+      const data = await dashboardApi.getOverview();
+      setState({ status: "success", data });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Erreur de chargement";
+      setState({ status: "error", message });
+    }
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
-    const load = async () => {
+    const initialLoad = async () => {
       try {
         const data = await dashboardApi.getOverview();
         if (cancelled) return;
@@ -39,11 +63,20 @@ export default function Dashboard() {
         setState({ status: "error", message });
       }
     };
-    void load();
+    void initialLoad();
     return () => {
       cancelled = true;
     };
   }, []);
+
+  // Error state : pleine page, sortie courte-circuit (pas de skeleton ni de sections vides)
+  if (state.status === "error") {
+    return (
+      <div className="flex flex-col gap-10">
+        <DashboardError message={state.message} onRetry={load} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-10">
@@ -60,36 +93,19 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {state.status === "loading" && (
-            <>
-              {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="mk-card flex flex-col gap-3 p-5">
-                  <Skeleton className="h-3 w-24 rounded" />
-                  <Skeleton className="mt-1 h-7 w-32 rounded" />
-                  <Skeleton className="mt-2 h-2 w-full rounded" />
-                </div>
-              ))}
-            </>
-          )}
+          {state.status === "loading" &&
+            [0, 1, 2, 3].map((i) => (
+              <div key={i} className="mk-card flex flex-col gap-3 p-5">
+                <Skeleton className="h-3 w-24 rounded" />
+                <Skeleton className="mt-1 h-7 w-32 rounded" />
+                <Skeleton className="mt-2 h-2 w-full rounded" />
+              </div>
+            ))}
 
           {state.status === "success" &&
             state.data.stats.map((stat) => (
               <DashboardStatTile key={stat.id} data={stat} />
             ))}
-
-          {state.status === "error" && (
-            <div className="mk-card col-span-full p-6">
-              <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500">
-                ERREUR
-              </div>
-              <div className="mt-2 text-[13px] text-zinc-300">
-                Impossible de charger la vue d'ensemble.
-              </div>
-              <div className="mt-1 font-mono text-[11px] text-zinc-600">
-                {state.message}
-              </div>
-            </div>
-          )}
         </div>
       </section>
 
@@ -131,20 +147,12 @@ export default function Dashboard() {
           </div>
         )}
 
-        {state.status === "success" && (
-          <RecentEstimations data={state.data.recent_estimations} />
-        )}
-
-        {state.status === "error" && (
-          <div className="mk-card p-6">
-            <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500">
-              ERREUR
-            </div>
-            <div className="mt-2 text-[13px] text-zinc-300">
-              Impossible de charger les estimations.
-            </div>
-          </div>
-        )}
+        {state.status === "success" &&
+          (state.data.recent_estimations.length > 0 ? (
+            <RecentEstimations data={state.data.recent_estimations} />
+          ) : (
+            <EmptyEstimations />
+          ))}
       </section>
 
       {/* §03 — Watchlist preview */}
@@ -172,20 +180,12 @@ export default function Dashboard() {
           </div>
         )}
 
-        {state.status === "success" && (
-          <WatchlistPreview data={state.data.watchlist_preview} />
-        )}
-
-        {state.status === "error" && (
-          <div className="mk-card p-6">
-            <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500">
-              ERREUR
-            </div>
-            <div className="mt-2 text-[13px] text-zinc-300">
-              Impossible de charger la watchlist.
-            </div>
-          </div>
-        )}
+        {state.status === "success" &&
+          (state.data.watchlist_preview.length > 0 ? (
+            <WatchlistPreview data={state.data.watchlist_preview} />
+          ) : (
+            <EmptyWatchlist />
+          ))}
       </section>
     </div>
   );
