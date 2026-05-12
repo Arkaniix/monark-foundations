@@ -15,8 +15,10 @@
 
 import * as realAuth from "./auth";
 import * as realDashboard from "./dashboard";
+import * as realEstimator from "./estimator";
 import * as mockAuth from "../mocks/auth";
 import * as mockDashboard from "../mocks/dashboard";
+import * as mockEstimator from "../mocks/estimator";
 import { USE_MOCK_API } from "../mocks";
 
 export * from "./client";
@@ -26,3 +28,6 @@ export const authApi: typeof realAuth = USE_MOCK_API ? mockAuth : realAuth;
 export const dashboardApi: typeof realDashboard = USE_MOCK_API
   ? mockDashboard
   : realDashboard;
+export const estimatorApi: typeof realEstimator = USE_MOCK_API
+  ? mockEstimator
+  : realEstimator;
