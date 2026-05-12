@@ -4,23 +4,7 @@ import { useInView } from "@/hooks/useInView";
 type SparklineProps = {
   points: number[];
   color?: string;
-  /**
-   * Largeur de référence du viewBox SVG. Le SVG est rendu en width="100%"
-   * et s'étire horizontalement. Cette valeur sert seulement à fixer la
-   * résolution interne du viewBox.
-   */
   w?: number;
-  /**
-   * Hauteur de référence du viewBox SVG.
-   *
-   * Si `fillHeight=false` (default) : le SVG est rendu à `height={h}` en
-   * pixels absolus (mode legacy pour les stat tiles §01).
-   *
-   * Si `fillHeight=true` : le SVG est rendu en `height="100%"` et remplit
-   * son conteneur parent. Le ratio est défini par l'`aspect-ratio` CSS
-   * du conteneur (ex. wrapper `aspect-ratio: 9/1` dans WatchlistPreview).
-   * Le viewBox reste `w × h` en unités virtuelles.
-   */
   h?: number;
   fillHeight?: boolean;
   fill?: boolean;
@@ -36,27 +20,10 @@ const FILL_FADE_DELAY_MS = 1500;
 const EASING = "cubic-bezier(0.16,1,0.3,1)";
 const DASH_LENGTH = 500;
 
-const TOOLTIP_W = 150;
-const TOOLTIP_H = 64;
-const TOOLTIP_OFFSET = 10;
-const TOOLTIP_PAD_X = 10;
-const TOOLTIP_PAD_TOP = 16;
-const TOOLTIP_LINE_GAP = 17;
-
 const DAYS_FR = ["dim", "lun", "mar", "mer", "jeu", "ven", "sam"];
 const MONTHS_FR = [
-  "jan",
-  "fév",
-  "mar",
-  "avr",
-  "mai",
-  "jun",
-  "jui",
-  "aoû",
-  "sep",
-  "oct",
-  "nov",
-  "déc",
+  "jan", "fév", "mar", "avr", "mai", "jun",
+  "jui", "aoû", "sep", "oct", "nov", "déc",
 ];
 
 function formatDateFR(date: Date): string {
@@ -70,25 +37,10 @@ function dateForIndex(index: number, totalPoints: number): Date {
   return d;
 }
 
-function computeTooltipPosition(
-  pointX: number,
-  pointY: number,
-  svgW: number,
-): { x: number; y: number } {
-  const rightX = pointX + TOOLTIP_OFFSET;
-  const leftX = pointX - TOOLTIP_OFFSET - TOOLTIP_W;
-  const aboveY = pointY - TOOLTIP_OFFSET - TOOLTIP_H;
-
-  const fitsRight = rightX + TOOLTIP_W <= svgW;
-
-  if (fitsRight) return { x: rightX, y: aboveY };
-  return { x: Math.max(0, leftX), y: aboveY };
-}
-
 type HoverState = {
   idx: number;
-  x: number;
-  y: number;
+  xPct: number;
+  yPct: number;
 };
 
 export function Sparkline({
@@ -117,30 +69,37 @@ export function Sparkline({
     value: p,
   }));
 
-  const path = `M ${coords.map((c) => `${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(" ")}`;
-  const area = fill ? `${path} L${w},${h} L0,${h} Z` : null;
+  const path = coords
+    .map((c, i) =>
+      i === 0
+        ? `M ${c.x.toFixed(2)},${c.y.toFixed(2)}`
+        : `L ${c.x.toFixed(2)},${c.y.toFixed(2)}`,
+    )
+    .join(" ");
+  const area = fill ? `${path} L ${w},${h} L 0,${h} Z` : null;
 
   const hoverEnabled = hover && playing;
 
-  const handleMove = (e: React.MouseEvent<SVGSVGElement>) => {
+  const handleMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!hoverEnabled) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const relativeX = ((e.clientX - rect.left) / rect.width) * w;
+    const xFraction = (e.clientX - rect.left) / rect.width;
+    if (xFraction < 0 || xFraction > 1) return;
     const idx = Math.max(
       0,
-      Math.min(
-        points.length - 1,
-        Math.round((relativeX / w) * (points.length - 1)),
-      ),
+      Math.min(points.length - 1, Math.round(xFraction * (points.length - 1))),
     );
-    setHoverState({ idx, x: coords[idx].x, y: coords[idx].y });
+    const pointXPct = (coords[idx].x / w) * 100;
+    const pointYPct = (coords[idx].y / h) * 100;
+    setHoverState({ idx, xPct: pointXPct, yPct: pointYPct });
   };
 
-  const handleLeave = () => {
-    setHoverState(null);
-  };
+  const handleLeave = () => setHoverState(null);
 
   let tooltipNode: React.ReactNode = null;
+  let dotNode: React.ReactNode = null;
+  let crosshairNode: React.ReactNode = null;
+
   if (hoverState) {
     const date = dateForIndex(hoverState.idx, points.length);
     const dateLabel = formatDateFR(date);
@@ -153,127 +112,136 @@ export function Sparkline({
         ? ((currentValue - prevValue) / prevValue) * 100
         : null;
 
-    const { x: tx, y: ty } = computeTooltipPosition(
-      hoverState.x,
-      hoverState.y,
-      w,
-    );
-
     const deltaColor =
-      deltaPct === null
-        ? "#71717a"
-        : deltaPct >= 0
-          ? "#10B981"
-          : "#EF4444";
+      deltaPct === null ? "#71717a" : deltaPct >= 0 ? "#10B981" : "#EF4444";
     const deltaLabel =
       deltaPct === null
         ? "—"
         : `${deltaPct >= 0 ? "+" : ""}${deltaPct.toFixed(1)}%`;
 
+    const inRightHalf = hoverState.xPct > 60;
+    const inTopHalf = hoverState.yPct < 50;
+
+    const tooltipStyle: React.CSSProperties = {
+      position: "absolute",
+      left: `${hoverState.xPct}%`,
+      top: `${hoverState.yPct}%`,
+      transform: `translate(${inRightHalf ? "calc(-100% - 10px)" : "10px"}, ${inTopHalf ? "10px" : "calc(-100% - 10px)"})`,
+      background: "#0A0A0B",
+      border: "0.5px solid rgba(250,250,250,0.22)",
+      borderRadius: "6px",
+      padding: "8px 10px",
+      fontFamily: "JetBrains Mono, monospace",
+      pointerEvents: "none",
+      zIndex: 20,
+      whiteSpace: "nowrap",
+      minWidth: "120px",
+    };
+
     tooltipNode = (
-      <g style={{ pointerEvents: "none" }}>
-        <line
-          x1={hoverState.x}
-          y1={0}
-          x2={hoverState.x}
-          y2={h}
-          stroke="#fafafa"
-          strokeOpacity="0.25"
-          strokeDasharray="2 2"
-          strokeWidth="0.6"
-        />
-        <circle cx={hoverState.x} cy={hoverState.y} r={2.6} fill={color} />
-        <rect
-          x={tx}
-          y={ty}
-          width={TOOLTIP_W}
-          height={TOOLTIP_H}
-          rx={6}
-          fill="#0A0A0B"
-          stroke="#fafafa"
-          strokeOpacity="0.22"
-          strokeWidth="0.7"
-        />
-        <text
-          x={tx + TOOLTIP_PAD_X}
-          y={ty + TOOLTIP_PAD_TOP}
-          fontFamily="JetBrains Mono, monospace"
-          fontSize="11"
-          fill="#a1a1aa"
-        >
-          {dateLabel}
-        </text>
-        <text
-          x={tx + TOOLTIP_PAD_X}
-          y={ty + TOOLTIP_PAD_TOP + TOOLTIP_LINE_GAP}
-          fontFamily="JetBrains Mono, monospace"
-          fontSize="14"
-          fontWeight="600"
-          fill="#fafafa"
-        >
+      <div style={tooltipStyle}>
+        <div style={{ fontSize: 11, color: "#a1a1aa" }}>{dateLabel}</div>
+        <div style={{ fontSize: 14, fontWeight: 600, color: "#fafafa", marginTop: 2 }}>
           {price}
           {unit}
-        </text>
-        <text
-          x={tx + TOOLTIP_PAD_X}
-          y={ty + TOOLTIP_PAD_TOP + TOOLTIP_LINE_GAP * 2}
-          fontFamily="JetBrains Mono, monospace"
-          fontSize="11"
-          fill={deltaColor}
-        >
+        </div>
+        <div style={{ fontSize: 11, color: deltaColor, marginTop: 2 }}>
           {deltaLabel}
-          {deltaPct !== null && <tspan fill="#52525b"> vs veille</tspan>}
-        </text>
-      </g>
+          {deltaPct !== null && (
+            <span style={{ color: "#52525b" }}> vs veille</span>
+          )}
+        </div>
+      </div>
+    );
+
+    dotNode = (
+      <div
+        style={{
+          position: "absolute",
+          left: `${hoverState.xPct}%`,
+          top: `${hoverState.yPct}%`,
+          width: 6,
+          height: 6,
+          borderRadius: "50%",
+          background: color,
+          transform: "translate(-50%, -50%)",
+          pointerEvents: "none",
+          zIndex: 15,
+        }}
+      />
+    );
+
+    crosshairNode = (
+      <div
+        style={{
+          position: "absolute",
+          left: `${hoverState.xPct}%`,
+          top: 0,
+          bottom: 0,
+          width: 0,
+          borderLeft: "1px dashed rgba(250,250,250,0.25)",
+          transform: "translateX(-0.5px)",
+          pointerEvents: "none",
+          zIndex: 10,
+        }}
+      />
     );
   }
 
   return (
-    <svg
-      ref={ref as unknown as React.RefObject<SVGSVGElement>}
-      viewBox={`0 0 ${w} ${h}`}
-      width="100%"
-      height={fillHeight ? "100%" : h}
-      preserveAspectRatio="none"
-      className="overflow-visible"
+    <div
+      ref={ref as unknown as React.RefObject<HTMLDivElement>}
       onMouseMove={handleMove}
       onMouseLeave={handleLeave}
       style={{
+        position: "relative",
+        width: "100%",
+        height: fillHeight ? "100%" : h,
         cursor: hoverEnabled ? "crosshair" : "default",
-        display: "block",
       }}
     >
-      {fill && area && (
+      <svg
+        viewBox={`0 0 ${w} ${h}`}
+        width="100%"
+        height="100%"
+        preserveAspectRatio="none"
+        className="overflow-visible"
+        style={{ display: "block" }}
+      >
+        {fill && area && (
+          <path
+            d={area}
+            fill={color}
+            fillOpacity="0.15"
+            style={{
+              opacity: playing ? 1 : 0,
+              transition: animate
+                ? `opacity ${FILL_FADE_DURATION_MS}ms ${EASING} ${delay + FILL_FADE_DELAY_MS}ms`
+                : undefined,
+            }}
+          />
+        )}
         <path
-          d={area}
-          fill={color}
-          fillOpacity="0.15"
+          d={path}
+          fill="none"
+          stroke={color}
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeDasharray={animate ? DASH_LENGTH : undefined}
+          strokeDashoffset={animate ? (playing ? 0 : DASH_LENGTH) : 0}
+          vectorEffect="non-scaling-stroke"
           style={{
-            opacity: playing ? 1 : 0,
             transition: animate
-              ? `opacity ${FILL_FADE_DURATION_MS}ms ${EASING} ${delay + FILL_FADE_DELAY_MS}ms`
+              ? `stroke-dashoffset ${TRACE_DURATION_MS}ms ${EASING} ${delay}ms`
               : undefined,
           }}
         />
-      )}
-      <path
-        d={path}
-        fill="none"
-        stroke={color}
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeDasharray={animate ? DASH_LENGTH : undefined}
-        strokeDashoffset={animate ? (playing ? 0 : DASH_LENGTH) : 0}
-        vectorEffect="non-scaling-stroke"
-        style={{
-          transition: animate
-            ? `stroke-dashoffset ${TRACE_DURATION_MS}ms ${EASING} ${delay}ms`
-            : undefined,
-        }}
-      />
+      </svg>
+      {crosshairNode}
+      {dotNode}
       {tooltipNode}
-    </svg>
+    </div>
   );
 }
 
