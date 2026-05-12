@@ -7,3 +7,4 @@ export { ScoreBar } from "./ScoreBar";
 export { ConfidenceGauge } from "./ConfidenceGauge";
 export { Skeleton } from "./Skeleton";
 export { EmptyState } from "./EmptyState";
+export { VerdictCrystal } from "./VerdictCrystal";
