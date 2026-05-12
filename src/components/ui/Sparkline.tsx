@@ -227,8 +227,9 @@ export function Sparkline({
           strokeWidth="1.4"
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeDasharray={animate ? DASH_LENGTH : undefined}
-          strokeDashoffset={animate ? (playing ? 0 : DASH_LENGTH) : 0}
+          pathLength={animate ? 1 : undefined}
+          strokeDasharray={animate ? 1 : undefined}
+          strokeDashoffset={animate ? (playing ? 0 : 1) : 0}
           vectorEffect="non-scaling-stroke"
           style={{
             transition: animate
