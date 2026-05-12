@@ -59,6 +59,7 @@ export default function EstimatorPositioning({
             askPrice={result.inputs.ask_price_eur}
             color={verdictColor}
             observationsLabel={`${result.observations_count} obs · 180 j`}
+            percentilePosition={result.percentile_position_pct}
           />
           <p className="text-[13px] text-zinc-300 mt-4 leading-relaxed">
             Votre prix de{" "}
@@ -103,6 +104,7 @@ export default function EstimatorPositioning({
                 fillHeight
                 fill
                 animate
+                hover
               />
             </div>
           </div>
