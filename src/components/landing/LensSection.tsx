@@ -5,7 +5,7 @@ import { LENS_SCENARIOS, type LensScenario, type LensScenarioKey } from "./lens"
 import PlatformMockup from "./PlatformMockup";
 import type { Scene } from "./scenes";
 import KpiTile from "./KpiTile";
-import VerdictCrystal from "./VerdictCrystal";
+import { VerdictCrystal } from "@/components/ui";
 
 type RevealState = { overlay: boolean; fair: boolean; margin: boolean; liq: boolean; verdict: boolean };
 

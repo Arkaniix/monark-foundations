@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { BarChart3 as Bars } from "lucide-react";
 import { SectionLabel, Pill, Field, ScoreBar, ConfidenceGauge } from "@/components/ui";
-import VerdictCrystal from "./VerdictCrystal";
+import { VerdictCrystal } from "@/components/ui";
 import PercentileChart from "./PercentileChart";
 import { MODELS, STATES, PLATFORMS, FEES, computeVerdict, type Platform, type ItemState, type EstimatorResult } from "./estimator";
 
