@@ -13,6 +13,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as Char91_devChar93UiRouteImport } from './routes/[_dev].ui'
+import { Route as Char91_devChar93DashboardStatesRouteImport } from './routes/[_dev].dashboard-states'
 import { Route as Char91_devChar93AppshellRouteImport } from './routes/[_dev].appshell'
 
 const DashboardRoute = DashboardRouteImport.update({
@@ -35,6 +36,12 @@ const Char91_devChar93UiRoute = Char91_devChar93UiRouteImport.update({
   path: '/_dev/ui',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91_devChar93DashboardStatesRoute =
+  Char91_devChar93DashboardStatesRouteImport.update({
+    id: '/_dev/dashboard-states',
+    path: '/_dev/dashboard-states',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const Char91_devChar93AppshellRoute =
   Char91_devChar93AppshellRouteImport.update({
     id: '/_dev/appshell',
@@ -47,6 +54,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
+  '/_dev/dashboard-states': typeof Char91_devChar93DashboardStatesRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
 }
 export interface FileRoutesByTo {
@@ -54,6 +62,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
+  '/_dev/dashboard-states': typeof Char91_devChar93DashboardStatesRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
 }
 export interface FileRoutesById {
@@ -62,14 +71,34 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
+  '/_dev/dashboard-states': typeof Char91_devChar93DashboardStatesRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard' | '/_dev/appshell' | '/_dev/ui'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/_dev/appshell'
+    | '/_dev/dashboard-states'
+    | '/_dev/ui'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/_dev/appshell' | '/_dev/ui'
-  id: '__root__' | '/' | '/auth' | '/dashboard' | '/_dev/appshell' | '/_dev/ui'
+  to:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/_dev/appshell'
+    | '/_dev/dashboard-states'
+    | '/_dev/ui'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/_dev/appshell'
+    | '/_dev/dashboard-states'
+    | '/_dev/ui'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +106,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
   Char91_devChar93AppshellRoute: typeof Char91_devChar93AppshellRoute
+  Char91_devChar93DashboardStatesRoute: typeof Char91_devChar93DashboardStatesRoute
   Char91_devChar93UiRoute: typeof Char91_devChar93UiRoute
 }
 
@@ -110,6 +140,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91_devChar93UiRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_dev/dashboard-states': {
+      id: '/_dev/dashboard-states'
+      path: '/_dev/dashboard-states'
+      fullPath: '/_dev/dashboard-states'
+      preLoaderRoute: typeof Char91_devChar93DashboardStatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_dev/appshell': {
       id: '/_dev/appshell'
       path: '/_dev/appshell'
@@ -125,6 +162,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
   Char91_devChar93AppshellRoute: Char91_devChar93AppshellRoute,
+  Char91_devChar93DashboardStatesRoute: Char91_devChar93DashboardStatesRoute,
   Char91_devChar93UiRoute: Char91_devChar93UiRoute,
 }
 export const routeTree = rootRouteImport
