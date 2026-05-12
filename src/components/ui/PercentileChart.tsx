@@ -55,7 +55,7 @@ export default function PercentileChart({
         )}
       </div>
       <div className="relative h-32">
-        <svg viewBox="0 0 400 124" className="w-full h-full" preserveAspectRatio="none">
+        <svg viewBox="0 0 800 124" className="w-full h-full" preserveAspectRatio="none">
           <defs>
             <linearGradient id="dist-grad" x1="0" x2="0" y1="0" y2="1">
               <stop offset="0" stopColor="#3B82F6" stopOpacity="0.45" />
@@ -67,9 +67,9 @@ export default function PercentileChart({
             return (
               <rect
                 key={i}
-                x={i * (400 / bars) + 1}
+                x={i * (800 / bars) + 1}
                 y={114 - h}
-                width={400 / bars - 2}
+                width={800 / bars - 2}
                 height={h}
                 fill="url(#dist-grad)"
               />
@@ -78,8 +78,8 @@ export default function PercentileChart({
           {markers.map(([lbl, v]) => (
             <g key={lbl}>
               <line
-                x1={X(v) * 4}
-                x2={X(v) * 4}
+                x1={X(v) * 8}
+                x2={X(v) * 8}
                 y1="20"
                 y2="114"
                 stroke="#fafafa"
@@ -88,7 +88,7 @@ export default function PercentileChart({
                 strokeDasharray="2 2"
               />
               <text
-                x={X(v) * 4}
+                x={X(v) * 8}
                 y="14"
                 textAnchor="middle"
                 fontSize="7"
@@ -100,14 +100,14 @@ export default function PercentileChart({
             </g>
           ))}
           <line
-            x1={X(askPrice) * 4}
-            x2={X(askPrice) * 4}
+            x1={X(askPrice) * 8}
+            x2={X(askPrice) * 8}
             y1="14"
             y2="122"
             stroke={color}
             strokeWidth="1.6"
           />
-          <circle cx={X(askPrice) * 4} cy="14" r="3.5" fill={color} />
+          <circle cx={X(askPrice) * 8} cy="14" r="3.5" fill={color} />
         </svg>
       </div>
       <div className="mt-2 flex items-center justify-between font-mono text-[10px] text-zinc-500">
