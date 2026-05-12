@@ -4,6 +4,7 @@ import { EstimatorForm } from "@/components/estimator/EstimatorForm";
 import { EstimatorVerdict } from "@/components/estimator/EstimatorVerdict";
 import { EstimatorIdle } from "@/components/estimator/EstimatorIdle";
 import { EstimatorError } from "@/components/estimator/EstimatorError";
+import { EstimatorPositioning } from "@/components/estimator/EstimatorPositioning";
 import type {
   EstimatorInputs,
   EstimatorResult,
@@ -90,6 +91,10 @@ export default function Estimator({
           )}
         </div>
       </section>
+
+      {state.status === "success" && (
+        <EstimatorPositioning result={state.result} />
+      )}
     </div>
   );
 }
