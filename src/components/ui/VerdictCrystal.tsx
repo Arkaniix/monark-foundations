@@ -84,3 +84,4 @@ export default function VerdictCrystal({ color = "#10B981", size = 80 }: Props) 
 
   return <div ref={ref} style={{ width: size, height: size }} />;
 }
+export { VerdictCrystal };

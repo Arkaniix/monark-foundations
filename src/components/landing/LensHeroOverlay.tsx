@@ -1,4 +1,4 @@
-import VerdictCrystal from "./VerdictCrystal";
+import { VerdictCrystal } from "@/components/ui";
 import { Sparkline } from "@/components/ui";
 import type { Scene } from "./scenes";
 
