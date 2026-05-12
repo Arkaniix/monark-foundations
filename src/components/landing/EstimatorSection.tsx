@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { BarChart3 as Bars } from "lucide-react";
 import { SectionLabel, Pill, Field, ScoreBar, ConfidenceGauge } from "@/components/ui";
 import { VerdictCrystal } from "@/components/ui";
-import PercentileChart from "./PercentileChart";
+import { PercentileChart } from "@/components/ui";
 import { MODELS, STATES, PLATFORMS, FEES, computeVerdict, type Platform, type ItemState, type EstimatorResult } from "./estimator";
 
 export default function EstimatorSection() {
@@ -120,7 +120,7 @@ export default function EstimatorSection() {
 
                 {phase === "done" && (
                   <div className="space-y-4 fade-up">
-                    <PercentileChart p={r} askPrice={askPrice} color={r.color} />
+                    <PercentileChart distribution={{ p10: r.p10, p25: r.p25, p50: r.p50, p75: r.p75, p90: r.p90 }} askPrice={askPrice} color={r.color} observationsLabel="412 obs" />
 
                     <div className="grid grid-cols-12 gap-4">
                       <div className="col-span-7 mk-subcard-soft p-4 space-y-3">

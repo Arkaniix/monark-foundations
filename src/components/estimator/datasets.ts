@@ -1,9 +1,7 @@
 /**
  * Types et contracts pour le domaine Estimator.
- *
- * Tech debt : `Verdict` + `VERDICT_COLORS` sont importés depuis
- * `dashboard/datasets` pour l'instant — à terme, rapatrier dans un module
- * shared neutre une fois plusieurs domaines les consommeront.
+ * Étendu en E2 (§02) : price_history_30d, percentile_position_pct,
+ * observations_count, category_market_stats.
  */
 
 import type { Verdict, HardwareCategory } from "../dashboard/datasets";
@@ -81,6 +79,40 @@ export type VerdictModifiers = {
   value_vs_new: number;
 };
 
+// === E2 — Market stats §02 ===
+
+export type TrendStatus = "En hausse" | "Stable" | "En baisse";
+
+export type MarketTrendStats = {
+  delta_7d_pct: number;
+  delta_30d_pct: number;
+  status: TrendStatus;
+  narrative: string;
+};
+
+export type LiquidityStatus = "Élevée" | "Modérée" | "Faible";
+
+export type MarketLiquidityStats = {
+  sales_30d: number;
+  active_listings: number;
+  status: LiquidityStatus;
+  narrative: string;
+};
+
+export type ValueVsNewStatus = "Forte" | "Modérée" | "Faible";
+
+export type MarketValueVsNewStats = {
+  decote_pct: number;
+  status: ValueVsNewStatus;
+  narrative: string;
+};
+
+export type CategoryMarketStats = {
+  trend: MarketTrendStats;
+  liquidity: MarketLiquidityStats;
+  value_vs_new: MarketValueVsNewStats;
+};
+
 export type EstimatorResult = {
   inputs: EstimatorInputs;
   model_name: string;
@@ -94,6 +126,12 @@ export type EstimatorResult = {
   modifiers: VerdictModifiers;
   platform_fees_pct: number;
   evaluated_at: string;
+
+  // E2 §02
+  price_history_30d: number[];
+  percentile_position_pct: number;
+  observations_count: number;
+  category_market_stats: CategoryMarketStats;
 };
 
 export type HardwareModel = {

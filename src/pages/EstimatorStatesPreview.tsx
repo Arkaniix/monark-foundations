@@ -19,6 +19,35 @@ const SUCCESS_RESULT: EstimatorResult = {
   modifiers: { trend_14d: 6, liquidity_mod: 3, value_vs_new: 2 },
   platform_fees_pct: 12,
   evaluated_at: new Date().toISOString(),
+
+  price_history_30d: [
+    298, 305, 295, 312, 308, 318, 320, 325, 322, 318, 315, 320, 315, 310, 312,
+    318, 322, 320, 315, 308, 305, 310, 315, 312, 308, 305, 312, 318, 315, 313,
+  ],
+  percentile_position_pct: 22,
+  observations_count: 412,
+  category_market_stats: {
+    trend: {
+      delta_7d_pct: 2.4,
+      delta_30d_pct: 5.1,
+      status: "En hausse",
+      narrative:
+        "Marché CPU en hausse sur 30 j (+5.1 %). Acheter rapidement avant que les prix continuent de monter — bon timing.",
+    },
+    liquidity: {
+      sales_30d: 412,
+      active_listings: 38,
+      status: "Élevée",
+      narrative:
+        "412 ventes / mois pour 38 annonces — rotation forte, revente rapide quasi assurée.",
+    },
+    value_vs_new: {
+      decote_pct: -22,
+      status: "Forte",
+      narrative:
+        "État Bon — 22 % sous le prix neuf marché. Décote cohérente avec l'usure, marge confortable côté revente.",
+    },
+  },
 };
 
 const STATES: { label: string; state: EstimatorState }[] = [
@@ -27,10 +56,7 @@ const STATES: { label: string; state: EstimatorState }[] = [
     label: "evaluating",
     state: { status: "evaluating", inputs: SUCCESS_RESULT.inputs },
   },
-  {
-    label: "success",
-    state: { status: "success", result: SUCCESS_RESULT },
-  },
+  { label: "success", state: { status: "success", result: SUCCESS_RESULT } },
   {
     label: "error",
     state: {
@@ -43,16 +69,15 @@ const STATES: { label: string; state: EstimatorState }[] = [
 
 export default function EstimatorStatesPreview() {
   return (
-    <div className="min-h-screen bg-[#0A0A0B] p-8">
-      <div className="mx-auto flex max-w-[1320px] flex-col gap-8">
-        <h1 className="font-mono text-[12px] tracking-[0.2em] text-zinc-400">
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100">
+      <div className="mx-auto px-6 py-8" style={{ maxWidth: 1320 }}>
+        <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-500 mb-6">
           /_DEV/ESTIMATOR-STATES — PREVIEW DES 4 ÉTATS
-        </h1>
-
+        </div>
         <div className="flex flex-col gap-12">
           {STATES.map(({ label, state }) => (
-            <div key={label} className="flex flex-col gap-4">
-              <div className="font-mono text-[11px] tracking-[0.2em] text-zinc-500">
+            <div key={label}>
+              <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-600 mb-3">
                 ▸ ÉTAT : {label.toUpperCase()}
               </div>
               <Estimator __devForceState={state} />
