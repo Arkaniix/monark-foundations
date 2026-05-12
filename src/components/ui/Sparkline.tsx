@@ -18,7 +18,6 @@ const TRACE_DURATION_MS = 3000;
 const FILL_FADE_DURATION_MS = 600;
 const FILL_FADE_DELAY_MS = 1500;
 const EASING = "cubic-bezier(0.16,1,0.3,1)";
-const DASH_LENGTH = 500;
 
 const DAYS_FR = ["dim", "lun", "mar", "mer", "jeu", "ven", "sam"];
 const MONTHS_FR = [
@@ -228,8 +227,9 @@ export function Sparkline({
           strokeWidth="1.4"
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeDasharray={animate ? DASH_LENGTH : undefined}
-          strokeDashoffset={animate ? (playing ? 0 : DASH_LENGTH) : 0}
+          pathLength={animate ? 1 : undefined}
+          strokeDasharray={animate ? 1 : undefined}
+          strokeDashoffset={animate ? (playing ? 0 : 1) : 0}
           vectorEffect="non-scaling-stroke"
           style={{
             transition: animate
