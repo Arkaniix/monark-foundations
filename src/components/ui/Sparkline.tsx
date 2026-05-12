@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useInView } from "@/hooks/useInView";
 
 type SparklineProps = {
@@ -57,6 +57,8 @@ export function Sparkline({
   const [ref, seen] = useInView(0.25);
   const playing = animate ? seen : true;
   const [hoverState, setHoverState] = useState<HoverState | null>(null);
+  const pathRef = useRef<SVGPathElement>(null);
+  const [pathLength, setPathLength] = useState(0);
 
   const max = Math.max(...points);
   const min = Math.min(...points);
@@ -76,6 +78,12 @@ export function Sparkline({
     )
     .join(" ");
   const area = fill ? `${path} L ${w},${h} L 0,${h} Z` : null;
+
+  useEffect(() => {
+    if (!animate) return;
+    const length = pathRef.current?.getTotalLength() ?? 0;
+    setPathLength(length);
+  }, [animate, path]);
 
   const hoverEnabled = hover && playing;
 
@@ -221,17 +229,18 @@ export function Sparkline({
           />
         )}
         <path
+          ref={pathRef}
           d={path}
           fill="none"
           stroke={color}
           strokeWidth="1.4"
           strokeLinecap="round"
           strokeLinejoin="round"
-          pathLength={animate ? 1 : undefined}
-          strokeDasharray={animate ? 1 : undefined}
-          strokeDashoffset={animate ? (playing ? 0 : 1) : 0}
+          strokeDasharray={animate && pathLength ? pathLength : undefined}
+          strokeDashoffset={animate && pathLength ? (playing ? 0 : pathLength) : 0}
           vectorEffect="non-scaling-stroke"
           style={{
+            opacity: animate && !pathLength ? 0 : 1,
             transition: animate
               ? `stroke-dashoffset ${TRACE_DURATION_MS}ms ${EASING} ${delay}ms`
               : undefined,
