@@ -102,7 +102,6 @@ export default function EstimatorPositioning({
                 color="#3B82F6"
                 fillHeight
                 fill
-                hover
                 animate
               />
             </div>
