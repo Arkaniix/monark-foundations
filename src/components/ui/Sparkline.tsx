@@ -18,7 +18,6 @@ const TRACE_DURATION_MS = 3000;
 const FILL_FADE_DURATION_MS = 600;
 const FILL_FADE_DELAY_MS = 1500;
 const EASING = "cubic-bezier(0.16,1,0.3,1)";
-const DASH_LENGTH = 500;
 
 const DAYS_FR = ["dim", "lun", "mar", "mer", "jeu", "ven", "sam"];
 const MONTHS_FR = [
