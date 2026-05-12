@@ -10,32 +10,37 @@ import { DashboardError } from "@/components/dashboard/DashboardError";
 import type { DashboardOverview } from "@/components/dashboard/datasets";
 
 /**
- * Page Dashboard — chantier C3a.
+ * Page Dashboard.
  *
  * Sections livrées :
  *   §01 Vue d'ensemble (4 stat tiles)
  *   §02 Dernières estimations (table OU empty state)
  *   §03 Watchlist preview (4 cards OU empty state)
  *
- * États gérés par le composant :
- *   - loading      → 3 skeletons sections
- *   - success      → rendu sections (avec empty inline si tableaux vides)
- *   - error        → DashboardError pleine page avec Retry
+ * États gérés :
+ *   - loading  → 3 skeletons sections
+ *   - success  → rendu sections (empty inline si tableaux vides)
+ *   - error    → DashboardError pleine page avec Retry
  *
- * Le state `empty` n'est pas un FetchState séparé : un fetch réussi qui
- * retourne des tableaux vides reste en `status: "success"`, et chaque
- * section décide elle-même d'afficher son empty state. Logique cohérente
- * avec la réalité backend (un user nouveau retourne `recent_estimations: []`
- * sans pour autant être en erreur).
+ * Prop `__devForceState` (préfixe __ pour signaler usage dev) : court-circuite
+ * le fetch et force un état spécifique. Utilisé exclusivement par la route
+ * /_dev/dashboard-states pour visualiser les 4 états sans manipuler les
+ * fixtures mock. **Ne pas utiliser en production.**
  */
 
-type FetchState =
+export type FetchState =
   | { status: "loading" }
   | { status: "success"; data: DashboardOverview }
   | { status: "error"; message: string };
 
-export default function Dashboard() {
-  const [state, setState] = useState<FetchState>({ status: "loading" });
+type DashboardProps = {
+  __devForceState?: FetchState;
+};
+
+export default function Dashboard({ __devForceState }: DashboardProps = {}) {
+  const [state, setState] = useState<FetchState>(
+    __devForceState ?? { status: "loading" },
+  );
 
   const load = useCallback(async () => {
     setState({ status: "loading" });
@@ -50,6 +55,13 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
+    // Mode dev : on suit __devForceState à chaque changement, pas de fetch
+    if (__devForceState) {
+      setState(__devForceState);
+      return;
+    }
+
+    // Mode production : fetch normal au mount
     let cancelled = false;
     const initialLoad = async () => {
       try {
@@ -67,13 +79,17 @@ export default function Dashboard() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [__devForceState]);
 
-  // Error state : pleine page, sortie courte-circuit (pas de skeleton ni de sections vides)
+  // Error state : pleine page, court-circuit
   if (state.status === "error") {
+    // En mode dev, retry réinitialise à __devForceState au lieu de fetcher
+    const retryHandler = __devForceState
+      ? () => setState(__devForceState)
+      : load;
     return (
       <div className="flex flex-col gap-10">
-        <DashboardError message={state.message} onRetry={load} />
+        <DashboardError message={state.message} onRetry={retryHandler} />
       </div>
     );
   }
