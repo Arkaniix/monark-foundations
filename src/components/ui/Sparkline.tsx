@@ -227,13 +227,20 @@ export function Sparkline({
           strokeWidth="1.4"
           strokeLinecap="round"
           strokeLinejoin="round"
-          pathLength={animate ? 1 : undefined}
-          strokeDasharray={animate ? 1 : undefined}
-          strokeDashoffset={animate ? (playing ? 0 : 1) : 0}
           vectorEffect="non-scaling-stroke"
           style={{
+            clipPath: animate
+              ? playing
+                ? "inset(0 0 0 0)"
+                : "inset(0 100% 0 0)"
+              : undefined,
+            WebkitClipPath: animate
+              ? playing
+                ? "inset(0 0 0 0)"
+                : "inset(0 100% 0 0)"
+              : undefined,
             transition: animate
-              ? `stroke-dashoffset ${TRACE_DURATION_MS}ms ${EASING} ${delay}ms`
+              ? `clip-path ${TRACE_DURATION_MS}ms ${EASING} ${delay}ms, -webkit-clip-path ${TRACE_DURATION_MS}ms ${EASING} ${delay}ms`
               : undefined,
           }}
         />
