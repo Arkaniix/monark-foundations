@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { estimatorApi } from "@/lib/api";
 import { EstimatorForm } from "@/components/estimator/EstimatorForm";
 import { EstimatorVerdict } from "@/components/estimator/EstimatorVerdict";
@@ -8,9 +8,11 @@ import { EstimatorPositioning } from "@/components/estimator/EstimatorPositionin
 import { EstimatorScoreBreakdown } from "@/components/estimator/EstimatorScoreBreakdown";
 import { EstimatorNegotiation } from "@/components/estimator/EstimatorNegotiation";
 import { EstimatorResaleWhere } from "@/components/estimator/EstimatorResaleWhere";
+import { EstimatorResaleWhen } from "@/components/estimator/EstimatorResaleWhen";
 import type {
   EstimatorInputs,
   EstimatorResult,
+  Platform,
 } from "@/components/estimator/datasets";
 
 export type EstimatorState =
@@ -29,10 +31,14 @@ export default function Estimator({
   const [state, setState] = useState<EstimatorState>(
     __devForceState ?? { status: "idle" },
   );
+  const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(
+    null,
+  );
 
   const handleSubmit = useCallback(
     async (inputs: EstimatorInputs) => {
       if (__devForceState) return;
+      setSelectedPlatform(null);
       setState({ status: "evaluating", inputs });
       try {
         const result = await estimatorApi.evaluate(inputs);
@@ -63,6 +69,19 @@ export default function Estimator({
         : state.status === "success"
           ? state.result.inputs
           : undefined;
+
+  const effectivePlatform: Platform | null = useMemo(() => {
+    if (state.status !== "success") return null;
+    if (selectedPlatform) return selectedPlatform;
+    const topPick = state.result.resale_where.platforms.find(
+      (p) => p.is_top_pick,
+    );
+    return (
+      topPick?.platform ??
+      state.result.resale_where.platforms[0]?.platform ??
+      null
+    );
+  }, [state, selectedPlatform]);
 
   return (
     <div className="flex flex-col gap-10">
@@ -108,7 +127,18 @@ export default function Estimator({
       )}
 
       {state.status === "success" && (
-        <EstimatorResaleWhere result={state.result} />
+        <EstimatorResaleWhere
+          result={state.result}
+          selectedPlatform={effectivePlatform ?? state.result.inputs.platform}
+          onSelect={setSelectedPlatform}
+        />
+      )}
+
+      {state.status === "success" && effectivePlatform && (
+        <EstimatorResaleWhen
+          result={state.result}
+          selectedPlatform={effectivePlatform}
+        />
       )}
     </div>
   );

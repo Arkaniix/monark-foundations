@@ -182,6 +182,26 @@ export type ResaleWhereRecommendation = {
   top_pick_narrative: string;
 };
 
+// E5b — Quand revendre §05b
+
+export type ResaleTiming = "RAPIDE" | "OPTIMAL" | "PATIENT";
+
+export const RESALE_TIMINGS: ResaleTiming[] = ["RAPIDE", "OPTIMAL", "PATIENT"];
+
+export type ResaleWhenOption = {
+  timing: ResaleTiming;
+  expected_price_eur: number;
+  expected_delay_days: number;
+  acceptance_probability_pct: number;
+  net_margin_eur: number;
+  is_top_pick: boolean;
+  narrative: string;
+};
+
+export type ResaleWhenRecommendation = {
+  by_platform: Record<Platform, ResaleWhenOption[]>;
+};
+
 export type EstimatorResult = {
   inputs: EstimatorInputs;
   model_name: string;
@@ -208,6 +228,7 @@ export type EstimatorResult = {
   negotiation: NegotiationPlan;
 
   resale_where: ResaleWhereRecommendation;
+  resale_when: ResaleWhenRecommendation;
 };
 
 export type HardwareModel = {

@@ -94,6 +94,25 @@ const SUCCESS_RESULT: EstimatorResult = {
     ],
     top_pick_narrative: "LBC sort en tête sur ce hardware liquide : marge confortable (+10 €) et délai court (~9 j). Audience locale française forte, délai court, frais modérés. Le standard pour le hardware d'occasion.",
   },
+  resale_when: {
+    by_platform: {
+      LBC: [
+        { timing: "RAPIDE", expected_price_eur: 266, expected_delay_days: 3, acceptance_probability_pct: 92, net_margin_eur: -31, is_top_pick: false, narrative: "Vente quasi-immédiate sur LBC. Prix accessible, on rogne sur la marge pour libérer le cash rapidement." },
+        { timing: "OPTIMAL", expected_price_eur: 313, expected_delay_days: 9, acceptance_probability_pct: 82, net_margin_eur: 10, is_top_pick: true, narrative: "Meilleur compromis marge × délai sur LBC. Le sweet spot par défaut." },
+        { timing: "PATIENT", expected_price_eur: 354, expected_delay_days: 25, acceptance_probability_pct: 58, net_margin_eur: 46, is_top_pick: false, narrative: "Maximiser le prix au prix d'un délai long sur LBC. Pour qui peut attendre." },
+      ],
+      eBay: [
+        { timing: "RAPIDE", expected_price_eur: 280, expected_delay_days: 5, acceptance_probability_pct: 92, net_margin_eur: -35, is_top_pick: false, narrative: "Vente quasi-immédiate sur eBay. Prix accessible, on rogne sur la marge pour libérer le cash rapidement." },
+        { timing: "OPTIMAL", expected_price_eur: 329, expected_delay_days: 15, acceptance_probability_pct: 82, net_margin_eur: 5, is_top_pick: true, narrative: "Meilleur compromis marge × délai sur eBay. Le sweet spot par défaut." },
+        { timing: "PATIENT", expected_price_eur: 372, expected_delay_days: 42, acceptance_probability_pct: 58, net_margin_eur: 40, is_top_pick: false, narrative: "Maximiser le prix au prix d'un délai long sur eBay. Pour qui peut attendre." },
+      ],
+      Vinted: [
+        { timing: "RAPIDE", expected_price_eur: 245, expected_delay_days: 7, acceptance_probability_pct: 92, net_margin_eur: -32, is_top_pick: false, narrative: "Vente quasi-immédiate sur Vinted. Prix accessible, on rogne sur la marge pour libérer le cash rapidement." },
+        { timing: "OPTIMAL", expected_price_eur: 288, expected_delay_days: 22, acceptance_probability_pct: 82, net_margin_eur: 9, is_top_pick: true, narrative: "Meilleur compromis marge × délai sur Vinted. Le sweet spot par défaut." },
+        { timing: "PATIENT", expected_price_eur: 326, expected_delay_days: 62, acceptance_probability_pct: 58, net_margin_eur: 45, is_top_pick: false, narrative: "Maximiser le prix au prix d'un délai long sur Vinted. Pour qui peut attendre." },
+      ],
+    },
+  },
 };
 
 const STATES: { label: string; state: EstimatorState }[] = [
