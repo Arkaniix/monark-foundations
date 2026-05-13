@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import SectionLabel from "../ui/SectionLabel";
 import type { VariantEntry } from "./modelDetail";
 import { getScoreColor, getTrendColor, getLiquidityColor } from "./datasets";
+import { setNavIntent } from "@/lib/catalogScrollMemory";
 
 type Props = {
   variants: VariantEntry[];
@@ -12,7 +13,7 @@ type Props = {
 export default function CatalogFicheVariants({ variants, familyLabel }: Props) {
   if (variants.length === 0) return null;
   return (
-    <section className="flex flex-col gap-3.5">
+    <section id="section-variants" className="flex flex-col gap-3.5">
       <SectionLabel idx={3} label={`VARIANTS ${familyLabel.toUpperCase()}`} />
       <div
         className="overflow-hidden rounded-xl"
@@ -80,7 +81,12 @@ function VariantRow({ v }: { v: VariantEntry }) {
   return (
     <tr className="ease-expo transition-colors hover:bg-white/[0.025]">
       <td className="px-4 py-2.5">
-        <Link to="/catalogue/$modelId" params={{ modelId: v.id }} className="text-zinc-100">
+        <Link
+          to="/catalogue/$modelId"
+          params={{ modelId: v.id }}
+          onClick={() => setNavIntent("variant")}
+          className="text-zinc-100"
+        >
           {v.name}
         </Link>
       </td>
@@ -93,7 +99,12 @@ function VariantRow({ v }: { v: VariantEntry }) {
         {v.liquidity_pct}%
       </td>
       <td className="px-4 py-2.5 text-right">
-        <Link to="/catalogue/$modelId" params={{ modelId: v.id }} className="inline-flex text-zinc-500 hover:text-zinc-200">
+        <Link
+          to="/catalogue/$modelId"
+          params={{ modelId: v.id }}
+          onClick={() => setNavIntent("variant")}
+          className="inline-flex text-zinc-500 hover:text-zinc-200"
+        >
           <ArrowRight size={12} strokeWidth={1.5} />
         </Link>
       </td>

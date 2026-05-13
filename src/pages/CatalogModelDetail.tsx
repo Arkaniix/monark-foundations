@@ -1,72 +1,110 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { catalogApi } from "../lib/api";
-import type { CatalogModelDetail as CatalogModelDetailT } from "../components/catalog/modelDetail";
-import { useCatalogFavorites } from "../lib/catalogFavorites";
-import { useCatalogAlerts } from "../lib/catalogAlerts";
-import CatalogFicheHeader from "../components/catalog/CatalogFicheHeader";
-import CatalogFicheOverview from "../components/catalog/CatalogFicheOverview";
-import CatalogFichePercentiles from "../components/catalog/CatalogFichePercentiles";
-import CatalogFicheVariants from "../components/catalog/CatalogFicheVariants";
-import CatalogFicheMarketplaces from "../components/catalog/CatalogFicheMarketplaces";
-import CatalogFicheHistory from "../components/catalog/CatalogFicheHistory";
-import CatalogFicheCtaEstimer from "../components/catalog/CatalogFicheCtaEstimer";
+import { catalogApi } from "@/lib/api";
+import type { CatalogModelDetail as CatalogModelDetailT } from "@/components/catalog/modelDetail";
+import { useCatalogFavorites } from "@/lib/catalogFavorites";
+import { useCatalogAlerts } from "@/lib/catalogAlerts";
+import {
+  consumeNavIntent,
+  getScrollPosition,
+  saveScrollPosition,
+} from "@/lib/catalogScrollMemory";
+import CatalogFicheHeader from "@/components/catalog/CatalogFicheHeader";
+import CatalogFicheOverview from "@/components/catalog/CatalogFicheOverview";
+import CatalogFichePercentiles from "@/components/catalog/CatalogFichePercentiles";
+import CatalogFicheVariants from "@/components/catalog/CatalogFicheVariants";
+import CatalogFicheMarketplaces from "@/components/catalog/CatalogFicheMarketplaces";
+import CatalogFicheHistory from "@/components/catalog/CatalogFicheHistory";
+import CatalogFicheCtaEstimer from "@/components/catalog/CatalogFicheCtaEstimer";
+import CatalogFicheLoading from "@/components/catalog/CatalogFicheLoading";
+import CatalogFicheNotFound from "@/components/catalog/CatalogFicheNotFound";
 
 type Props = { modelId: string };
 
 export default function CatalogModelDetail({ modelId }: Props) {
   const navigate = useNavigate();
   const [detail, setDetail] = useState<CatalogModelDetailT | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const prevModelIdRef = useRef<string | null>(null);
+
   const { has: isFavorite, toggle: toggleFav } = useCatalogFavorites();
   const { has: hasAlert, toggle: toggleAlert } = useCatalogAlerts();
 
+  // Sauvegarde scroll au unmount/changement de modelId
+  useEffect(() => {
+    return () => {
+      const idToSave = prevModelIdRef.current;
+      if (idToSave) saveScrollPosition(idToSave, window.scrollY);
+    };
+  }, [modelId]);
+
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
+    setNotFound(false);
     setError(null);
+    if (detail) setIsTransitioning(true);
+
     catalogApi
       .getModelDetail(modelId)
       .then((d) => {
         if (cancelled) return;
-        if (!d) setError("Modèle introuvable");
-        else setDetail(d);
+        if (!d) {
+          setNotFound(true);
+          setDetail(null);
+          setIsTransitioning(false);
+          setIsFirstLoad(false);
+          return;
+        }
+        setDetail(d);
+        setIsFirstLoad(false);
+        requestAnimationFrame(() => {
+          if (cancelled) return;
+          setIsTransitioning(false);
+          handleScrollRestoration(modelId);
+        });
+        prevModelIdRef.current = modelId;
       })
-      .catch((e: unknown) => {
+      .catch((err: unknown) => {
         if (cancelled) return;
-        setError(e instanceof Error ? e.message : "Erreur de chargement");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+        setError(err instanceof Error ? err.message : "Erreur inconnue");
+        setIsTransitioning(false);
+        setIsFirstLoad(false);
       });
+
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modelId]);
 
-  const handleEstimate = () => {
+  const handleEstimate = useCallback(() => {
     if (!detail) return;
     navigate({ to: "/estimator", search: { model: detail.id } });
-  };
+  }, [detail, navigate]);
 
-  if (loading) {
+  if (isFirstLoad && !detail) return <CatalogFicheLoading />;
+  if (notFound) return <CatalogFicheNotFound />;
+  if (error && !detail) {
     return (
-      <div className="flex h-64 items-center justify-center font-mono text-[11px] tracking-[0.12em] text-zinc-500">
-        CHARGEMENT…
+      <div className="flex h-64 flex-col items-center justify-center gap-2">
+        <div className="font-mono text-[10.5px] tracking-[0.16em] text-red-400">ERREUR API</div>
+        <p className="text-[12px] text-zinc-500">{error}</p>
       </div>
     );
   }
-  if (error || !detail) {
-    return (
-      <div className="flex h-64 items-center justify-center font-mono text-[11px] tracking-[0.12em] text-zinc-500">
-        {error ?? "Modèle introuvable"}
-      </div>
-    );
-  }
+  if (!detail) return <CatalogFicheLoading />;
 
   return (
-    <div className="flex flex-col">
+    <div
+      className="flex flex-col"
+      style={{
+        opacity: isTransitioning ? 0.4 : 1,
+        transition: "opacity 200ms ease-out",
+      }}
+    >
       <CatalogFicheHeader
         detail={detail}
         isFavorite={isFavorite(detail.id)}
@@ -79,10 +117,31 @@ export default function CatalogModelDetail({ modelId }: Props) {
         <CatalogFicheOverview detail={detail} />
         <CatalogFichePercentiles detail={detail} />
         <CatalogFicheVariants variants={detail.variants} familyLabel={detail.family} />
-        <CatalogFicheMarketplaces by_platform={detail.by_platform} global_median_eur={detail.median_eur} />
+        <CatalogFicheMarketplaces
+          by_platform={detail.by_platform}
+          global_median_eur={detail.median_eur}
+        />
         <CatalogFicheHistory monthly_history={detail.monthly_history} />
         <CatalogFicheCtaEstimer modelName={detail.name} onEstimate={handleEstimate} />
       </div>
     </div>
   );
+}
+
+function handleScrollRestoration(modelId: string): void {
+  const intent = consumeNavIntent();
+  if (intent === "variant") {
+    setTimeout(() => {
+      const el = document.getElementById("section-variants");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      else window.scrollTo({ top: 0, behavior: "auto" });
+    }, 50);
+    return;
+  }
+  const saved = getScrollPosition(modelId);
+  if (saved !== null && saved > 0) {
+    setTimeout(() => window.scrollTo({ top: saved, behavior: "auto" }), 50);
+    return;
+  }
+  window.scrollTo({ top: 0, behavior: "auto" });
 }
