@@ -1,5 +1,7 @@
+import type { ReactNode } from "react";
 import { ConfidenceGauge, Pill, VerdictCrystal } from "@/components/ui";
 import GlossaryTooltip from "@/components/ui/GlossaryTooltip";
+import AnimatedCounter from "@/components/ui/AnimatedCounter";
 import type { GlossaryKey } from "@/lib/glossary";
 import {
   VERDICT_COLORS,
@@ -72,7 +74,7 @@ export default function EstimatorVerdict({ result }: EstimatorVerdictProps) {
                 className="text-[18px] font-semibold tabular-nums"
                 style={{ color: scoreColor }}
               >
-                {score_total}
+                <AnimatedCounter value={score_total} />
               </span>
               <span className="text-zinc-600"> / 100</span>
             </span>
@@ -92,13 +94,16 @@ export default function EstimatorVerdict({ result }: EstimatorVerdictProps) {
         <div className="text-[13px] text-zinc-400">
           Marge nette estimée :{" "}
           <span className="font-mono font-medium" style={{ color: marginColor }}>
-            {marginSign}
-            {net_margin_eur} €
+            <AnimatedCounter value={net_margin_eur} prefix={marginSign} suffix=" €" />
           </span>
           {" · Fair "}
-          <span className="font-mono text-zinc-200">{fair_price_eur} €</span>
+          <span className="font-mono text-zinc-200">
+            <AnimatedCounter value={fair_price_eur} suffix=" €" />
+          </span>
           {" · Frais "}
-          <span className="font-mono text-zinc-200">{platform_fees_pct} %</span>
+          <span className="font-mono text-zinc-200">
+            <AnimatedCounter value={platform_fees_pct} suffix=" %" />
+          </span>
         </div>
 
         <ConfidenceGauge value={confidence_pct} color={color} />
@@ -123,21 +128,21 @@ export default function EstimatorVerdict({ result }: EstimatorVerdictProps) {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 border-t border-white/5">
         <LandmarkCell
           label="PLAFOND ACHAT"
-          value={`${landmarks.ceiling_buy_eur} €`}
+          value={<AnimatedCounter value={landmarks.ceiling_buy_eur} suffix=" €" />}
           hint="à ne pas dépasser"
           color="#EF4444"
           termKey="plafond"
         />
         <LandmarkCell
           label="ACHAT OPTIMAL"
-          value={`${landmarks.optimal_buy_eur} €`}
+          value={<AnimatedCounter value={landmarks.optimal_buy_eur} suffix=" €" />}
           hint="prix idéal"
           color="#10B981"
           termKey="optimal"
         />
         <LandmarkCell
           label="PLANCHER REVENTE"
-          value={`${landmarks.floor_resale_eur} €`}
+          value={<AnimatedCounter value={landmarks.floor_resale_eur} suffix=" €" />}
           hint="breakeven post-frais"
           color="#3B82F6"
           termKey="plancherEstimator"
@@ -155,7 +160,7 @@ function LandmarkCell({
   termKey,
 }: {
   label: string;
-  value: string;
+  value: ReactNode;
   hint: string;
   color: string;
   termKey?: GlossaryKey;

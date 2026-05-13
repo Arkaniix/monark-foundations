@@ -1,5 +1,7 @@
 import SectionLabel from "../ui/SectionLabel";
 import GlossaryTooltip from "../ui/GlossaryTooltip";
+import AnimatedCounter from "../ui/AnimatedCounter";
+import AnimatedBar from "../ui/AnimatedBar";
 import type { PlatformBreakdown } from "./modelDetail";
 import { PLATFORM_BRAND_COLORS } from "./modelDetail";
 
@@ -59,13 +61,18 @@ function PlatformCard({
       </div>
 
       <div className="mb-0.5 font-mono text-[22px] font-medium tabular-nums text-zinc-100">
-        {entry.median_eur} €
+        <AnimatedCounter value={entry.median_eur} suffix=" €" />
       </div>
       <div className="mb-4 flex items-center gap-2 font-mono text-[10px] tracking-[0.12em] text-zinc-600">
         <GlossaryTooltip term="median30d"><span>MÉDIANE</span></GlossaryTooltip>
         <GlossaryTooltip term="spreadGlobal">
           <span style={{ color: spreadColor }}>
-            {spreadSign}{entry.spread_vs_global_pct.toFixed(1)}% vs global
+            <AnimatedCounter
+              value={entry.spread_vs_global_pct}
+              prefix={spreadSign}
+              suffix="% vs global"
+              decimals={1}
+            />
           </span>
         </GlossaryTooltip>
       </div>
@@ -82,20 +89,19 @@ function PlatformCard({
             <span className="font-mono text-[9px] tracking-[0.16em] text-zinc-500">PART DE VOLUME</span>
           </GlossaryTooltip>
           <span className="font-mono text-[16px] font-medium tabular-nums" style={{ color: brand }}>
-            {volumeSharePct.toFixed(0)}%
+            <AnimatedCounter value={volumeSharePct} suffix="%" decimals={0} />
           </span>
         </div>
-        <div className="relative h-[3px] overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
-          <div
-            className="absolute left-0 top-0 h-full rounded-full"
-            style={{ width: `${volumeSharePct}%`, background: brand }}
-          />
-        </div>
+        <AnimatedBar percent={volumeSharePct} color={brand} />
       </div>
 
       <div className="font-mono text-[10px] tracking-[0.08em] text-zinc-600">
         <GlossaryTooltip term="observations">
-          <span><span>N OBS </span><span className="text-zinc-300">{entry.n_obs}</span><span className="text-zinc-700"> · 30 J</span></span>
+          <span>
+            <span>N OBS </span>
+            <span className="text-zinc-300"><AnimatedCounter value={entry.n_obs} /></span>
+            <span className="text-zinc-700"> · 30 J</span>
+          </span>
         </GlossaryTooltip>
       </div>
     </div>

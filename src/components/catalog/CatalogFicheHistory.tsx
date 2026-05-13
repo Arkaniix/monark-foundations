@@ -1,11 +1,26 @@
+import { useEffect, useState } from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import SectionLabel from "../ui/SectionLabel";
 import GlossaryTooltip from "../ui/GlossaryTooltip";
+import AnimatedCounter from "../ui/AnimatedCounter";
+import useReducedMotion from "@/lib/useReducedMotion";
 import type { MonthlyHistoryEntry } from "./modelDetail";
 
 type Props = { monthly_history: MonthlyHistoryEntry[] };
 
 export default function CatalogFicheHistory({ monthly_history }: Props) {
+  const reducedMotion = useReducedMotion();
+  const [isAnimated, setIsAnimated] = useState(reducedMotion);
+
+  useEffect(() => {
+    if (reducedMotion) {
+      setIsAnimated(true);
+      return;
+    }
+    const t = setTimeout(() => setIsAnimated(true), 100);
+    return () => clearTimeout(t);
+  }, [reducedMotion]);
+
   if (monthly_history.length === 0) return null;
   const chronological = [...monthly_history].reverse();
   const max = Math.max(...chronological.map((m) => m.median_eur));
@@ -34,17 +49,36 @@ export default function CatalogFicheHistory({ monthly_history }: Props) {
                   : m.annotation === "trough"
                     ? "#EF4444"
                     : "rgba(255,255,255,0.18)";
+              const animatedHeight = isAnimated ? h : 0;
+              const animatedOpacity = isAnimated ? (isAnnotated ? 0.85 : 1) : 0;
               return (
-                <div key={i} className="flex flex-1 flex-col items-center gap-2">
+                <div
+                  key={i}
+                  className="flex flex-1 flex-col items-center justify-end gap-2"
+                  style={{ minHeight: 100 }}
+                >
                   <div
                     className="font-mono text-[9.5px] tabular-nums"
-                    style={{ color: isAnnotated ? barColor : "#71717a" }}
+                    style={{
+                      color: isAnnotated ? barColor : "#71717a",
+                      opacity: isAnimated ? 1 : 0,
+                      transition: reducedMotion
+                        ? "none"
+                        : `opacity 400ms cubic-bezier(0.22, 1, 0.36, 1) ${i * 40}ms`,
+                    }}
                   >
-                    {m.median_eur}
+                    <AnimatedCounter value={m.median_eur} delay={i * 40} />
                   </div>
                   <div
                     className="w-full rounded-t-sm"
-                    style={{ height: h, background: barColor, opacity: isAnnotated ? 0.85 : 1 }}
+                    style={{
+                      height: animatedHeight,
+                      background: barColor,
+                      opacity: animatedOpacity,
+                      transition: reducedMotion
+                        ? "none"
+                        : `height 600ms cubic-bezier(0.22, 1, 0.36, 1) ${i * 40}ms, opacity 400ms ease-out ${i * 40}ms`,
+                    }}
                   />
                 </div>
               );
@@ -93,11 +127,19 @@ function HistoryRow({ m, isFirst }: { m: MonthlyHistoryEntry; isFirst: boolean }
   return (
     <tr>
       <td className="px-2 py-2 font-mono text-zinc-100">{m.month_label}</td>
-      <td className="px-2 py-2 text-right font-mono tabular-nums text-zinc-300">{m.median_eur} €</td>
-      <td className="px-2 py-2 text-right font-mono tabular-nums" style={{ color: deltaColor }}>
-        {isFirst ? <span className="text-zinc-700">—</span> : `${sign}${m.delta_pct.toFixed(1)}%`}
+      <td className="px-2 py-2 text-right font-mono tabular-nums text-zinc-300">
+        <AnimatedCounter value={m.median_eur} suffix=" €" />
       </td>
-      <td className="px-2 py-2 text-right font-mono tabular-nums text-zinc-500">{m.n_obs}</td>
+      <td className="px-2 py-2 text-right font-mono tabular-nums" style={{ color: deltaColor }}>
+        {isFirst ? (
+          <span className="text-zinc-700">—</span>
+        ) : (
+          <AnimatedCounter value={m.delta_pct} prefix={sign} suffix="%" decimals={1} />
+        )}
+      </td>
+      <td className="px-2 py-2 text-right font-mono tabular-nums text-zinc-500">
+        <AnimatedCounter value={m.n_obs} />
+      </td>
       <td className="px-2 py-2 font-mono text-[10px] tracking-[0.08em]">
         {m.annotation === "peak" ? (
           <GlossaryTooltip term="pic">

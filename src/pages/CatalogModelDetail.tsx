@@ -13,6 +13,7 @@ import CatalogFicheHistory from "@/components/catalog/CatalogFicheHistory";
 import CatalogFicheCtaEstimer from "@/components/catalog/CatalogFicheCtaEstimer";
 import CatalogFicheLoading from "@/components/catalog/CatalogFicheLoading";
 import CatalogFicheNotFound from "@/components/catalog/CatalogFicheNotFound";
+import FadeInSection from "@/components/ui/FadeInSection";
 
 type Props = { modelId: string };
 
@@ -103,15 +104,27 @@ export default function CatalogModelDetail({ modelId }: Props) {
         onEstimate={handleEstimate}
       />
       <div className="flex flex-col gap-8 px-6 py-6">
-        <CatalogFicheOverview detail={detail} />
-        <CatalogFichePercentiles detail={detail} />
-        <CatalogFicheVariants variants={detail.variants} familyLabel={detail.family} />
-        <CatalogFicheMarketplaces
-          by_platform={detail.by_platform}
-          global_median_eur={detail.median_eur}
-        />
-        <CatalogFicheHistory monthly_history={detail.monthly_history} />
-        <CatalogFicheCtaEstimer modelName={detail.name} onEstimate={handleEstimate} />
+        <FadeInSection delay={0}>
+          <CatalogFicheOverview detail={detail} />
+        </FadeInSection>
+        <FadeInSection delay={60}>
+          <CatalogFichePercentiles detail={detail} />
+        </FadeInSection>
+        <FadeInSection delay={120}>
+          <CatalogFicheVariants variants={detail.variants} familyLabel={detail.family} />
+        </FadeInSection>
+        <FadeInSection delay={180}>
+          <CatalogFicheMarketplaces
+            by_platform={detail.by_platform}
+            global_median_eur={detail.median_eur}
+          />
+        </FadeInSection>
+        <FadeInSection delay={240}>
+          <CatalogFicheHistory monthly_history={detail.monthly_history} />
+        </FadeInSection>
+        <FadeInSection delay={300}>
+          <CatalogFicheCtaEstimer modelName={detail.name} onEstimate={handleEstimate} />
+        </FadeInSection>
       </div>
     </div>
   );

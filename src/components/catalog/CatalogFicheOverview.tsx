@@ -1,6 +1,7 @@
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import SectionLabel from "../ui/SectionLabel";
 import GlossaryTooltip from "../ui/GlossaryTooltip";
+import AnimatedCounter from "../ui/AnimatedCounter";
 import type { GlossaryKey } from "@/lib/glossary";
 import ModelImage from "./ModelImage";
 import type { CatalogModelDetail } from "./modelDetail";
@@ -52,7 +53,7 @@ export default function CatalogFicheOverview({ detail }: Props) {
                   className="font-mono text-[42px] font-medium leading-none tabular-nums"
                   style={{ color: scoreColor, letterSpacing: "-0.02em" }}
                 >
-                  {detail.score}
+                  <AnimatedCounter value={detail.score} />
                 </div>
                 <div className="mt-2 font-mono text-[9px] tracking-[0.2em] text-zinc-600">
                   <GlossaryTooltip term="score">
@@ -72,7 +73,7 @@ export default function CatalogFicheOverview({ detail }: Props) {
                   className="font-mono text-[32px] font-medium leading-none tabular-nums text-zinc-100"
                   style={{ letterSpacing: "-0.01em" }}
                 >
-                  {formatPrice(detail.median_eur)}
+                  <AnimatedCounter value={detail.median_eur} suffix=" €" />
                 </div>
                 <div className="mt-2 font-mono text-[9.5px] tracking-[0.18em] text-zinc-600">
                   <GlossaryTooltip term="median30d">
@@ -85,8 +86,12 @@ export default function CatalogFicheOverview({ detail }: Props) {
                 <div className="mt-1 flex justify-between font-mono text-[9px] tracking-[0.12em] text-zinc-600">
                   <span>90 J</span>
                   <span style={{ color: delta90dColor }}>
-                    {delta90d > 0 ? "+" : ""}
-                    {delta90d.toFixed(1)}%
+                    <AnimatedCounter
+                      value={delta90d}
+                      prefix={delta90d > 0 ? "+" : ""}
+                      suffix="%"
+                      decimals={1}
+                    />
                   </span>
                   <span>AUJOURD'HUI</span>
                 </div>
@@ -99,8 +104,12 @@ export default function CatalogFicheOverview({ detail }: Props) {
             >
               <Stat label="TENDANCE 30 J" sub="vs il y a 30 jours" termKey="trend30d">
                 <span className="font-mono text-[18px] font-medium tabular-nums" style={{ color: trendColor }}>
-                  {trendSign}
-                  {detail.trend_30d_pct.toFixed(1)}%
+                  <AnimatedCounter
+                    value={detail.trend_30d_pct}
+                    prefix={trendSign}
+                    suffix="%"
+                    decimals={1}
+                  />
                 </span>
                 <TrendIcon size={13} style={{ color: trendColor }} strokeWidth={1.75} />
               </Stat>
@@ -110,7 +119,7 @@ export default function CatalogFicheOverview({ detail }: Props) {
                 termKey="liquidity"
               >
                 <span className="font-mono text-[18px] font-medium tabular-nums" style={{ color: liqColor }}>
-                  {detail.liquidity_pct}%
+                  <AnimatedCounter value={detail.liquidity_pct} suffix="%" />
                 </span>
               </Stat>
               <Stat
@@ -119,7 +128,7 @@ export default function CatalogFicheOverview({ detail }: Props) {
                 termKey="marginPotential"
               >
                 <span className="font-mono text-[18px] font-medium tabular-nums" style={{ color: trendColor }}>
-                  {detail.margin_pct}%
+                  <AnimatedCounter value={detail.margin_pct} suffix="%" />
                 </span>
               </Stat>
             </div>
