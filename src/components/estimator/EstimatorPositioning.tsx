@@ -1,5 +1,6 @@
 import { PercentileChart, Sparkline } from "@/components/ui";
 import { MarketStatCard } from "./MarketStatCard";
+import GlossaryTooltip from "@/components/ui/GlossaryTooltip";
 import { VERDICT_COLORS, type EstimatorResult } from "./datasets";
 
 type EstimatorPositioningProps = {
@@ -152,6 +153,7 @@ export default function EstimatorPositioning({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <MarketStatCard
           label="TENDANCE"
+          termKey="trend30d"
           status={trend.status}
           statusTone={trendTone}
           datapoints={[
@@ -171,6 +173,7 @@ export default function EstimatorPositioning({
 
         <MarketStatCard
           label="LIQUIDITÉ"
+          termKey="liquidity"
           status={liquidity.status}
           statusTone={liquidityTone}
           datapoints={[
@@ -182,6 +185,7 @@ export default function EstimatorPositioning({
 
         <MarketStatCard
           label="DÉCOTE VS NEUF"
+          termKey="decoteVsNeuf"
           status={value_vs_new.status}
           statusTone={valueVsNewTone}
           datapoints={[
