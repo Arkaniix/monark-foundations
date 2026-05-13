@@ -1,8 +1,10 @@
 import PercentileChart from "../ui/PercentileChart";
 import SectionLabel from "../ui/SectionLabel";
 import GlossaryTooltip from "../ui/GlossaryTooltip";
+import AnimatedCounter from "../ui/AnimatedCounter";
 import type { CatalogModelDetail } from "./modelDetail";
 import type { GlossaryKey } from "@/lib/glossary";
+import type { ReactNode } from "react";
 
 type Props = { detail: CatalogModelDetail };
 
@@ -34,13 +36,32 @@ export default function CatalogFichePercentiles({ detail }: Props) {
           <div className="flex flex-col gap-3 pt-1">
             <MetricHighlight
               label="ZONE TYPIQUE · P25 → P75"
-              value={`${p25} € — ${p75} €`}
+              value={
+                <>
+                  <AnimatedCounter value={p25} suffix=" €" /> — <AnimatedCounter value={p75} suffix=" €" />
+                </>
+              }
               sub="majorité des ventes observées"
               termKey="zoneTypique"
             />
-            <Metric label="FOURCHETTE P10 → P90" value={`${spread} €`} sub={`${spreadPct}% de la médiane`} termKey="fourchette" />
-            <Metric label="IQR P25 → P75" value={`${iqr} €`} sub={`${iqrPct}% de la médiane`} termKey="iqr" />
-            <Metric label="MÉDIANE" value={`${p50} €`} sub="P50" termKey="p50" />
+            <Metric
+              label="FOURCHETTE P10 → P90"
+              value={<AnimatedCounter value={spread} suffix=" €" />}
+              sub={`${spreadPct}% de la médiane`}
+              termKey="fourchette"
+            />
+            <Metric
+              label="IQR P25 → P75"
+              value={<AnimatedCounter value={iqr} suffix=" €" />}
+              sub={`${iqrPct}% de la médiane`}
+              termKey="iqr"
+            />
+            <Metric
+              label="MÉDIANE"
+              value={<AnimatedCounter value={p50} suffix=" €" />}
+              sub="P50"
+              termKey="p50"
+            />
           </div>
         </div>
       </div>
@@ -48,7 +69,7 @@ export default function CatalogFichePercentiles({ detail }: Props) {
   );
 }
 
-type MetricProps = { label: string; value: string; sub: string; termKey?: GlossaryKey };
+type MetricProps = { label: string; value: ReactNode; sub: string; termKey?: GlossaryKey };
 
 function Metric({ label, value, sub, termKey }: MetricProps) {
   const labelEl = (
