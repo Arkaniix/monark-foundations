@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { ConfidenceGauge, Pill, VerdictCrystal } from "@/components/ui";
 import GlossaryTooltip from "@/components/ui/GlossaryTooltip";
 import AnimatedCounter from "@/components/ui/AnimatedCounter";
@@ -159,7 +160,7 @@ function LandmarkCell({
   termKey,
 }: {
   label: string;
-  value: React.ReactNode;
+  value: ReactNode;
   hint: string;
   color: string;
   termKey?: GlossaryKey;
