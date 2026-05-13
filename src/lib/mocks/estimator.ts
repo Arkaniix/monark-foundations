@@ -1,5 +1,5 @@
 /**
- * Mock Estimator API — étendu E2 (§02 Positionnement marché).
+ * Mock Estimator API — étendu E3 (§03 + §01 header).
  */
 
 import { mockDelay } from "./fixtures";
@@ -86,11 +86,7 @@ function computePercentilePosition(
   return 50;
 }
 
-function generatePriceHistory(
-  p50Today: number,
-  delta30dPct: number,
-  n = 30,
-): number[] {
+function generatePriceHistory(p50Today: number, delta30dPct: number, n = 30): number[] {
   const startPrice = p50Today / (1 + delta30dPct / 100);
   const out: number[] = [];
   for (let i = 0; i < n; i++) {
@@ -121,11 +117,7 @@ function buildValueVsNewStatus(decotePct: number): ValueVsNewStatus {
   return "Faible";
 }
 
-function buildTrendNarrative(
-  status: TrendStatus,
-  delta30: number,
-  category: HardwareCategory,
-): string {
+function buildTrendNarrative(status: TrendStatus, delta30: number, category: HardwareCategory): string {
   const absDelta = Math.abs(delta30).toFixed(1);
   if (status === "En hausse") {
     return `Marché ${category} en hausse sur 30 j (+${absDelta} %). Acheter rapidement avant que les prix continuent de monter — bon timing.`;
@@ -136,11 +128,7 @@ function buildTrendNarrative(
   return `Marché ${category} stable sur 30 j (±${absDelta} %). Pas d'urgence, pas d'opportunité particulière côté tendance.`;
 }
 
-function buildLiquidityNarrative(
-  status: LiquidityStatus,
-  sales: number,
-  listings: number,
-): string {
+function buildLiquidityNarrative(status: LiquidityStatus, sales: number, listings: number): string {
   if (status === "Élevée") {
     return `${sales} ventes / mois pour ${listings} annonces — rotation forte, revente rapide quasi assurée.`;
   }
@@ -150,11 +138,7 @@ function buildLiquidityNarrative(
   return `${sales} ventes / mois pour ${listings} annonces — marché lent, anticipe une revente sur plusieurs semaines.`;
 }
 
-function buildValueVsNewNarrative(
-  status: ValueVsNewStatus,
-  decote: number,
-  state: ItemState,
-): string {
+function buildValueVsNewNarrative(status: ValueVsNewStatus, decote: number, state: ItemState): string {
   const abs = Math.abs(decote).toFixed(0);
   if (status === "Forte") {
     return `État ${state} — ${abs} % sous le prix neuf marché. Décote cohérente avec l'usure, marge confortable côté revente.`;
@@ -207,9 +191,7 @@ function buildCategoryMarketStats(
   };
 }
 
-export async function evaluate(
-  inputs: EstimatorInputs,
-): Promise<EstimatorResult> {
+export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult> {
   await mockDelay(380);
 
   const { model, state, ask_price_eur, platform } = inputs;
@@ -239,28 +221,27 @@ export async function evaluate(
   const trend = ratio < 0.95 ? 6 : ratio > 1.05 ? -4 : 2;
   const liqMod = liq > 0.7 ? 3 : liq > 0.55 ? 1 : -2;
   const valueVsNew =
-    state === "Neuf"
-      ? -3
-      : state === "Comme neuf"
-        ? -1
-        : state === "Bon"
-          ? 2
-          : 4;
+    state === "Neuf" ? -3 : state === "Comme neuf" ? -1 : state === "Bon" ? 2 : 4;
 
   const compositeLiquidity = Math.round(liq * 100);
   const distribution: PercentileDistribution = { p10, p25, p50, p75, p90 };
   const percentilePosition = computePercentilePosition(ask_price_eur, distribution);
-  const categoryMarketStats = buildCategoryMarketStats(
-    category,
-    trend,
-    compositeLiquidity,
-    state,
-  );
-  const priceHistory = generatePriceHistory(
-    p50,
-    categoryMarketStats.trend.delta_30d_pct,
-  );
-  const observations = Math.round(compositeLiquidity * 5 + Math.random() * 50);
+  const categoryMarketStats = buildCategoryMarketStats(category, trend, compositeLiquidity, state);
+  const priceHistory = generatePriceHistory(p50, categoryMarketStats.trend.delta_30d_pct);
+  const observations = Math.max(80, Math.round(compositeLiquidity * 5 + Math.random() * 50));
+
+  // E3 — score breakdown
+  const baseScore = Math.round(100 - percentilePosition);
+  const totalScoreRaw = baseScore + trend + liqMod + valueVsNew;
+  const totalScore = Math.max(5, Math.min(95, totalScoreRaw));
+
+  // E3 — landmarks
+  const ceilingBuy = Math.round(fair * 1.1);
+  const optimalBuy = Math.round(fair * 0.82);
+  const floorResale =
+    feesFrac > 0 && feesFrac < 1
+      ? Math.round(ask_price_eur / (1 - feesFrac))
+      : ask_price_eur;
 
   return {
     inputs,
@@ -286,7 +267,25 @@ export async function evaluate(
 
     price_history_30d: priceHistory,
     percentile_position_pct: percentilePosition,
-    observations_count: Math.max(80, observations),
     category_market_stats: categoryMarketStats,
+
+    score_total: totalScore,
+    score_breakdown: {
+      base: baseScore,
+      trend,
+      liquidity: liqMod,
+      value_vs_new: valueVsNew,
+      total: totalScore,
+    },
+    landmarks: {
+      ceiling_buy_eur: ceilingBuy,
+      optimal_buy_eur: optimalBuy,
+      floor_resale_eur: floorResale,
+    },
+    data_quality: {
+      observations_count: observations,
+      fresh_within_hours: 48,
+      platform_specific: true,
+    },
   };
 }

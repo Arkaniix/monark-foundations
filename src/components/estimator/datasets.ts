@@ -1,7 +1,9 @@
 /**
  * Types et contracts pour le domaine Estimator.
- * Étendu en E2 (§02) : price_history_30d, percentile_position_pct,
- * observations_count, category_market_stats.
+ *
+ * E2 : ajout price_history_30d, percentile_position_pct, observations_count, category_market_stats.
+ * E3 : ajout score_total, score_breakdown, landmarks, data_quality.
+ *      Migration : observations_count flat → data_quality.observations_count.
  */
 
 import type { Verdict, HardwareCategory } from "../dashboard/datasets";
@@ -113,6 +115,28 @@ export type CategoryMarketStats = {
   value_vs_new: MarketValueVsNewStats;
 };
 
+// === E3 — Score breakdown §03 + landmarks §01 ===
+
+export type ScoreBreakdown = {
+  base: number;
+  trend: number;
+  liquidity: number;
+  value_vs_new: number;
+  total: number;
+};
+
+export type BuyResaleLandmarks = {
+  ceiling_buy_eur: number;
+  optimal_buy_eur: number;
+  floor_resale_eur: number;
+};
+
+export type DataQuality = {
+  observations_count: number;
+  fresh_within_hours: number;
+  platform_specific: boolean;
+};
+
 export type EstimatorResult = {
   inputs: EstimatorInputs;
   model_name: string;
@@ -130,8 +154,13 @@ export type EstimatorResult = {
   // E2 §02
   price_history_30d: number[];
   percentile_position_pct: number;
-  observations_count: number;
   category_market_stats: CategoryMarketStats;
+
+  // E3 §01 enrichi + §03
+  score_total: number;
+  score_breakdown: ScoreBreakdown;
+  landmarks: BuyResaleLandmarks;
+  data_quality: DataQuality;
 };
 
 export type HardwareModel = {

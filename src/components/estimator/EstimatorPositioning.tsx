@@ -58,7 +58,7 @@ export default function EstimatorPositioning({
             distribution={result.percentile_distribution}
             askPrice={result.inputs.ask_price_eur}
             color={verdictColor}
-            observationsLabel={`${result.observations_count} obs · 180 j`}
+            observationsLabel={`${result.data_quality.observations_count} obs · 180 j`}
             percentilePosition={result.percentile_position_pct}
           />
           <p className="text-[13px] text-zinc-300 mt-4 leading-relaxed">
