@@ -7,6 +7,7 @@ import { EstimatorError } from "@/components/estimator/EstimatorError";
 import { EstimatorPositioning } from "@/components/estimator/EstimatorPositioning";
 import { EstimatorScoreBreakdown } from "@/components/estimator/EstimatorScoreBreakdown";
 import { EstimatorNegotiation } from "@/components/estimator/EstimatorNegotiation";
+import { EstimatorResaleWhere } from "@/components/estimator/EstimatorResaleWhere";
 import type {
   EstimatorInputs,
   EstimatorResult,
@@ -104,6 +105,10 @@ export default function Estimator({
 
       {state.status === "success" && (
         <EstimatorNegotiation result={state.result} />
+      )}
+
+      {state.status === "success" && (
+        <EstimatorResaleWhere result={state.result} />
       )}
     </div>
   );
