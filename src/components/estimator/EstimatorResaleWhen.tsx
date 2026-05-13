@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type {
   EstimatorResult,
   Platform,
@@ -119,11 +120,11 @@ function TimingRow({
     ? "rgba(255,255,255,0.038)"
     : "rgba(255,255,255,0.025)";
 
-  const rowStyle = {
+  const rowStyle: CSSProperties = {
     backgroundColor: baseBg,
-    ["--mk-row-hover-bg" as string]: hoverBg,
     borderTop: hasTopBorder ? "0.5px solid var(--mk-divider-soft)" : undefined,
-  } as React.CSSProperties;
+    ...({ "--mk-row-hover-bg": hoverBg } as CSSProperties),
+  };
 
   return (
     <div className="mk-timing-row -mx-5 px-5" style={rowStyle}>
