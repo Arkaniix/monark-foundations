@@ -91,7 +91,7 @@ function PlatformCard({
       onClick={onClick}
       aria-pressed={isCurrent}
       aria-label={`Sélectionner la plateforme ${platform.platform}`}
-      className="mk-card-flat-soft p-5 flex flex-col gap-4 text-left transition-colors duration-200 hover:bg-white/[0.04] focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/50"
+      className="mk-platform-card-button mk-card-flat-soft p-5 flex flex-col gap-4 text-left focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/50"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
