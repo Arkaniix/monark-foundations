@@ -19,6 +19,8 @@ const DELAY_SLOW = "#EF4444";
 
 type EstimatorResaleWhereProps = {
   result: EstimatorResult;
+  selectedPlatform: Platform;
+  onSelect: (platform: Platform) => void;
 };
 
 /**
@@ -28,6 +30,8 @@ type EstimatorResaleWhereProps = {
  */
 export default function EstimatorResaleWhere({
   result,
+  selectedPlatform,
+  onSelect,
 }: EstimatorResaleWhereProps) {
   const { resale_where } = result;
 
@@ -45,7 +49,12 @@ export default function EstimatorResaleWhere({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {resale_where.platforms.map((p) => (
-          <PlatformCard key={p.platform} platform={p} />
+          <PlatformCard
+            key={p.platform}
+            platform={p}
+            isCurrent={p.platform === selectedPlatform}
+            onClick={() => onSelect(p.platform)}
+          />
         ))}
       </div>
 
@@ -58,9 +67,16 @@ export default function EstimatorResaleWhere({
   );
 }
 
-function PlatformCard({ platform }: { platform: PlatformResaleStats }) {
+function PlatformCard({
+  platform,
+  isCurrent,
+  onClick,
+}: {
+  platform: PlatformResaleStats;
+  isCurrent: boolean;
+  onClick: () => void;
+}) {
   const brandColor = PLATFORM_BRAND_COLORS[platform.platform];
-  const isTopPick = platform.is_top_pick;
   const marginSign = platform.net_margin_eur >= 0 ? "+" : "";
   const marginColor =
     platform.net_margin_eur >= 0 ? MARGIN_POSITIVE : MARGIN_NEGATIVE;
@@ -72,7 +88,13 @@ function PlatformCard({ platform }: { platform: PlatformResaleStats }) {
         : DELAY_SLOW;
 
   return (
-    <div className="mk-card-flat-soft p-5 flex flex-col gap-4">
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={isCurrent}
+      aria-label={`Sélectionner la plateforme ${platform.platform}`}
+      className="mk-card-flat-soft p-5 flex flex-col gap-4 text-left ease-expo transition-colors hover:bg-white/[0.02] focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/50 cursor-pointer"
+    >
       {/* Header : dot + nom plateforme + pastille TOP PICK */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 min-w-0">
@@ -84,7 +106,7 @@ function PlatformCard({ platform }: { platform: PlatformResaleStats }) {
           <span
             className="font-mono text-[11px] tracking-[0.15em] text-zinc-300"
             style={
-              isTopPick
+              isCurrent
                 ? {
                     borderBottom: `1px solid ${brandColor}`,
                     paddingBottom: 1,
@@ -95,7 +117,7 @@ function PlatformCard({ platform }: { platform: PlatformResaleStats }) {
             {platform.platform.toUpperCase()}
           </span>
         </div>
-        {isTopPick && (
+        {isCurrent && (
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <span
               className="w-1.5 h-1.5 rounded-full"
@@ -153,7 +175,7 @@ function PlatformCard({ platform }: { platform: PlatformResaleStats }) {
           {platform.narrative}
         </p>
       </div>
-    </div>
+    </button>
   );
 }
 
