@@ -1,4 +1,4 @@
-import { VERDICT_COLORS, type EstimatorResult } from "./datasets";
+import { getScoreColor, type EstimatorResult } from "./datasets";
 
 type EstimatorScoreBreakdownProps = {
   result: EstimatorResult;
@@ -14,9 +14,10 @@ type EstimatorScoreBreakdownProps = {
 export default function EstimatorScoreBreakdown({
   result,
 }: EstimatorScoreBreakdownProps) {
-  const color = VERDICT_COLORS[result.verdict];
   const { score_breakdown, data_quality, confidence_pct, inputs } = result;
   const { base, trend, liquidity, value_vs_new, total } = score_breakdown;
+  const scoreColor = getScoreColor(total);
+  const confidenceColor = getScoreColor(confidence_pct);
 
   return (
     <section className="flex flex-col gap-5">
@@ -54,8 +55,8 @@ export default function EstimatorScoreBreakdown({
                   className="h-full rounded-full transition-all duration-700"
                   style={{
                     width: `${total}%`,
-                    background: color,
-                    boxShadow: `0 0 12px ${color}80`,
+                    background: scoreColor,
+                    boxShadow: `0 0 12px ${scoreColor}80`,
                   }}
                 />
               </div>
@@ -117,7 +118,7 @@ export default function EstimatorScoreBreakdown({
               <div className="flex items-baseline gap-1">
                 <span
                   className="font-mono text-[34px] font-semibold tracking-tight"
-                  style={{ color }}
+                  style={{ color: confidenceColor }}
                 >
                   {confidence_pct}
                 </span>

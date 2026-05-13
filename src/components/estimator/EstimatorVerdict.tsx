@@ -3,6 +3,7 @@ import {
   VERDICT_COLORS,
   VERDICT_DISPLAY_LABELS,
   VERDICT_GLOW_CLASS,
+  getScoreColor,
   type EstimatorResult,
 } from "./datasets";
 
@@ -12,6 +13,7 @@ type EstimatorVerdictProps = {
 
 export default function EstimatorVerdict({ result }: EstimatorVerdictProps) {
   const color = VERDICT_COLORS[result.verdict];
+  const scoreColor = getScoreColor(result.score_total);
   const label = VERDICT_DISPLAY_LABELS[result.verdict];
   const glow = VERDICT_GLOW_CLASS[result.verdict];
   const {
@@ -57,7 +59,7 @@ export default function EstimatorVerdict({ result }: EstimatorVerdictProps) {
             <span className="font-mono text-[12px] text-zinc-300">
               <span
                 className="text-[18px] font-semibold tabular-nums"
-                style={{ color }}
+                style={{ color: scoreColor }}
               >
                 {score_total}
               </span>
@@ -69,8 +71,8 @@ export default function EstimatorVerdict({ result }: EstimatorVerdictProps) {
               className="h-full rounded-full transition-all duration-700"
               style={{
                 width: `${score_total}%`,
-                background: color,
-                boxShadow: `0 0 10px ${color}80`,
+                background: scoreColor,
+                boxShadow: `0 0 10px ${scoreColor}80`,
               }}
             />
           </div>
