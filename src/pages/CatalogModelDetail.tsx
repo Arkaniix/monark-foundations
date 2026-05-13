@@ -19,8 +19,8 @@ export default function CatalogModelDetail({ modelId }: Props) {
   const [detail, setDetail] = useState<CatalogModelDetailT | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { isFavorite, toggle: toggleFav } = useCatalogFavorites();
-  const { hasAlert, toggle: toggleAlert } = useCatalogAlerts();
+  const { has: isFavorite, toggle: toggleFav } = useCatalogFavorites();
+  const { has: hasAlert, toggle: toggleAlert } = useCatalogAlerts();
 
   useEffect(() => {
     let cancelled = false;
