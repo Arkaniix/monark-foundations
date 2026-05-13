@@ -4,7 +4,6 @@ import { catalogApi } from "@/lib/api";
 import type { CatalogModelDetail as CatalogModelDetailT } from "@/components/catalog/modelDetail";
 import { useCatalogFavorites } from "@/lib/catalogFavorites";
 import { useCatalogAlerts } from "@/lib/catalogAlerts";
-import { consumeNavIntent } from "@/lib/catalogScrollMemory";
 import CatalogFicheHeader from "@/components/catalog/CatalogFicheHeader";
 import CatalogFicheOverview from "@/components/catalog/CatalogFicheOverview";
 import CatalogFichePercentiles from "@/components/catalog/CatalogFichePercentiles";
@@ -33,13 +32,9 @@ export default function CatalogModelDetail({ modelId }: Props) {
     setNotFound(false);
     setError(null);
 
-    // Décision scroll dès le début du useEffect (synchrone, avant fetch).
-    // Sinon, l'ancien detail reste visible à sa position pendant le fade
-    // transition et le browser garde la position de scroll.
-    const intent = consumeNavIntent();
-    if (intent !== "variant") {
-      window.scrollTo({ top: 0, behavior: "auto" });
-    }
+    // Scroll-top synchrone, avant le fetch. Garantit que chaque changement
+    // de modèle (catalogue, clic variant, URL directe, refresh) démarre en haut.
+    window.scrollTo({ top: 0, behavior: "auto" });
 
     if (detail) setIsTransitioning(true);
 
@@ -59,12 +54,6 @@ export default function CatalogModelDetail({ modelId }: Props) {
         requestAnimationFrame(() => {
           if (cancelled) return;
           setIsTransitioning(false);
-          if (intent === "variant") {
-            setTimeout(() => {
-              const el = document.getElementById("section-variants");
-              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-            }, 50);
-          }
         });
       })
       .catch((err: unknown) => {
