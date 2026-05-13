@@ -32,6 +32,15 @@ export default function CatalogModelDetail({ modelId }: Props) {
     let cancelled = false;
     setNotFound(false);
     setError(null);
+
+    // Décision scroll dès le début du useEffect (synchrone, avant fetch).
+    // Sinon, l'ancien detail reste visible à sa position pendant le fade
+    // transition et le browser garde la position de scroll.
+    const intent = consumeNavIntent();
+    if (intent !== "variant") {
+      window.scrollTo({ top: 0, behavior: "auto" });
+    }
+
     if (detail) setIsTransitioning(true);
 
     catalogApi
@@ -50,7 +59,12 @@ export default function CatalogModelDetail({ modelId }: Props) {
         requestAnimationFrame(() => {
           if (cancelled) return;
           setIsTransitioning(false);
-          handleScrollRestoration();
+          if (intent === "variant") {
+            setTimeout(() => {
+              const el = document.getElementById("section-variants");
+              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 50);
+          }
         });
       })
       .catch((err: unknown) => {
@@ -112,17 +126,4 @@ export default function CatalogModelDetail({ modelId }: Props) {
       </div>
     </div>
   );
-}
-
-function handleScrollRestoration(): void {
-  const intent = consumeNavIntent();
-  if (intent === "variant") {
-    setTimeout(() => {
-      const el = document.getElementById("section-variants");
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-      else window.scrollTo({ top: 0, behavior: "auto" });
-    }, 50);
-    return;
-  }
-  window.scrollTo({ top: 0, behavior: "auto" });
 }
