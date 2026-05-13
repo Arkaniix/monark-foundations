@@ -6,6 +6,7 @@ import { mockDelay } from "./fixtures";
 import {
   HARDWARE_CATALOG,
   NEGOTIATION_KEYWORDS,
+  PLATFORMS,
   PLATFORM_FEES_PCT,
   type ArgumentWeight,
   type CategoryMarketStats,
@@ -19,6 +20,8 @@ import {
   type NegotiationPlan,
   type PercentileDistribution,
   type Platform,
+  type PlatformResaleStats,
+  type ResaleWhereRecommendation,
   type TrendStatus,
   type ValueVsNewStatus,
   type Verdict,
