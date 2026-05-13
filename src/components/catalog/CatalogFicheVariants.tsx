@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import SectionLabel from "../ui/SectionLabel";
 import GlossaryTooltip from "../ui/GlossaryTooltip";
+import AnimatedCounter from "../ui/AnimatedCounter";
 import type { VariantEntry } from "./modelDetail";
 import { getScoreColor, getTrendColor, getLiquidityColor } from "./datasets";
 type Props = {
@@ -76,13 +77,17 @@ function VariantRow({ v }: { v: VariantEntry }) {
             </span>
           </span>
         </td>
-        <td className="px-2 py-2.5 font-mono font-medium" style={{ color: scoreColor }}>{v.score}</td>
-        <td className="px-2 py-2.5 text-right font-mono tabular-nums text-zinc-300">{v.median_eur} €</td>
+        <td className="px-2 py-2.5 font-mono font-medium" style={{ color: scoreColor }}>
+          <AnimatedCounter value={v.score} />
+        </td>
+        <td className="px-2 py-2.5 text-right font-mono tabular-nums text-zinc-300">
+          <AnimatedCounter value={v.median_eur} suffix=" €" />
+        </td>
         <td className="px-2 py-2.5 text-right font-mono tabular-nums" style={{ color: trendColor }}>
-          {trendSign}{v.trend_30d_pct.toFixed(1)}%
+          <AnimatedCounter value={v.trend_30d_pct} prefix={trendSign} suffix="%" decimals={1} />
         </td>
         <td className="px-2 py-2.5 text-right font-mono tabular-nums" style={{ color: liqColor }}>
-          {v.liquidity_pct}%
+          <AnimatedCounter value={v.liquidity_pct} suffix="%" />
         </td>
         <td className="px-4 py-2.5 text-right text-zinc-700" />
       </tr>
@@ -105,13 +110,17 @@ function VariantRow({ v }: { v: VariantEntry }) {
       className="ease-expo cursor-pointer transition-colors hover:bg-white/[0.045] focus:bg-white/[0.045] focus:outline-none"
     >
       <td className="px-4 py-2.5 text-zinc-100">{v.name}</td>
-      <td className="px-2 py-2.5 font-mono font-medium" style={{ color: scoreColor }}>{v.score}</td>
-      <td className="px-2 py-2.5 text-right font-mono tabular-nums text-zinc-300">{v.median_eur} €</td>
+      <td className="px-2 py-2.5 font-mono font-medium" style={{ color: scoreColor }}>
+        <AnimatedCounter value={v.score} />
+      </td>
+      <td className="px-2 py-2.5 text-right font-mono tabular-nums text-zinc-300">
+        <AnimatedCounter value={v.median_eur} suffix=" €" />
+      </td>
       <td className="px-2 py-2.5 text-right font-mono tabular-nums" style={{ color: trendColor }}>
-        {trendSign}{v.trend_30d_pct.toFixed(1)}%
+        <AnimatedCounter value={v.trend_30d_pct} prefix={trendSign} suffix="%" decimals={1} />
       </td>
       <td className="px-2 py-2.5 text-right font-mono tabular-nums" style={{ color: liqColor }}>
-        {v.liquidity_pct}%
+        <AnimatedCounter value={v.liquidity_pct} suffix="%" />
       </td>
       <td className="px-4 py-2.5 text-right">
         <span className="inline-flex text-zinc-500">
