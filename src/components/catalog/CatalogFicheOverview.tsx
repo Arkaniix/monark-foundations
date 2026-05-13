@@ -1,5 +1,7 @@
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import SectionLabel from "../ui/SectionLabel";
+import GlossaryTooltip from "../ui/GlossaryTooltip";
+import type { GlossaryKey } from "@/lib/glossary";
 import ModelImage from "./ModelImage";
 import type { CatalogModelDetail } from "./modelDetail";
 import { getScoreColor, getLiquidityColor, getTrendColor } from "./datasets";
@@ -53,7 +55,9 @@ export default function CatalogFicheOverview({ detail }: Props) {
                   {detail.score}
                 </div>
                 <div className="mt-2 font-mono text-[9px] tracking-[0.2em] text-zinc-600">
-                  SCORE / 100
+                  <GlossaryTooltip term="score">
+                    <span>SCORE / 100</span>
+                  </GlossaryTooltip>
                 </div>
               </div>
               <div
@@ -71,7 +75,9 @@ export default function CatalogFicheOverview({ detail }: Props) {
                   {formatPrice(detail.median_eur)}
                 </div>
                 <div className="mt-2 font-mono text-[9.5px] tracking-[0.18em] text-zinc-600">
-                  MÉDIANE 30 J · {detail.n_obs} OBS
+                  <GlossaryTooltip term="median30d">
+                    <span>MÉDIANE 30 J · {detail.n_obs} OBS</span>
+                  </GlossaryTooltip>
                 </div>
               </div>
               <div>
@@ -91,7 +97,7 @@ export default function CatalogFicheOverview({ detail }: Props) {
               className="grid grid-cols-3 gap-3 pt-5"
               style={{ borderTop: "0.5px solid rgba(255,255,255,0.05)" }}
             >
-              <Stat label="TENDANCE 30 J" sub="vs il y a 30 jours">
+              <Stat label="TENDANCE 30 J" sub="vs il y a 30 jours" termKey="trend30d">
                 <span className="font-mono text-[18px] font-medium tabular-nums" style={{ color: trendColor }}>
                   {trendSign}
                   {detail.trend_30d_pct.toFixed(1)}%
@@ -101,6 +107,7 @@ export default function CatalogFicheOverview({ detail }: Props) {
               <Stat
                 label="LIQUIDITÉ"
                 sub={`vente médiane ${Math.max(1, Math.round(30 - detail.liquidity_pct * 0.25))} j`}
+                termKey="liquidity"
               >
                 <span className="font-mono text-[18px] font-medium tabular-nums" style={{ color: liqColor }}>
                   {detail.liquidity_pct}%
@@ -109,6 +116,7 @@ export default function CatalogFicheOverview({ detail }: Props) {
               <Stat
                 label="MARGE POTENTIELLE"
                 sub={`~ ${Math.round(detail.median_eur * (detail.margin_pct / 100))} € sur médiane`}
+                termKey="marginPotential"
               >
                 <span className="font-mono text-[18px] font-medium tabular-nums" style={{ color: trendColor }}>
                   {detail.margin_pct}%
@@ -122,10 +130,25 @@ export default function CatalogFicheOverview({ detail }: Props) {
   );
 }
 
-function Stat({ label, sub, children }: { label: string; sub: string; children: React.ReactNode }) {
+function Stat({
+  label,
+  sub,
+  children,
+  termKey,
+}: {
+  label: string;
+  sub: string;
+  children: React.ReactNode;
+  termKey?: GlossaryKey;
+}) {
+  const labelEl = (
+    <span className="font-mono text-[9px] tracking-[0.18em] text-zinc-600">{label}</span>
+  );
   return (
     <div>
-      <div className="mb-1.5 font-mono text-[9px] tracking-[0.18em] text-zinc-600">{label}</div>
+      <div className="mb-1.5">
+        {termKey ? <GlossaryTooltip term={termKey}>{labelEl}</GlossaryTooltip> : labelEl}
+      </div>
       <div className="flex items-baseline gap-1.5">{children}</div>
       <div className="mt-0.5 font-mono text-[9.5px] tracking-[0.05em] text-zinc-500">{sub}</div>
     </div>
