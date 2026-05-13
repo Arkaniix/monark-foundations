@@ -1,6 +1,8 @@
 import PercentileChart from "../ui/PercentileChart";
 import SectionLabel from "../ui/SectionLabel";
+import GlossaryTooltip from "../ui/GlossaryTooltip";
 import type { CatalogModelDetail } from "./modelDetail";
+import type { GlossaryKey } from "@/lib/glossary";
 
 type Props = { detail: CatalogModelDetail };
 
@@ -34,10 +36,11 @@ export default function CatalogFichePercentiles({ detail }: Props) {
               label="ZONE TYPIQUE · P25 → P75"
               value={`${p25} € — ${p75} €`}
               sub="majorité des ventes observées"
+              termKey="zoneTypique"
             />
-            <Metric label="FOURCHETTE P10 → P90" value={`${spread} €`} sub={`${spreadPct}% de la médiane`} />
-            <Metric label="IQR P25 → P75" value={`${iqr} €`} sub={`${iqrPct}% de la médiane`} />
-            <Metric label="MÉDIANE" value={`${p50} €`} sub="P50" />
+            <Metric label="FOURCHETTE P10 → P90" value={`${spread} €`} sub={`${spreadPct}% de la médiane`} termKey="fourchette" />
+            <Metric label="IQR P25 → P75" value={`${iqr} €`} sub={`${iqrPct}% de la médiane`} termKey="iqr" />
+            <Metric label="MÉDIANE" value={`${p50} €`} sub="P50" termKey="p50" />
           </div>
         </div>
       </div>
@@ -45,19 +48,25 @@ export default function CatalogFichePercentiles({ detail }: Props) {
   );
 }
 
-type MetricProps = { label: string; value: string; sub: string };
+type MetricProps = { label: string; value: string; sub: string; termKey?: GlossaryKey };
 
-function Metric({ label, value, sub }: MetricProps) {
+function Metric({ label, value, sub, termKey }: MetricProps) {
+  const labelEl = (
+    <span className="font-mono text-[9px] tracking-[0.16em] text-zinc-600">{label}</span>
+  );
   return (
     <div className="flex flex-col gap-0.5 pb-2.5" style={{ borderBottom: "0.5px solid var(--mk-divider-soft)" }}>
-      <div className="font-mono text-[9px] tracking-[0.16em] text-zinc-600">{label}</div>
+      <div>{termKey ? <GlossaryTooltip term={termKey}>{labelEl}</GlossaryTooltip> : labelEl}</div>
       <div className="font-mono text-[14px] font-medium tabular-nums text-zinc-100">{value}</div>
       <div className="font-mono text-[9.5px] tracking-[0.04em] text-zinc-500">{sub}</div>
     </div>
   );
 }
 
-function MetricHighlight({ label, value, sub }: MetricProps) {
+function MetricHighlight({ label, value, sub, termKey }: MetricProps) {
+  const labelEl = (
+    <span className="font-mono text-[9px] tracking-[0.16em] text-blue-400">{label}</span>
+  );
   return (
     <div
       className="flex flex-col gap-0.5 rounded-md p-2.5"
@@ -66,7 +75,7 @@ function MetricHighlight({ label, value, sub }: MetricProps) {
         border: "0.5px solid rgba(59,130,246,0.2)",
       }}
     >
-      <div className="font-mono text-[9px] tracking-[0.16em] text-blue-400">{label}</div>
+      <div>{termKey ? <GlossaryTooltip term={termKey}>{labelEl}</GlossaryTooltip> : labelEl}</div>
       <div className="font-mono text-[14px] font-medium tabular-nums text-zinc-100">{value}</div>
       <div className="font-mono text-[9.5px] tracking-[0.04em] text-zinc-400">{sub}</div>
     </div>
