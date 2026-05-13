@@ -4,8 +4,6 @@ import { useNavigate } from "@tanstack/react-router";
 import SectionLabel from "../ui/SectionLabel";
 import type { VariantEntry } from "./modelDetail";
 import { getScoreColor, getTrendColor, getLiquidityColor } from "./datasets";
-import { setNavIntent } from "@/lib/catalogScrollMemory";
-
 type Props = {
   variants: VariantEntry[];
   familyLabel: string;
@@ -14,7 +12,7 @@ type Props = {
 export default function CatalogFicheVariants({ variants, familyLabel }: Props) {
   if (variants.length === 0) return null;
   return (
-    <section id="section-variants" className="flex flex-col gap-3.5">
+    <section className="flex flex-col gap-3.5">
       <SectionLabel idx={3} label={`VARIANTS ${familyLabel.toUpperCase()}`} />
       <div
         className="overflow-hidden rounded-xl"
@@ -85,13 +83,11 @@ function VariantRow({ v }: { v: VariantEntry }) {
       role="link"
       tabIndex={0}
       onClick={() => {
-        setNavIntent("variant");
         navigate({ to: "/catalogue/$modelId", params: { modelId: v.id } });
       }}
       onKeyDown={(e: KeyboardEvent<HTMLTableRowElement>) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          setNavIntent("variant");
           navigate({ to: "/catalogue/$modelId", params: { modelId: v.id } });
         }
       }}
