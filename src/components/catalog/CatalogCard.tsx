@@ -48,7 +48,21 @@ export default function CatalogCard({
         : Minus;
 
   return (
-    <article className="mk-card-flat-soft ease-expo flex flex-col overflow-hidden transition-colors hover:bg-white/[0.03]">
+    <article
+      className="mk-card-flat-soft ease-expo flex flex-col overflow-hidden hover:-translate-y-0.5 hover:bg-white/[0.03]"
+      style={{
+        transition:
+          "transform 200ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1), border-color 200ms cubic-bezier(0.16, 1, 0.3, 1), background-color 200ms cubic-bezier(0.16, 1, 0.3, 1)",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = "rgba(255,255,255,0.16)";
+        e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.35)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = "";
+        e.currentTarget.style.boxShadow = "";
+      }}
+    >
       {/* 1. Image area */}
       <button
         type="button"
