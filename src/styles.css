@@ -330,6 +330,20 @@ body::before {
   pointer-events: none;
 }
 
+.mk-platform-card-button {
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+.mk-platform-card-button:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.mk-timing-row {
+  transition: background-color 180ms ease;
+}
+.mk-timing-row:hover {
+  background-color: var(--mk-row-hover-bg, rgba(255, 255, 255, 0.025));
+}
+
 .mk-subcard-soft {
   position: relative;
   background: var(--mk-surface-2);
