@@ -1,3 +1,6 @@
+import GlossaryTooltip from "@/components/ui/GlossaryTooltip";
+import type { GlossaryKey } from "@/lib/glossary";
+
 export type MarketStatusTone = "positive" | "neutral" | "negative";
 
 export type MarketStatDatapoint = {
@@ -12,6 +15,7 @@ type MarketStatCardProps = {
   statusTone: MarketStatusTone;
   datapoints: MarketStatDatapoint[];
   narrative: string;
+  termKey?: GlossaryKey;
 };
 
 const TONE_COLORS: Record<MarketStatusTone, string> = {
@@ -29,15 +33,17 @@ export default function MarketStatCard({
   statusTone,
   datapoints,
   narrative,
+  termKey,
 }: MarketStatCardProps) {
   const statusColor = TONE_COLORS[statusTone];
+  const labelEl = (
+    <span className="font-mono text-[10px] tracking-[0.2em] text-zinc-500">{label}</span>
+  );
 
   return (
     <div className="mk-card-flat-soft p-5 flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500">
-          {label}
-        </div>
+        <div>{termKey ? <GlossaryTooltip term={termKey}>{labelEl}</GlossaryTooltip> : labelEl}</div>
         <div className="flex items-center gap-1.5">
           <span
             className="w-1.5 h-1.5 rounded-full"
