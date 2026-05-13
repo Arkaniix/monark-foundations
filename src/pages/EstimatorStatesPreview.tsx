@@ -90,7 +90,6 @@ const SUCCESS_RESULT: EstimatorResult = {
     platforms: [
       { platform: "LBC", estimated_price_eur: 313, fees_pct: 12, net_margin_eur: 10, expected_delay_days: 9, recommendation_score: 79, is_top_pick: true, narrative: "Audience locale française forte, délai court, frais modérés. Le standard pour le hardware d'occasion." },
       { platform: "eBay", estimated_price_eur: 329, fees_pct: 18, net_margin_eur: 5, expected_delay_days: 15, recommendation_score: 68, is_top_pick: false, narrative: "Audience internationale, prix légèrement plus haut acceptés. Frais 18 % et concurrence forte." },
-      { platform: "Particulier", estimated_price_eur: 297, fees_pct: 0, net_margin_eur: 32, expected_delay_days: 31, recommendation_score: 52, is_top_pick: false, narrative: "Aucun frais mais visibilité limitée au réseau personnel. Délai long." },
       { platform: "Vinted", estimated_price_eur: 288, fees_pct: 5, net_margin_eur: 9, expected_delay_days: 22, recommendation_score: 41, is_top_pick: false, narrative: "Audience principalement textile — hardware peu performant, délais longs." },
     ],
     top_pick_narrative: "LBC sort en tête sur ce hardware liquide : marge confortable (+10 €) et délai court (~9 j). Audience locale française forte, délai court, frais modérés. Le standard pour le hardware d'occasion.",

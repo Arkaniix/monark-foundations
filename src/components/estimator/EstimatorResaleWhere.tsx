@@ -8,7 +8,6 @@ const PLATFORM_BRAND_COLORS: Record<Platform, string> = {
   LBC: "#FF6E14",
   eBay: "#E53238",
   Vinted: "#09B1BA",
-  Particulier: "#71717a",
 };
 
 const TOP_PICK_COLOR = "#10B981";
