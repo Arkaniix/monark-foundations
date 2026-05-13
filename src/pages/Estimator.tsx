@@ -9,6 +9,10 @@ import { EstimatorScoreBreakdown } from "@/components/estimator/EstimatorScoreBr
 import { EstimatorNegotiation } from "@/components/estimator/EstimatorNegotiation";
 import { EstimatorResaleWhere } from "@/components/estimator/EstimatorResaleWhere";
 import { EstimatorResaleWhen } from "@/components/estimator/EstimatorResaleWhen";
+import { EstimatorHistoryButton } from "@/components/estimator/EstimatorHistoryButton";
+import { EstimatorHistoryDrawer } from "@/components/estimator/EstimatorHistoryDrawer";
+import { EstimatorCapBlockModal } from "@/components/estimator/EstimatorCapBlockModal";
+import { useEstimatorHistory } from "@/lib/estimatorHistory";
 import type {
   EstimatorInputs,
   EstimatorResult,
@@ -34,22 +38,34 @@ export default function Estimator({
   const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(
     null,
   );
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isCapModalOpen, setIsCapModalOpen] = useState(false);
+  const [prefilledInputs, setPrefilledInputs] = useState<
+    EstimatorInputs | undefined
+  >(undefined);
+
+  const history = useEstimatorHistory();
 
   const handleSubmit = useCallback(
     async (inputs: EstimatorInputs) => {
       if (__devForceState) return;
+      if (history.isAtCap) {
+        setIsCapModalOpen(true);
+        return;
+      }
       setSelectedPlatform(null);
       setState({ status: "evaluating", inputs });
       try {
         const result = await estimatorApi.evaluate(inputs);
         setState({ status: "success", result });
+        history.add(inputs, result);
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Erreur d'évaluation";
         setState({ status: "error", message, lastInputs: inputs });
       }
     },
-    [__devForceState],
+    [__devForceState, history],
   );
 
   const handleRetry = useCallback(() => {
@@ -60,15 +76,29 @@ export default function Estimator({
     }
   }, [state, handleSubmit]);
 
+  const handleLoadFromHistory = useCallback((inputs: EstimatorInputs) => {
+    setPrefilledInputs(inputs);
+    setState({ status: "idle" });
+  }, []);
+
+  const handleReevaluateFromHistory = useCallback(
+    (inputs: EstimatorInputs) => {
+      setPrefilledInputs(inputs);
+      void handleSubmit(inputs);
+    },
+    [handleSubmit],
+  );
+
   const formDisabled = state.status === "evaluating";
   const initialInputs =
-    state.status === "evaluating"
+    prefilledInputs ??
+    (state.status === "evaluating"
       ? state.inputs
       : state.status === "error"
         ? state.lastInputs
         : state.status === "success"
           ? state.result.inputs
-          : undefined;
+          : undefined);
 
   const effectivePlatform: Platform | null = useMemo(() => {
     if (state.status !== "success") return null;
@@ -84,7 +114,14 @@ export default function Estimator({
   }, [state, selectedPlatform]);
 
   return (
+    <>
     <div className="flex flex-col gap-10">
+      <div className="flex justify-end">
+        <EstimatorHistoryButton
+          count={history.count}
+          onClick={() => setIsDrawerOpen(true)}
+        />
+      </div>
       <section className="flex flex-col gap-5">
         <div className="flex items-center gap-3">
           <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-600">
@@ -141,5 +178,24 @@ export default function Estimator({
         />
       )}
     </div>
+
+    <EstimatorHistoryDrawer
+      isOpen={isDrawerOpen}
+      onClose={() => setIsDrawerOpen(false)}
+      entries={history.entries}
+      cap={history.cap}
+      onLoad={handleLoadFromHistory}
+      onReevaluate={handleReevaluateFromHistory}
+      onDelete={history.remove}
+      onClearAll={history.clear}
+    />
+
+    <EstimatorCapBlockModal
+      isOpen={isCapModalOpen}
+      cap={history.cap}
+      onClose={() => setIsCapModalOpen(false)}
+      onOpenHistory={() => setIsDrawerOpen(true)}
+    />
+    </>
   );
 }
