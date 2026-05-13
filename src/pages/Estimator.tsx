@@ -13,6 +13,7 @@ import { EstimatorHistoryButton } from "@/components/estimator/EstimatorHistoryB
 import { EstimatorHistoryDrawer } from "@/components/estimator/EstimatorHistoryDrawer";
 import { EstimatorCapBlockModal } from "@/components/estimator/EstimatorCapBlockModal";
 import { useEstimatorHistory } from "@/lib/estimatorHistory";
+import FadeInSection from "@/components/ui/FadeInSection";
 import type {
   EstimatorInputs,
   EstimatorResult,
@@ -128,6 +129,7 @@ export default function Estimator({
           onClick={() => setIsDrawerOpen(true)}
         />
       </div>
+      <FadeInSection delay={0}>
       <section className="flex flex-col gap-5">
         <div className="flex items-center gap-3">
           <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-600">
@@ -156,32 +158,43 @@ export default function Estimator({
           )}
         </div>
       </section>
+      </FadeInSection>
 
       {state.status === "success" && (
-        <EstimatorPositioning result={state.result} />
+        <FadeInSection delay={60}>
+          <EstimatorPositioning result={state.result} />
+        </FadeInSection>
       )}
 
       {state.status === "success" && (
-        <EstimatorScoreBreakdown result={state.result} />
+        <FadeInSection delay={120}>
+          <EstimatorScoreBreakdown result={state.result} />
+        </FadeInSection>
       )}
 
       {state.status === "success" && (
-        <EstimatorNegotiation result={state.result} />
+        <FadeInSection delay={180}>
+          <EstimatorNegotiation result={state.result} />
+        </FadeInSection>
       )}
 
       {state.status === "success" && (
-        <EstimatorResaleWhere
-          result={state.result}
-          selectedPlatform={effectivePlatform ?? state.result.inputs.platform}
-          onSelect={setSelectedPlatform}
-        />
+        <FadeInSection delay={240}>
+          <EstimatorResaleWhere
+            result={state.result}
+            selectedPlatform={effectivePlatform ?? state.result.inputs.platform}
+            onSelect={setSelectedPlatform}
+          />
+        </FadeInSection>
       )}
 
       {state.status === "success" && effectivePlatform && (
-        <EstimatorResaleWhen
-          result={state.result}
-          selectedPlatform={effectivePlatform}
-        />
+        <FadeInSection delay={300}>
+          <EstimatorResaleWhen
+            result={state.result}
+            selectedPlatform={effectivePlatform}
+          />
+        </FadeInSection>
       )}
     </div>
 
