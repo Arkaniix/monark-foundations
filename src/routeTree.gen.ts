@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as EstimatorRouteImport } from './routes/estimator'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CatalogueRouteImport } from './routes/catalogue'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as Char91_devChar93UiRouteImport } from './routes/[_dev].ui'
@@ -26,6 +27,11 @@ const EstimatorRoute = EstimatorRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CatalogueRoute = CatalogueRouteImport.update({
+  id: '/catalogue',
+  path: '/catalogue',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -65,6 +71,7 @@ const Char91_devChar93AppshellRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/catalogue'
     | '/dashboard'
     | '/estimator'
     | '/_dev/appshell'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/catalogue'
     | '/dashboard'
     | '/estimator'
     | '/_dev/appshell'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/auth'
+    | '/catalogue'
     | '/dashboard'
     | '/estimator'
     | '/_dev/appshell'
@@ -129,6 +141,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  CatalogueRoute: typeof CatalogueRoute
   DashboardRoute: typeof DashboardRoute
   EstimatorRoute: typeof EstimatorRoute
   Char91_devChar93AppshellRoute: typeof Char91_devChar93AppshellRoute
@@ -151,6 +164,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/catalogue': {
+      id: '/catalogue'
+      path: '/catalogue'
+      fullPath: '/catalogue'
+      preLoaderRoute: typeof CatalogueRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -201,6 +221,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  CatalogueRoute: CatalogueRoute,
   DashboardRoute: DashboardRoute,
   EstimatorRoute: EstimatorRoute,
   Char91_devChar93AppshellRoute: Char91_devChar93AppshellRoute,
