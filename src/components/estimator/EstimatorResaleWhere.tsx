@@ -8,7 +8,6 @@ const PLATFORM_BRAND_COLORS: Record<Platform, string> = {
   LBC: "#FF6E14",
   eBay: "#E53238",
   Vinted: "#09B1BA",
-  Particulier: "#71717a",
 };
 
 const TOP_PICK_COLOR = "#10B981";
@@ -44,7 +43,7 @@ export default function EstimatorResaleWhere({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {resale_where.platforms.map((p) => (
           <PlatformCard key={p.platform} platform={p} />
         ))}

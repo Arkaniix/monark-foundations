@@ -9,15 +9,14 @@ import { VERDICT_COLORS } from "../dashboard/datasets";
 export type { Verdict, HardwareCategory };
 export { VERDICT_COLORS };
 
-export type Platform = "LBC" | "Vinted" | "eBay" | "Particulier";
+export type Platform = "LBC" | "Vinted" | "eBay";
 
-export const PLATFORMS: Platform[] = ["LBC", "Vinted", "eBay", "Particulier"];
+export const PLATFORMS: Platform[] = ["LBC", "Vinted", "eBay"];
 
 export const PLATFORM_FEES_PCT: Record<Platform, number> = {
   LBC: 12,
   Vinted: 5,
   eBay: 18,
-  Particulier: 0,
 };
 
 export type ItemState =

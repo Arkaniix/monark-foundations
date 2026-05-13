@@ -39,14 +39,12 @@ const PLATFORM_LIQUIDITY: Record<Platform, number> = {
   LBC: 0.78,
   Vinted: 0.61,
   eBay: 0.74,
-  Particulier: 0.55,
 };
 
 const PLATFORM_AFFINITY: Record<Platform, number> = {
   LBC: 88,
   eBay: 82,
   Vinted: 64,
-  Particulier: 58,
 };
 
 const STATE_DECOTE_PCT: Record<ItemState, number> = {
@@ -219,28 +217,24 @@ const PLATFORM_RESALE_PRICE_FACTOR: Record<Platform, number> = {
   LBC: 1.0,
   eBay: 1.05,
   Vinted: 0.92,
-  Particulier: 0.95,
 };
 
 const PLATFORM_BASE_DELAY_DAYS: Record<Platform, number> = {
   LBC: 7,
   eBay: 12,
   Vinted: 18,
-  Particulier: 25,
 };
 
 const PLATFORM_HARDWARE_AUDIENCE: Record<Platform, number> = {
   LBC: 90,
   eBay: 85,
   Vinted: 35,
-  Particulier: 40,
 };
 
 const PLATFORM_NARRATIVES: Record<Platform, string> = {
   LBC: "Audience locale française forte, délai court, frais modérés. Le standard pour le hardware d'occasion.",
   eBay: "Audience internationale, prix légèrement plus haut acceptés. Frais 18 % et concurrence forte.",
   Vinted: "Audience principalement textile — hardware peu performant, délais longs.",
-  Particulier: "Aucun frais mais visibilité limitée au réseau personnel. Délai long.",
 };
 
 const STATE_AUDIENCE_PENALTY: Record<ItemState, number> = {
@@ -262,7 +256,7 @@ function buildResaleWhere(costBasis: number, fairPrice: number, category: Hardwa
     const estimatedPrice = Math.round(fairPrice * factor);
     const netMargin = Math.round(estimatedPrice * (1 - feesFrac) - costBasis);
     const expectedDelay = Math.max(3, Math.round(baseDelay * (2 - liqNormalized)));
-    const penalty = platform === "Vinted" || platform === "Particulier" ? STATE_AUDIENCE_PENALTY[state] : Math.round(STATE_AUDIENCE_PENALTY[state] / 3);
+    const penalty = platform === "Vinted" ? STATE_AUDIENCE_PENALTY[state] : Math.round(STATE_AUDIENCE_PENALTY[state] / 3);
     const audienceAdjusted = Math.max(10, baseAudience - penalty);
     const marginRatio = costBasis > 0 ? netMargin / costBasis : 0;
     const marginScore = Math.max(0, Math.min(100, 50 + marginRatio * 250));
