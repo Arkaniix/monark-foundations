@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ArrowLeft, Star, Bell, Calculator } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import type { CatalogModelDetail } from "./modelDetail";
@@ -22,6 +23,20 @@ export default function CatalogFicheHeader({
 }: Props) {
   const scoreColor = getScoreColor(detail.score);
   const brandDot = MANUFACTURER_DOT_COLOR[detail.manufacturer];
+  const [isStarPopping, setIsStarPopping] = useState(false);
+  const [isBellPopping, setIsBellPopping] = useState(false);
+
+  const handleStarClick = () => {
+    setIsStarPopping(true);
+    onToggleFavorite();
+    setTimeout(() => setIsStarPopping(false), 250);
+  };
+
+  const handleBellClick = () => {
+    setIsBellPopping(true);
+    onToggleAlert();
+    setTimeout(() => setIsBellPopping(false), 250);
+  };
 
   return (
     <div
@@ -74,7 +89,7 @@ export default function CatalogFicheHeader({
         <button
           type="button"
           aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
-          onClick={onToggleFavorite}
+          onClick={handleStarClick}
           className="ease-expo flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-white/[0.04]"
           style={{
             border: "0.5px solid rgba(255,255,255,0.08)",
@@ -82,12 +97,17 @@ export default function CatalogFicheHeader({
             background: isFavorite ? "rgba(245,158,11,0.08)" : "transparent",
           }}
         >
-          <Star size={14} strokeWidth={1.75} fill={isFavorite ? "#F59E0B" : "transparent"} />
+          <Star
+            size={14}
+            strokeWidth={1.75}
+            fill={isFavorite ? "#F59E0B" : "transparent"}
+            className={isStarPopping ? "icon-pop" : ""}
+          />
         </button>
         <button
           type="button"
           aria-label={hasAlert ? "Désactiver l'alerte" : "Activer l'alerte prix"}
-          onClick={onToggleAlert}
+          onClick={handleBellClick}
           className="ease-expo flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-white/[0.04]"
           style={{
             border: "0.5px solid rgba(255,255,255,0.08)",
@@ -95,7 +115,12 @@ export default function CatalogFicheHeader({
             background: hasAlert ? "rgba(59,130,246,0.08)" : "transparent",
           }}
         >
-          <Bell size={14} strokeWidth={1.75} fill={hasAlert ? "#3B82F6" : "transparent"} />
+          <Bell
+            size={14}
+            strokeWidth={1.75}
+            fill={hasAlert ? "#3B82F6" : "transparent"}
+            className={isBellPopping ? "icon-pop" : ""}
+          />
         </button>
         <button
           type="button"
