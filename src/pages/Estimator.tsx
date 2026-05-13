@@ -6,6 +6,7 @@ import { EstimatorIdle } from "@/components/estimator/EstimatorIdle";
 import { EstimatorError } from "@/components/estimator/EstimatorError";
 import { EstimatorPositioning } from "@/components/estimator/EstimatorPositioning";
 import { EstimatorScoreBreakdown } from "@/components/estimator/EstimatorScoreBreakdown";
+import { EstimatorNegotiation } from "@/components/estimator/EstimatorNegotiation";
 import type {
   EstimatorInputs,
   EstimatorResult,
@@ -99,6 +100,10 @@ export default function Estimator({
 
       {state.status === "success" && (
         <EstimatorScoreBreakdown result={state.result} />
+      )}
+
+      {state.status === "success" && (
+        <EstimatorNegotiation result={state.result} />
       )}
     </div>
   );
