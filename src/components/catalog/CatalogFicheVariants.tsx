@@ -2,6 +2,7 @@ import type { KeyboardEvent } from "react";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import SectionLabel from "../ui/SectionLabel";
+import GlossaryTooltip from "../ui/GlossaryTooltip";
 import type { VariantEntry } from "./modelDetail";
 import { getScoreColor, getTrendColor, getLiquidityColor } from "./datasets";
 type Props = {
@@ -25,10 +26,18 @@ export default function CatalogFicheVariants({ variants, familyLabel }: Props) {
           <thead>
             <tr className="font-mono text-[9.5px] tracking-[0.16em] text-zinc-600">
               <th className="px-4 py-2.5 text-left font-normal" style={th}>MODÈLE</th>
-              <th className="px-2 py-2.5 text-left font-normal" style={th}>SCORE</th>
-              <th className="px-2 py-2.5 text-right font-normal" style={th}>MÉDIANE</th>
-              <th className="px-2 py-2.5 text-right font-normal" style={th}>TEND.</th>
-              <th className="px-2 py-2.5 text-right font-normal" style={th}>LIQ.</th>
+              <th className="px-2 py-2.5 text-left font-normal" style={th}>
+                <GlossaryTooltip term="score" position="bottom"><span>SCORE</span></GlossaryTooltip>
+              </th>
+              <th className="px-2 py-2.5 text-right font-normal" style={th}>
+                <GlossaryTooltip term="median30d" position="bottom"><span>MÉDIANE</span></GlossaryTooltip>
+              </th>
+              <th className="px-2 py-2.5 text-right font-normal" style={th}>
+                <GlossaryTooltip term="trend30d" position="bottom"><span>TEND.</span></GlossaryTooltip>
+              </th>
+              <th className="px-2 py-2.5 text-right font-normal" style={th}>
+                <GlossaryTooltip term="liquidity" position="bottom"><span>LIQ.</span></GlossaryTooltip>
+              </th>
               <th className="px-4 py-2.5 text-right font-normal" style={th} />
             </tr>
           </thead>
@@ -62,7 +71,9 @@ function VariantRow({ v }: { v: VariantEntry }) {
           <span className="inline-flex items-center gap-2">
             <ArrowRight size={11} style={{ color: "#3B82F6" }} strokeWidth={1.75} />
             <span>{v.name}</span>
-            <span className="ml-1 font-mono text-[9px] tracking-[0.1em] text-zinc-500">COURANT</span>
+            <span className="ml-1 font-mono text-[9px] tracking-[0.1em] text-zinc-500">
+              <GlossaryTooltip term="variantCourant"><span>COURANT</span></GlossaryTooltip>
+            </span>
           </span>
         </td>
         <td className="px-2 py-2.5 font-mono font-medium" style={{ color: scoreColor }}>{v.score}</td>
