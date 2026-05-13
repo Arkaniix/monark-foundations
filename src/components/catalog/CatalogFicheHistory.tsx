@@ -1,5 +1,6 @@
 import { TrendingUp, TrendingDown } from "lucide-react";
 import SectionLabel from "../ui/SectionLabel";
+import GlossaryTooltip from "../ui/GlossaryTooltip";
 import type { MonthlyHistoryEntry } from "./modelDetail";
 
 type Props = { monthly_history: MonthlyHistoryEntry[] };
@@ -66,7 +67,9 @@ export default function CatalogFicheHistory({ monthly_history }: Props) {
             <tr className="font-mono text-[9.5px] tracking-[0.16em] text-zinc-600">
               <th className="px-2 py-2.5 text-left font-normal" style={th}>MOIS</th>
               <th className="px-2 py-2.5 text-right font-normal" style={th}>MÉDIANE</th>
-              <th className="px-2 py-2.5 text-right font-normal" style={th}>Δ M-1</th>
+              <th className="px-2 py-2.5 text-right font-normal" style={th}>
+                <GlossaryTooltip term="deltaMoisPrec" position="bottom"><span>Δ M-1</span></GlossaryTooltip>
+              </th>
               <th className="px-2 py-2.5 text-right font-normal" style={th}>N OBS</th>
               <th className="px-2 py-2.5 text-left font-normal" style={th}>ANNOTATION</th>
             </tr>
@@ -97,13 +100,17 @@ function HistoryRow({ m, isFirst }: { m: MonthlyHistoryEntry; isFirst: boolean }
       <td className="px-2 py-2 text-right font-mono tabular-nums text-zinc-500">{m.n_obs}</td>
       <td className="px-2 py-2 font-mono text-[10px] tracking-[0.08em]">
         {m.annotation === "peak" ? (
-          <span className="inline-flex items-center gap-1 text-emerald-400">
-            <TrendingUp size={10} strokeWidth={2} /> PIC
-          </span>
+          <GlossaryTooltip term="pic">
+            <span className="inline-flex items-center gap-1 text-emerald-400">
+              <TrendingUp size={10} strokeWidth={2} /> PIC
+            </span>
+          </GlossaryTooltip>
         ) : m.annotation === "trough" ? (
-          <span className="inline-flex items-center gap-1 text-red-400">
-            <TrendingDown size={10} strokeWidth={2} /> PLANCHER
-          </span>
+          <GlossaryTooltip term="plancher">
+            <span className="inline-flex items-center gap-1 text-red-400">
+              <TrendingDown size={10} strokeWidth={2} /> PLANCHER
+            </span>
+          </GlossaryTooltip>
         ) : (
           <span className="text-zinc-700">stable</span>
         )}
