@@ -150,7 +150,6 @@ function BreakdownRow({
   final?: boolean;
   termKey?: GlossaryKey;
 }) {
-  const displayValue = signed && value >= 0 ? `+${value}` : `${value}`;
   const valueColor = !signed
     ? "#fafafa"
     : value > 0
