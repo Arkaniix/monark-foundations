@@ -6,7 +6,7 @@ import type {
 
 const PLATFORM_BRAND_COLORS: Record<Platform, string> = {
   LBC: "#FF6E14",
-  eBay: "#E53238",
+  eBay: "#0064D2",
   Vinted: "#09B1BA",
 };
 
@@ -23,11 +23,6 @@ type EstimatorResaleWhereProps = {
   onSelect: (platform: Platform) => void;
 };
 
-/**
- * §05a — OÙ REVENDRE.
- * Pattern visuel aligné sur §02 MarketStatCard (mk-card-flat-soft).
- * Top pick : dot brand color + underline brand color + pastille verte "TOP PICK".
- */
 export default function EstimatorResaleWhere({
   result,
   selectedPlatform,
@@ -47,18 +42,19 @@ export default function EstimatorResaleWhere({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {resale_where.platforms.map((p) => (
           <PlatformCard
             key={p.platform}
             platform={p}
             isCurrent={p.platform === selectedPlatform}
+            isTopPick={p.is_top_pick}
             onClick={() => onSelect(p.platform)}
           />
         ))}
       </div>
 
-      <div className="text-[10.5px] text-zinc-600 leading-relaxed">
+      <div className="font-mono text-[10.5px] text-zinc-600 leading-relaxed">
         Marge nette = prix de revente × (1 − frais) − prix d'achat de référence
         ({resale_where.cost_basis_eur} €). Délais estimés à partir de la
         liquidité catégorie sur 30 j.
@@ -70,10 +66,12 @@ export default function EstimatorResaleWhere({
 function PlatformCard({
   platform,
   isCurrent,
+  isTopPick,
   onClick,
 }: {
   platform: PlatformResaleStats;
   isCurrent: boolean;
+  isTopPick: boolean;
   onClick: () => void;
 }) {
   const brandColor = PLATFORM_BRAND_COLORS[platform.platform];
@@ -93,31 +91,27 @@ function PlatformCard({
       onClick={onClick}
       aria-pressed={isCurrent}
       aria-label={`Sélectionner la plateforme ${platform.platform}`}
-      className="mk-card-flat-soft p-5 flex flex-col gap-4 text-left ease-expo transition-colors hover:bg-white/[0.02] focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/50 cursor-pointer"
+      className="mk-card-flat-soft p-5 flex flex-col gap-4 text-left transition-colors duration-200 hover:bg-white/[0.04] focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/50"
     >
-      {/* Header : dot + nom plateforme + pastille TOP PICK */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <span
-            className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0"
+            className="w-1.5 h-1.5 rounded-full flex-shrink-0"
             style={{ background: brandColor }}
             aria-hidden="true"
           />
           <span
-            className="font-mono text-[11px] tracking-[0.15em] text-zinc-300"
-            style={
-              isCurrent
-                ? {
-                    borderBottom: `1px solid ${brandColor}`,
-                    paddingBottom: 1,
-                  }
-                : undefined
-            }
+            className="font-mono text-[10.5px] tracking-[0.2em] truncate"
+            style={{
+              color: isCurrent ? "#d4d4d8" : "#a1a1aa",
+              borderBottom: isCurrent ? `1px solid ${brandColor}` : undefined,
+              paddingBottom: isCurrent ? 1 : 0,
+            }}
           >
             {platform.platform.toUpperCase()}
           </span>
         </div>
-        {isCurrent && (
+        {isTopPick && (
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <span
               className="w-1.5 h-1.5 rounded-full"
@@ -125,7 +119,7 @@ function PlatformCard({
               aria-hidden="true"
             />
             <span
-              className="font-mono text-[10px] tracking-[0.15em] font-medium"
+              className="font-mono text-[10.5px] font-medium tracking-[0.1em]"
               style={{ color: TOP_PICK_COLOR }}
             >
               TOP PICK
@@ -134,12 +128,10 @@ function PlatformCard({
         )}
       </div>
 
-      {/* Méta : prix brut · % frais */}
-      <div className="font-mono text-[11px] text-zinc-500 tabular-nums">
+      <div className="font-mono text-[10px] text-zinc-600 -mt-2">
         {platform.estimated_price_eur} € brut · {platform.fees_pct} % frais
       </div>
 
-      {/* Datapoints */}
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
           <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">
@@ -166,7 +158,6 @@ function PlatformCard({
         </div>
       </div>
 
-      {/* Footer narrative */}
       <div
         className="pt-3"
         style={{ borderTop: "1px solid var(--mk-divider-soft)" }}

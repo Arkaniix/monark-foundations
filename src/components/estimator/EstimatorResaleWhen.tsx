@@ -6,7 +6,7 @@ import type {
 
 const PLATFORM_BRAND_COLORS: Record<Platform, string> = {
   LBC: "#FF6E14",
-  eBay: "#E53238",
+  eBay: "#0064D2",
   Vinted: "#09B1BA",
 };
 
@@ -22,11 +22,6 @@ type EstimatorResaleWhenProps = {
   selectedPlatform: Platform;
 };
 
-/**
- * §05b — QUAND REVENDRE · sur {platform}.
- * Pour la plateforme sélectionnée en §05a, 3 cards horizontales temporelles
- * (RAPIDE / OPTIMAL / PATIENT) avec ligne 0.5px traversante à mi-hauteur.
- */
 export default function EstimatorResaleWhen({
   result,
   selectedPlatform,
@@ -38,7 +33,7 @@ export default function EstimatorResaleWhen({
 
   return (
     <section className="flex flex-col gap-5">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
         <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-600">
           § 05b
         </div>
@@ -46,7 +41,7 @@ export default function EstimatorResaleWhen({
         <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-500">
           QUAND REVENDRE
         </div>
-        <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-700">
+        <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-600">
           ·
         </div>
         <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-500">
@@ -54,12 +49,12 @@ export default function EstimatorResaleWhen({
         </div>
         <div className="flex items-center gap-1.5">
           <span
-            className="inline-block w-1.5 h-1.5 rounded-full"
+            className="w-1.5 h-1.5 rounded-full"
             style={{ background: brandColor }}
             aria-hidden="true"
           />
           <span
-            className="font-mono text-[10.5px] tracking-[0.2em]"
+            className="font-mono text-[10.5px] tracking-[0.2em] font-medium"
             style={{ color: brandColor }}
           >
             {platformLabel}
@@ -67,20 +62,19 @@ export default function EstimatorResaleWhen({
         </div>
       </div>
 
-      <div className="relative">
-        <div
-          className="hidden sm:block absolute left-0 right-0 top-1/2 pointer-events-none"
-          style={{ height: 0.5, background: "rgba(255,255,255,0.10)" }}
-          aria-hidden="true"
-        />
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 relative">
-          {options.map((opt) => (
-            <TimingCard key={opt.timing} option={opt} />
+      <div className="mk-card-flat-soft p-5">
+        <div className="grid grid-cols-1 sm:grid-cols-3">
+          {options.map((opt, idx) => (
+            <TimingColumn
+              key={opt.timing}
+              option={opt}
+              hasLeftDivider={idx > 0}
+            />
           ))}
         </div>
       </div>
 
-      <div className="text-[10.5px] text-zinc-600 leading-relaxed">
+      <div className="font-mono text-[10.5px] text-zinc-600 leading-relaxed">
         Marge nette à ce timing = prix attendu × (1 − frais) − prix d'achat de
         référence ({result.resale_where.cost_basis_eur} €).
       </div>
@@ -88,7 +82,13 @@ export default function EstimatorResaleWhen({
   );
 }
 
-function TimingCard({ option }: { option: ResaleWhenOption }) {
+function TimingColumn({
+  option,
+  hasLeftDivider,
+}: {
+  option: ResaleWhenOption;
+  hasLeftDivider: boolean;
+}) {
   const isOptimal = option.is_top_pick;
   const marginSign = option.net_margin_eur >= 0 ? "+" : "";
   const marginColor =
@@ -107,20 +107,30 @@ function TimingCard({ option }: { option: ResaleWhenOption }) {
         : "#EF4444";
 
   return (
-    <div className="mk-card-flat-soft p-5 flex flex-col gap-4 relative">
-      <div className="flex items-center justify-between">
-        <span className="font-mono text-[11px] tracking-[0.15em] text-zinc-300">
+    <div
+      className="flex flex-col gap-3.5 px-4"
+      style={
+        hasLeftDivider
+          ? { borderLeft: "0.5px solid var(--mk-divider-soft)" }
+          : undefined
+      }
+    >
+      <div className="flex items-start justify-between gap-2">
+        <span
+          className="font-mono text-[10.5px] tracking-[0.2em]"
+          style={{ color: isOptimal ? "#d4d4d8" : "#a1a1aa" }}
+        >
           {option.timing}
         </span>
         {isOptimal && (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             <span
               className="w-1.5 h-1.5 rounded-full"
               style={{ background: OPTIMAL_COLOR }}
               aria-hidden="true"
             />
             <span
-              className="font-mono text-[10px] tracking-[0.15em] font-medium"
+              className="font-mono text-[10.5px] font-medium tracking-[0.1em]"
               style={{ color: OPTIMAL_COLOR }}
             >
               OPTIMAL
@@ -129,7 +139,7 @@ function TimingCard({ option }: { option: ResaleWhenOption }) {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
         <div className="flex flex-col gap-1">
           <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">
             PRIX
@@ -178,7 +188,7 @@ function TimingCard({ option }: { option: ResaleWhenOption }) {
         className="pt-3"
         style={{ borderTop: "1px solid var(--mk-divider-soft)" }}
       >
-        <p className="text-[12.5px] text-zinc-400 leading-relaxed">
+        <p className="text-[12px] text-zinc-400 leading-relaxed">
           {option.narrative}
         </p>
       </div>
