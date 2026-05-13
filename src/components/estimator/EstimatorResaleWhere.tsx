@@ -1,11 +1,8 @@
-import { getScoreColor, type EstimatorResult, type Platform } from "./datasets";
-import type { PlatformResaleStats } from "./datasets";
-
-type EstimatorResaleWhereProps = {
-  result: EstimatorResult;
-};
-
-const ACCENT = "#3B82F6";
+import type {
+  EstimatorResult,
+  Platform,
+  PlatformResaleStats,
+} from "./datasets";
 
 const PLATFORM_BRAND_COLORS: Record<Platform, string> = {
   LBC: "#FF6E14",
@@ -14,11 +11,26 @@ const PLATFORM_BRAND_COLORS: Record<Platform, string> = {
   Particulier: "#71717a",
 };
 
+const TOP_PICK_COLOR = "#10B981";
+const MARGIN_POSITIVE = "#10B981";
+const MARGIN_NEGATIVE = "#EF4444";
+const DELAY_FAST = "#10B981";
+const DELAY_MEDIUM = "#F59E0B";
+const DELAY_SLOW = "#EF4444";
+
+type EstimatorResaleWhereProps = {
+  result: EstimatorResult;
+};
+
+/**
+ * §05a — OÙ REVENDRE.
+ * Pattern visuel aligné sur §02 MarketStatCard (mk-card-flat-soft).
+ * Top pick : dot brand color + underline brand color + pastille verte "TOP PICK".
+ */
 export default function EstimatorResaleWhere({
   result,
 }: EstimatorResaleWhereProps) {
   const { resale_where } = result;
-  const topPick = resale_where.platforms.find((p) => p.is_top_pick);
 
   return (
     <section className="flex flex-col gap-5">
@@ -38,29 +50,9 @@ export default function EstimatorResaleWhere({
         ))}
       </div>
 
-      {topPick && (
-        <div
-          className="px-4 py-3 rounded"
-          style={{
-            background: "rgba(59,130,246,0.05)",
-            borderLeft: `2px solid ${ACCENT}`,
-          }}
-        >
-          <div
-            className="font-mono text-[9.5px] tracking-[0.2em] mb-1.5"
-            style={{ color: ACCENT }}
-          >
-            ★ PLATEFORME OPTIMALE — {topPick.platform}
-          </div>
-          <div className="text-[13px] text-zinc-300 leading-relaxed">
-            {resale_where.top_pick_narrative}
-          </div>
-        </div>
-      )}
-
       <div className="text-[10.5px] text-zinc-600 leading-relaxed">
         Marge nette = prix de revente × (1 − frais) − prix d'achat de référence
-        ({result.inputs.ask_price_eur} €). Délais estimés à partir de la
+        ({resale_where.cost_basis_eur} €). Délais estimés à partir de la
         liquidité catégorie sur 30 j.
       </div>
     </section>
@@ -69,97 +61,98 @@ export default function EstimatorResaleWhere({
 
 function PlatformCard({ platform }: { platform: PlatformResaleStats }) {
   const brandColor = PLATFORM_BRAND_COLORS[platform.platform];
-  const isTop = platform.is_top_pick;
-  const scoreColor = getScoreColor(platform.recommendation_score);
+  const isTopPick = platform.is_top_pick;
   const marginSign = platform.net_margin_eur >= 0 ? "+" : "";
   const marginColor =
-    platform.net_margin_eur >= 0 ? "#10B981" : "#EF4444";
+    platform.net_margin_eur >= 0 ? MARGIN_POSITIVE : MARGIN_NEGATIVE;
+  const delayColor =
+    platform.expected_delay_days <= 7
+      ? DELAY_FAST
+      : platform.expected_delay_days <= 14
+        ? DELAY_MEDIUM
+        : DELAY_SLOW;
 
   return (
-    <div
-      className="rounded-lg overflow-hidden relative flex flex-col"
-      style={{
-        background: "rgba(255,255,255,0.02)",
-        border: isTop
-          ? `1.5px solid ${ACCENT}`
-          : "0.5px solid var(--mk-divider-soft)",
-        padding: "14px",
-        paddingTop: "16px",
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 3,
-          background: brandColor,
-        }}
-        aria-hidden="true"
-      />
-
-      <div className="flex items-center justify-between mb-3">
+    <div className="mk-card-flat-soft p-5 flex flex-col gap-4">
+      {/* Header : dot + nom plateforme + pastille TOP PICK */}
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 min-w-0">
           <span
-            className="inline-block w-2 h-2 rounded-full flex-shrink-0"
+            className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0"
             style={{ background: brandColor }}
             aria-hidden="true"
           />
-          <span className="text-[13px] font-medium text-zinc-100 truncate">
-            {platform.platform}
+          <span
+            className="font-mono text-[11px] tracking-[0.15em] text-zinc-300"
+            style={
+              isTopPick
+                ? {
+                    borderBottom: `1px solid ${brandColor}`,
+                    paddingBottom: 1,
+                  }
+                : undefined
+            }
+          >
+            {platform.platform.toUpperCase()}
           </span>
         </div>
-        {isTop && (
-          <span
-            className="font-mono text-[12px] flex-shrink-0"
-            style={{ color: ACCENT }}
-            aria-label="Plateforme recommandée"
-          >
-            ★
-          </span>
+        {isTopPick && (
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <span
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ background: TOP_PICK_COLOR }}
+              aria-hidden="true"
+            />
+            <span
+              className="font-mono text-[10px] tracking-[0.15em] font-medium"
+              style={{ color: TOP_PICK_COLOR }}
+            >
+              TOP PICK
+            </span>
+          </div>
         )}
       </div>
 
-      <div
-        className="font-mono text-[24px] font-medium tracking-tight text-zinc-100"
-        style={{ lineHeight: 1 }}
-      >
-        {platform.estimated_price_eur} €
+      {/* Méta : prix brut · % frais */}
+      <div className="font-mono text-[11px] text-zinc-500 tabular-nums">
+        {platform.estimated_price_eur} € brut · {platform.fees_pct} % frais
       </div>
 
-      <div className="font-mono text-[11px] mt-1.5">
-        <span style={{ color: marginColor }}>
-          {marginSign}
-          {platform.net_margin_eur} €
-        </span>
-        <span className="text-zinc-600"> · {platform.fees_pct} %</span>
-      </div>
-
-      <div className="font-mono text-[11px] text-zinc-500 mt-0.5">
-        ~{platform.expected_delay_days} j
-      </div>
-
-      <div className="mt-3 flex items-center gap-2">
-        <div
-          className="flex-1 h-1 rounded-full overflow-hidden"
-          style={{ background: "rgba(255,255,255,0.06)" }}
-        >
+      {/* Datapoints */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-1">
+          <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">
+            MARGE NETTE
+          </div>
           <div
-            className="h-full"
-            style={{
-              width: `${platform.recommendation_score}%`,
-              background: scoreColor,
-              transition: "width 800ms cubic-bezier(0.16,1,0.3,1)",
-            }}
-          />
+            className="font-mono text-[15px] font-medium tabular-nums"
+            style={{ color: marginColor }}
+          >
+            {marginSign}
+            {platform.net_margin_eur} €
+          </div>
         </div>
-        <span
-          className="font-mono text-[10px] font-medium"
-          style={{ color: scoreColor }}
-        >
-          {platform.recommendation_score}
-        </span>
+        <div className="flex flex-col gap-1">
+          <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">
+            DÉLAI
+          </div>
+          <div
+            className="font-mono text-[15px] font-medium tabular-nums"
+            style={{ color: delayColor }}
+          >
+            ~{platform.expected_delay_days} j
+          </div>
+        </div>
+      </div>
+
+      {/* Footer narrative */}
+      <div
+        className="pt-3"
+        style={{ borderTop: "1px solid var(--mk-divider-soft)" }}
+      >
+        <p className="text-[12.5px] text-zinc-400 leading-relaxed">
+          {platform.narrative}
+        </p>
       </div>
     </div>
   );
