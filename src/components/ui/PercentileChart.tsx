@@ -17,6 +17,10 @@ type PercentileChartProps = {
    * coloré "P{N}" dans le footer, à côté du label "prix demandé · X €".
    */
   percentilePosition?: number;
+  /** Label en haut du chart. Par défaut : "DISTRIBUTION P10 → P90 · COMPARABLES SOLD". */
+  chartTitle?: string;
+  /** Paragraphe sous le titre. Par défaut : hint estimator. */
+  chartHint?: string;
 };
 
 const BARS = 32;
@@ -64,6 +68,8 @@ export default function PercentileChart({
   color,
   observationsLabel,
   percentilePosition,
+  chartTitle = "DISTRIBUTION P10 → P90 · COMPARABLES SOLD",
+  chartHint = "Hauteur des barres = densité estimée des ventes sold (gaussienne approximée). Plus haut = plus de transactions à ce prix.",
 }: PercentileChartProps) {
   const { p10, p25, p50, p75, p90 } = distribution;
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
@@ -109,7 +115,7 @@ export default function PercentileChart({
     <div>
       <div className="flex items-center justify-between mb-2">
         <div className="font-mono text-[10px] tracking-wider text-zinc-500">
-          DISTRIBUTION P10 → P90 · COMPARABLES SOLD
+          {chartTitle}
         </div>
         {observationsLabel && (
           <div className="font-mono text-[10px] text-zinc-500">
@@ -118,8 +124,7 @@ export default function PercentileChart({
         )}
       </div>
       <p className="text-[10.5px] text-zinc-600 leading-snug mb-3 max-w-[640px]">
-        Hauteur des barres = densité estimée des ventes sold (gaussienne
-        approximée). Plus haut = plus de transactions à ce prix.
+        {chartHint}
       </p>
 
       <div
