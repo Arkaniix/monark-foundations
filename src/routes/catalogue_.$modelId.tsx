@@ -3,7 +3,7 @@ import RequireAuth from "../components/app/RequireAuth";
 import AppShell from "../components/app/AppShell";
 import CatalogModelDetail from "../pages/CatalogModelDetail";
 
-export const Route = createFileRoute("/catalogue/$modelId")({
+export const Route = createFileRoute("/catalogue_/$modelId")({
   component: CatalogModelDetailRouteComponent,
 });
 

@@ -14,7 +14,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as CatalogueModelIdRouteImport } from './routes/catalogue.$modelId'
+import { Route as CatalogueModelIdRouteImport } from './routes/catalogue_.$modelId'
 import { Route as Char91_devChar93UiRouteImport } from './routes/[_dev].ui'
 import { Route as Char91_devChar93EstimatorStatesRouteImport } from './routes/[_dev].estimator-states'
 import { Route as Char91_devChar93DashboardStatesRouteImport } from './routes/[_dev].dashboard-states'
@@ -46,9 +46,9 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const CatalogueModelIdRoute = CatalogueModelIdRouteImport.update({
-  id: '/$modelId',
-  path: '/$modelId',
-  getParentRoute: () => CatalogueRoute,
+  id: '/catalogue_/$modelId',
+  path: '/catalogue/$modelId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const Char91_devChar93UiRoute = Char91_devChar93UiRouteImport.update({
   id: '/_dev/ui',
@@ -77,7 +77,7 @@ const Char91_devChar93AppshellRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/catalogue': typeof CatalogueRouteWithChildren
+  '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
@@ -89,7 +89,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/catalogue': typeof CatalogueRouteWithChildren
+  '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
@@ -102,14 +102,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/catalogue': typeof CatalogueRouteWithChildren
+  '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
   '/_dev/dashboard-states': typeof Char91_devChar93DashboardStatesRoute
   '/_dev/estimator-states': typeof Char91_devChar93EstimatorStatesRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
-  '/catalogue/$modelId': typeof CatalogueModelIdRoute
+  '/catalogue_/$modelId': typeof CatalogueModelIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -147,19 +147,20 @@ export interface FileRouteTypes {
     | '/_dev/dashboard-states'
     | '/_dev/estimator-states'
     | '/_dev/ui'
-    | '/catalogue/$modelId'
+    | '/catalogue_/$modelId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
-  CatalogueRoute: typeof CatalogueRouteWithChildren
+  CatalogueRoute: typeof CatalogueRoute
   DashboardRoute: typeof DashboardRoute
   EstimatorRoute: typeof EstimatorRoute
   Char91_devChar93AppshellRoute: typeof Char91_devChar93AppshellRoute
   Char91_devChar93DashboardStatesRoute: typeof Char91_devChar93DashboardStatesRoute
   Char91_devChar93EstimatorStatesRoute: typeof Char91_devChar93EstimatorStatesRoute
   Char91_devChar93UiRoute: typeof Char91_devChar93UiRoute
+  CatalogueModelIdRoute: typeof CatalogueModelIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -199,12 +200,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/catalogue/$modelId': {
-      id: '/catalogue/$modelId'
-      path: '/$modelId'
+    '/catalogue_/$modelId': {
+      id: '/catalogue_/$modelId'
+      path: '/catalogue/$modelId'
       fullPath: '/catalogue/$modelId'
       preLoaderRoute: typeof CatalogueModelIdRouteImport
-      parentRoute: typeof CatalogueRoute
+      parentRoute: typeof rootRouteImport
     }
     '/_dev/ui': {
       id: '/_dev/ui'
@@ -237,28 +238,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface CatalogueRouteChildren {
-  CatalogueModelIdRoute: typeof CatalogueModelIdRoute
-}
-
-const CatalogueRouteChildren: CatalogueRouteChildren = {
-  CatalogueModelIdRoute: CatalogueModelIdRoute,
-}
-
-const CatalogueRouteWithChildren = CatalogueRoute._addFileChildren(
-  CatalogueRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
-  CatalogueRoute: CatalogueRouteWithChildren,
+  CatalogueRoute: CatalogueRoute,
   DashboardRoute: DashboardRoute,
   EstimatorRoute: EstimatorRoute,
   Char91_devChar93AppshellRoute: Char91_devChar93AppshellRoute,
   Char91_devChar93DashboardStatesRoute: Char91_devChar93DashboardStatesRoute,
   Char91_devChar93EstimatorStatesRoute: Char91_devChar93EstimatorStatesRoute,
   Char91_devChar93UiRoute: Char91_devChar93UiRoute,
+  CatalogueModelIdRoute: CatalogueModelIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
