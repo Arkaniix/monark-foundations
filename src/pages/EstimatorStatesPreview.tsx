@@ -25,7 +25,6 @@ const SUCCESS_RESULT: EstimatorResult = {
     318, 322, 320, 315, 308, 305, 310, 315, 312, 308, 305, 312, 318, 315, 313,
   ],
   percentile_position_pct: 22,
-  observations_count: 412,
   category_market_stats: {
     trend: {
       delta_7d_pct: 2.4,
@@ -47,6 +46,26 @@ const SUCCESS_RESULT: EstimatorResult = {
       narrative:
         "État Bon — 22 % sous le prix neuf marché. Décote cohérente avec l'usure, marge confortable côté revente.",
     },
+  },
+
+  // E3 §01 enrichi + §03
+  score_total: 89,
+  score_breakdown: {
+    base: 78,
+    trend: 6,
+    liquidity: 3,
+    value_vs_new: 2,
+    total: 89,
+  },
+  landmarks: {
+    ceiling_buy_eur: 344,
+    optimal_buy_eur: 257,
+    floor_resale_eur: 301,
+  },
+  data_quality: {
+    observations_count: 412,
+    fresh_within_hours: 48,
+    platform_specific: true,
   },
 };
 
