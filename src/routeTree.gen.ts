@@ -14,6 +14,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CatalogueModelIdRouteImport } from './routes/catalogue_.$modelId'
 import { Route as Char91_devChar93UiRouteImport } from './routes/[_dev].ui'
 import { Route as Char91_devChar93EstimatorStatesRouteImport } from './routes/[_dev].estimator-states'
 import { Route as Char91_devChar93DashboardStatesRouteImport } from './routes/[_dev].dashboard-states'
@@ -42,6 +43,11 @@ const AuthRoute = AuthRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CatalogueModelIdRoute = CatalogueModelIdRouteImport.update({
+  id: '/catalogue_/$modelId',
+  path: '/catalogue/$modelId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Char91_devChar93UiRoute = Char91_devChar93UiRouteImport.update({
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/_dev/dashboard-states': typeof Char91_devChar93DashboardStatesRoute
   '/_dev/estimator-states': typeof Char91_devChar93EstimatorStatesRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
+  '/catalogue/$modelId': typeof CatalogueModelIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/_dev/dashboard-states': typeof Char91_devChar93DashboardStatesRoute
   '/_dev/estimator-states': typeof Char91_devChar93EstimatorStatesRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
+  '/catalogue/$modelId': typeof CatalogueModelIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/_dev/dashboard-states': typeof Char91_devChar93DashboardStatesRoute
   '/_dev/estimator-states': typeof Char91_devChar93EstimatorStatesRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
+  '/catalogue_/$modelId': typeof CatalogueModelIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/_dev/dashboard-states'
     | '/_dev/estimator-states'
     | '/_dev/ui'
+    | '/catalogue/$modelId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
     | '/_dev/dashboard-states'
     | '/_dev/estimator-states'
     | '/_dev/ui'
+    | '/catalogue/$modelId'
   id:
     | '__root__'
     | '/'
@@ -136,6 +147,7 @@ export interface FileRouteTypes {
     | '/_dev/dashboard-states'
     | '/_dev/estimator-states'
     | '/_dev/ui'
+    | '/catalogue_/$modelId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -148,6 +160,7 @@ export interface RootRouteChildren {
   Char91_devChar93DashboardStatesRoute: typeof Char91_devChar93DashboardStatesRoute
   Char91_devChar93EstimatorStatesRoute: typeof Char91_devChar93EstimatorStatesRoute
   Char91_devChar93UiRoute: typeof Char91_devChar93UiRoute
+  CatalogueModelIdRoute: typeof CatalogueModelIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -185,6 +198,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/catalogue_/$modelId': {
+      id: '/catalogue_/$modelId'
+      path: '/catalogue/$modelId'
+      fullPath: '/catalogue/$modelId'
+      preLoaderRoute: typeof CatalogueModelIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_dev/ui': {
@@ -228,7 +248,17 @@ const rootRouteChildren: RootRouteChildren = {
   Char91_devChar93DashboardStatesRoute: Char91_devChar93DashboardStatesRoute,
   Char91_devChar93EstimatorStatesRoute: Char91_devChar93EstimatorStatesRoute,
   Char91_devChar93UiRoute: Char91_devChar93UiRoute,
+  CatalogueModelIdRoute: CatalogueModelIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
