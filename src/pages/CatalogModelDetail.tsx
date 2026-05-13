@@ -1,14 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { catalogApi } from "@/lib/api";
 import type { CatalogModelDetail as CatalogModelDetailT } from "@/components/catalog/modelDetail";
 import { useCatalogFavorites } from "@/lib/catalogFavorites";
 import { useCatalogAlerts } from "@/lib/catalogAlerts";
-import {
-  consumeNavIntent,
-  getScrollPosition,
-  saveScrollPosition,
-} from "@/lib/catalogScrollMemory";
+import { consumeNavIntent } from "@/lib/catalogScrollMemory";
 import CatalogFicheHeader from "@/components/catalog/CatalogFicheHeader";
 import CatalogFicheOverview from "@/components/catalog/CatalogFicheOverview";
 import CatalogFichePercentiles from "@/components/catalog/CatalogFichePercentiles";
@@ -28,18 +24,9 @@ export default function CatalogModelDetail({ modelId }: Props) {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const prevModelIdRef = useRef<string | null>(null);
 
   const { has: isFavorite, toggle: toggleFav } = useCatalogFavorites();
   const { has: hasAlert, toggle: toggleAlert } = useCatalogAlerts();
-
-  // Sauvegarde scroll au unmount/changement de modelId
-  useEffect(() => {
-    return () => {
-      const idToSave = prevModelIdRef.current;
-      if (idToSave) saveScrollPosition(idToSave, window.scrollY);
-    };
-  }, [modelId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -63,9 +50,8 @@ export default function CatalogModelDetail({ modelId }: Props) {
         requestAnimationFrame(() => {
           if (cancelled) return;
           setIsTransitioning(false);
-          handleScrollRestoration(modelId);
+          handleScrollRestoration();
         });
-        prevModelIdRef.current = modelId;
       })
       .catch((err: unknown) => {
         if (cancelled) return;
@@ -128,7 +114,7 @@ export default function CatalogModelDetail({ modelId }: Props) {
   );
 }
 
-function handleScrollRestoration(modelId: string): void {
+function handleScrollRestoration(): void {
   const intent = consumeNavIntent();
   if (intent === "variant") {
     setTimeout(() => {
@@ -136,11 +122,6 @@ function handleScrollRestoration(modelId: string): void {
       if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
       else window.scrollTo({ top: 0, behavior: "auto" });
     }, 50);
-    return;
-  }
-  const saved = getScrollPosition(modelId);
-  if (saved !== null && saved > 0) {
-    setTimeout(() => window.scrollTo({ top: saved, behavior: "auto" }), 50);
     return;
   }
   window.scrollTo({ top: 0, behavior: "auto" });
