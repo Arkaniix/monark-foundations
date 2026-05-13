@@ -14,7 +14,15 @@ export default function EstimatorVerdict({ result }: EstimatorVerdictProps) {
   const color = VERDICT_COLORS[result.verdict];
   const label = VERDICT_DISPLAY_LABELS[result.verdict];
   const glow = VERDICT_GLOW_CLASS[result.verdict];
-  const { net_margin_eur, fair_price_eur, modifiers, confidence_pct } = result;
+  const {
+    net_margin_eur,
+    fair_price_eur,
+    modifiers,
+    confidence_pct,
+    score_total,
+    landmarks,
+    platform_fees_pct,
+  } = result;
 
   const marginSign = net_margin_eur >= 0 ? "+" : "";
   const marginColor = net_margin_eur >= 0 ? "#10B981" : "#EF4444";
@@ -40,14 +48,44 @@ export default function EstimatorVerdict({ result }: EstimatorVerdictProps) {
           {label}
         </div>
 
+        {/* Score /100 avec barre */}
+        <div className="w-full max-w-[280px] mt-2">
+          <div className="flex items-baseline justify-between mb-1.5">
+            <span className="font-mono text-[10px] tracking-wider text-zinc-500">
+              SCORE
+            </span>
+            <span className="font-mono text-[12px] text-zinc-300">
+              <span
+                className="text-[18px] font-semibold tabular-nums"
+                style={{ color }}
+              >
+                {score_total}
+              </span>
+              <span className="text-zinc-600"> / 100</span>
+            </span>
+          </div>
+          <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{
+                width: `${score_total}%`,
+                background: color,
+                boxShadow: `0 0 10px ${color}80`,
+              }}
+            />
+          </div>
+        </div>
+
         <div className="text-[13px] text-zinc-400">
           Marge nette estimée :{" "}
           <span className="font-mono font-medium" style={{ color: marginColor }}>
             {marginSign}
             {net_margin_eur} €
           </span>
-          {" · Fair price "}
+          {" · Fair "}
           <span className="font-mono text-zinc-200">{fair_price_eur} €</span>
+          {" · Frais "}
+          <span className="font-mono text-zinc-200">{platform_fees_pct} %</span>
         </div>
 
         <ConfidenceGauge value={confidence_pct} color={color} />
@@ -62,40 +100,47 @@ export default function EstimatorVerdict({ result }: EstimatorVerdictProps) {
             color={modifiers.liquidity_mod >= 0 ? "#10B981" : "#EF4444"}
           />
           <Pill
-            label={`Value-vs-new ${modifiers.value_vs_new >= 0 ? "+" : ""}${modifiers.value_vs_new}`}
+            label={`Décote ${modifiers.value_vs_new >= 0 ? "+" : ""}${modifiers.value_vs_new}`}
             color={modifiers.value_vs_new >= 0 ? "#10B981" : "#EF4444"}
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-white/5">
-        <MetricCell
-          label="PRIX DEMANDÉ"
-          value={`${result.inputs.ask_price_eur} €`}
+      {/* 3 Repères TL;DR */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 border-t border-white/5">
+        <LandmarkCell
+          label="PLAFOND ACHAT"
+          value={`${landmarks.ceiling_buy_eur} €`}
+          hint="à ne pas dépasser"
+          color="#EF4444"
         />
-        <MetricCell label="FAIR PRICE" value={`${fair_price_eur} €`} />
-        <MetricCell
-          label="MARGE NETTE"
-          value={`${marginSign}${net_margin_eur} €`}
-          color={marginColor}
+        <LandmarkCell
+          label="ACHAT OPTIMAL"
+          value={`${landmarks.optimal_buy_eur} €`}
+          hint="prix idéal"
+          color="#10B981"
         />
-        <MetricCell
-          label="FRAIS PLATEFORME"
-          value={`${result.platform_fees_pct} %`}
+        <LandmarkCell
+          label="PLANCHER REVENTE"
+          value={`${landmarks.floor_resale_eur} €`}
+          hint="breakeven post-frais"
+          color="#3B82F6"
         />
       </div>
     </div>
   );
 }
 
-function MetricCell({
+function LandmarkCell({
   label,
   value,
+  hint,
   color,
 }: {
   label: string;
   value: string;
-  color?: string;
+  hint: string;
+  color: string;
 }) {
   return (
     <div className="flex flex-col items-center gap-1 text-center">
@@ -103,11 +148,12 @@ function MetricCell({
         {label}
       </div>
       <div
-        className="font-mono text-[14px] text-zinc-100"
-        style={color ? { color } : undefined}
+        className="font-mono text-[15px] font-semibold tabular-nums"
+        style={{ color }}
       >
         {value}
       </div>
+      <div className="font-mono text-[9px] text-zinc-600">{hint}</div>
     </div>
   );
 }
