@@ -67,6 +67,24 @@ const SUCCESS_RESULT: EstimatorResult = {
     fresh_within_hours: 48,
     platform_specific: true,
   },
+
+  negotiation: {
+    offers: [
+      { tier: "lowball", label: "Offre agressive", amount_eur: 212, pct_of_ask: 80, savings_eur: 53, estimated_net_margin_eur: 63, acceptance_probability_pct: 30 },
+      { tier: "negotiated", label: "Contre-offre", amount_eur: 233, pct_of_ask: 88, savings_eur: 32, estimated_net_margin_eur: 42, acceptance_probability_pct: 60 },
+      { tier: "cordial", label: "Offre cordiale", amount_eur: 252, pct_of_ask: 95, savings_eur: 13, estimated_net_margin_eur: 23, acceptance_probability_pct: 82 },
+    ],
+    arguments: [
+      { category: "concurrence", label: "412 ventes / mois sur CPU — vendeur sous pression concurrence, argument volume solide.", weight: "fort" },
+      { category: "état", label: "État Bon (-22 % vs neuf) — argument modéré, mentionne les traces d'usage usuelles.", weight: "modéré" },
+      { category: "marché", label: "Marché CPU en hausse (+5.1 %) — peu d'argument prix, joue plutôt la rapidité.", weight: "faible" },
+    ],
+    keywords: {
+      opportunity: ["urgent", "déménagement", "à débarrasser", "raisonnable", "à discuter", "petit prix", "vite", "négociable"],
+      red_flag: ["en l'état", "pour pièces", "no return", "non testé", "ne fonctionne plus", "sans garantie"],
+    },
+    strategy_narrative: "Deal excellent même au prix demandé. Pour optimiser : ouvre à 212 €, replie sur 233 €. Si refus net, prends à 252 € sans hésiter.",
+  },
 };
 
 const STATES: { label: string; state: EstimatorState }[] = [
