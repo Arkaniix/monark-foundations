@@ -1,4 +1,6 @@
 import { getScoreColor, type EstimatorResult } from "./datasets";
+import GlossaryTooltip from "@/components/ui/GlossaryTooltip";
+import type { GlossaryKey } from "@/lib/glossary";
 
 type EstimatorScoreBreakdownProps = {
   result: EstimatorResult;
@@ -40,12 +42,12 @@ export default function EstimatorScoreBreakdown({
             </div>
 
             <div className="flex flex-col gap-2.5">
-              <BreakdownRow label="Score de base" hint="position prix" value={base} />
-              <BreakdownRow label="Tendance" hint="14 j" value={trend} signed />
-              <BreakdownRow label="Liquidité" hint="rotation marché" value={liquidity} signed />
-              <BreakdownRow label="Décote vs neuf" hint="état" value={value_vs_new} signed />
+              <BreakdownRow label="Score de base" hint="position prix" value={base} termKey="scoreBase" />
+              <BreakdownRow label="Tendance" hint="14 j" value={trend} signed termKey="trend30d" />
+              <BreakdownRow label="Liquidité" hint="rotation marché" value={liquidity} signed termKey="liquidity" />
+              <BreakdownRow label="Décote vs neuf" hint="état" value={value_vs_new} signed termKey="decoteVsNeuf" />
               <div className="h-px bg-white/10 my-1" />
-              <BreakdownRow label="Score final" value={total} final />
+              <BreakdownRow label="Score final" value={total} final termKey="score" />
             </div>
 
             {/* Barre de score */}
@@ -138,12 +140,14 @@ function BreakdownRow({
   value,
   signed = false,
   final = false,
+  termKey,
 }: {
   label: string;
   hint?: string;
   value: number;
   signed?: boolean;
   final?: boolean;
+  termKey?: GlossaryKey;
 }) {
   const displayValue = signed && value >= 0 ? `+${value}` : `${value}`;
   const valueColor = !signed
@@ -157,15 +161,20 @@ function BreakdownRow({
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-baseline gap-2">
-        <span
-          className={
-            final
-              ? "text-[13px] font-medium text-zinc-100"
-              : "text-[13px] text-zinc-300"
-          }
-        >
-          {label}
-        </span>
+        {(() => {
+          const labelEl = (
+            <span
+              className={
+                final
+                  ? "text-[13px] font-medium text-zinc-100"
+                  : "text-[13px] text-zinc-300"
+              }
+            >
+              {label}
+            </span>
+          );
+          return termKey ? <GlossaryTooltip term={termKey}>{labelEl}</GlossaryTooltip> : labelEl;
+        })()}
         {hint && (
           <span className="font-mono text-[10px] text-zinc-600">{hint}</span>
         )}
