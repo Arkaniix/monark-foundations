@@ -1,5 +1,6 @@
 import { getScoreColor, type EstimatorResult } from "./datasets";
 import GlossaryTooltip from "@/components/ui/GlossaryTooltip";
+import AnimatedCounter from "@/components/ui/AnimatedCounter";
 import type { GlossaryKey } from "@/lib/glossary";
 
 type EstimatorScoreBreakdownProps = {
@@ -122,7 +123,7 @@ export default function EstimatorScoreBreakdown({
                   className="font-mono text-[34px] font-semibold tracking-tight"
                   style={{ color: confidenceColor }}
                 >
-                  {confidence_pct}
+                  <AnimatedCounter value={confidence_pct} />
                 </span>
                 <span className="font-mono text-[14px] text-zinc-500">%</span>
               </div>
@@ -187,7 +188,7 @@ function BreakdownRow({
         }
         style={{ color: final ? "#fafafa" : valueColor }}
       >
-        {displayValue}
+        <AnimatedCounter value={value} prefix={signed && value >= 0 ? "+" : ""} />
       </span>
     </div>
   );
