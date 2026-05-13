@@ -4,6 +4,14 @@ import type {
   Platform,
   ResaleWhenOption,
 } from "./datasets";
+import GlossaryTooltip from "@/components/ui/GlossaryTooltip";
+import type { GlossaryKey } from "@/lib/glossary";
+
+const TIMING_TERMS: Record<string, GlossaryKey> = {
+  RAPIDE: "timingRapide",
+  OPTIMAL: "timingOptimal",
+  PATIENT: "timingPatient",
+};
 
 const PLATFORM_BRAND_COLORS: Record<Platform, string> = {
   LBC: "#FF6E14",
@@ -73,7 +81,9 @@ export default function EstimatorResaleWhen({
           <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">TIMING</div>
           <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">PRIX</div>
           <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">DÉLAI</div>
-          <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">MARGE NETTE</div>
+          <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">
+            <GlossaryTooltip term="margeNette" position="bottom"><span>MARGE NETTE</span></GlossaryTooltip>
+          </div>
           <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">ACCEPT.</div>
           <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">STRATÉGIE</div>
         </div>
@@ -131,12 +141,14 @@ function TimingRow({
       {/* Desktop layout */}
       <div className="hidden md:grid grid-cols-[110px_90px_90px_120px_90px_1fr] gap-4 items-center py-3.5">
         <div className="flex items-center gap-2">
-          <span
-            className="font-mono text-[11px] tracking-[0.2em] font-medium"
-            style={{ color: isOptimal ? "#e4e4e7" : "#a1a1aa" }}
-          >
-            {option.timing}
-          </span>
+          <GlossaryTooltip term={TIMING_TERMS[option.timing] ?? "timingOptimal"}>
+            <span
+              className="font-mono text-[11px] tracking-[0.2em] font-medium"
+              style={{ color: isOptimal ? "#e4e4e7" : "#a1a1aa" }}
+            >
+              {option.timing}
+            </span>
+          </GlossaryTooltip>
           {isOptimal && (
             <span
               className="w-1.5 h-1.5 rounded-full"
@@ -175,12 +187,14 @@ function TimingRow({
       {/* Mobile layout */}
       <div className="md:hidden flex flex-col gap-3 py-4">
         <div className="flex items-center justify-between">
-          <span
-            className="font-mono text-[11px] tracking-[0.2em] font-medium"
-            style={{ color: isOptimal ? "#e4e4e7" : "#a1a1aa" }}
-          >
-            {option.timing}
-          </span>
+          <GlossaryTooltip term={TIMING_TERMS[option.timing] ?? "timingOptimal"}>
+            <span
+              className="font-mono text-[11px] tracking-[0.2em] font-medium"
+              style={{ color: isOptimal ? "#e4e4e7" : "#a1a1aa" }}
+            >
+              {option.timing}
+            </span>
+          </GlossaryTooltip>
           {isOptimal && (
             <div className="flex items-center gap-1.5">
               <span
@@ -188,12 +202,14 @@ function TimingRow({
                 style={{ background: OPTIMAL_COLOR }}
                 aria-hidden="true"
               />
-              <span
-                className="font-mono text-[10.5px] font-medium tracking-[0.1em]"
-                style={{ color: OPTIMAL_COLOR }}
-              >
-                OPTIMAL
-              </span>
+              <GlossaryTooltip term="timingOptimal">
+                <span
+                  className="font-mono text-[10.5px] font-medium tracking-[0.1em]"
+                  style={{ color: OPTIMAL_COLOR }}
+                >
+                  OPTIMAL
+                </span>
+              </GlossaryTooltip>
             </div>
           )}
         </div>
@@ -214,7 +230,9 @@ function TimingRow({
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">MARGE NETTE</div>
+            <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">
+              <GlossaryTooltip term="margeNette"><span>MARGE NETTE</span></GlossaryTooltip>
+            </div>
             <div
               className="font-mono text-[14px] font-medium tabular-nums"
               style={{ color: marginColor }}
