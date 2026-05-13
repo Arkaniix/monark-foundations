@@ -17,7 +17,7 @@ export default function GlossaryTooltip({
   children,
   position,
 }: GlossaryTooltipProps) {
-  const entry = GLOSSARY[term];
+  const entry: GlossaryEntry = GLOSSARY[term];
   if (!entry) return <>{children}</>;
 
   return (
