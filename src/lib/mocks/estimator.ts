@@ -21,6 +21,8 @@ import {
   type PercentileDistribution,
   type Platform,
   type PlatformResaleStats,
+  type ResaleWhenOption,
+  type ResaleWhenRecommendation,
   type ResaleWhereRecommendation,
   type TrendStatus,
   type ValueVsNewStatus,
@@ -289,6 +291,60 @@ function buildResaleWhere(costBasis: number, fairPrice: number, category: Hardwa
   return { cost_basis_eur: costBasis, platforms, top_pick_narrative: topPickNarrative };
 }
 
+function buildResaleWhen(
+  costBasis: number,
+  fairPrice: number,
+  compositeLiquidity: number,
+): ResaleWhenRecommendation {
+  const liqNormalized = compositeLiquidity / 100;
+  const by_platform = {} as Record<Platform, ResaleWhenOption[]>;
+
+  for (const platform of PLATFORMS) {
+    const factor = PLATFORM_RESALE_PRICE_FACTOR[platform];
+    const baseDelay = PLATFORM_BASE_DELAY_DAYS[platform];
+    const fees = PLATFORM_FEES_PCT[platform];
+    const feesFrac = fees / 100;
+    const optimalPrice = Math.round(fairPrice * factor);
+    const rapidePrice = Math.round(optimalPrice * 0.85);
+    const patientPrice = Math.round(optimalPrice * 1.13);
+    const rapideDelay = Math.max(2, Math.round(baseDelay * 0.4 * (2 - liqNormalized)));
+    const optimalDelay = Math.max(3, Math.round(baseDelay * (2 - liqNormalized)));
+    const patientDelay = Math.round(baseDelay * 2.8 * (2 - liqNormalized));
+
+    by_platform[platform] = [
+      {
+        timing: "RAPIDE",
+        expected_price_eur: rapidePrice,
+        expected_delay_days: rapideDelay,
+        acceptance_probability_pct: 92,
+        net_margin_eur: Math.round(rapidePrice * (1 - feesFrac) - costBasis),
+        is_top_pick: false,
+        narrative: `Vente quasi-immédiate sur ${platform}. Prix accessible, on rogne sur la marge pour libérer le cash rapidement.`,
+      },
+      {
+        timing: "OPTIMAL",
+        expected_price_eur: optimalPrice,
+        expected_delay_days: optimalDelay,
+        acceptance_probability_pct: 82,
+        net_margin_eur: Math.round(optimalPrice * (1 - feesFrac) - costBasis),
+        is_top_pick: true,
+        narrative: `Meilleur compromis marge × délai sur ${platform}. Le sweet spot par défaut.`,
+      },
+      {
+        timing: "PATIENT",
+        expected_price_eur: patientPrice,
+        expected_delay_days: patientDelay,
+        acceptance_probability_pct: 58,
+        net_margin_eur: Math.round(patientPrice * (1 - feesFrac) - costBasis),
+        is_top_pick: false,
+        narrative: `Maximiser le prix au prix d'un délai long sur ${platform}. Pour qui peut attendre.`,
+      },
+    ];
+  }
+
+  return { by_platform };
+}
+
 export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult> {
   await mockDelay(380);
 
@@ -334,6 +390,7 @@ export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult
   const negotiation = buildNegotiationPlan(ask_price_eur, fair, optimalBuy, feesFrac, verdict, categoryMarketStats, state, percentilePosition, distribution, category);
 
   const resaleWhere = buildResaleWhere(ask_price_eur, fair, category, compositeLiquidity, state, verdict);
+  const resaleWhen = buildResaleWhen(ask_price_eur, fair, compositeLiquidity);
 
   return {
     inputs,
@@ -361,5 +418,6 @@ export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult
     data_quality: { observations_count: observations, fresh_within_hours: 48, platform_specific: true },
     negotiation,
     resale_where: resaleWhere,
+    resale_when: resaleWhen,
   };
 }
