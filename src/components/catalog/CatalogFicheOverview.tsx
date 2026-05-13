@@ -1,5 +1,6 @@
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import SectionLabel from "../ui/SectionLabel";
+import ModelImage from "./ModelImage";
 import type { CatalogModelDetail } from "./modelDetail";
 import { getScoreColor, getLiquidityColor, getTrendColor } from "./datasets";
 
@@ -31,76 +32,90 @@ export default function CatalogFicheOverview({ detail }: Props) {
           border: "0.5px solid var(--mk-section-border)",
         }}
       >
-        <div className="mb-5 grid grid-cols-[auto_1fr_auto] items-center gap-6">
-          <div className="text-center">
-            <div
-              className="font-mono text-[42px] font-medium leading-none tabular-nums"
-              style={{ color: scoreColor, letterSpacing: "-0.02em" }}
-            >
-              {detail.score}
-            </div>
-            <div className="mt-2 font-mono text-[9px] tracking-[0.2em] text-zinc-600">
-              SCORE / 100
-            </div>
-          </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-[180px_1fr] md:items-stretch">
           <div
-            className="text-center"
+            className="mx-auto w-full max-w-[220px] overflow-hidden rounded-lg md:mx-0 md:w-[180px] md:max-w-none"
             style={{
-              borderLeft: "0.5px solid rgba(255,255,255,0.05)",
-              borderRight: "0.5px solid rgba(255,255,255,0.05)",
-              padding: "0 24px",
+              aspectRatio: "1 / 1",
+              border: "0.5px solid var(--mk-divider-soft)",
             }}
           >
-            <div
-              className="font-mono text-[32px] font-medium leading-none tabular-nums text-zinc-100"
-              style={{ letterSpacing: "-0.01em" }}
-            >
-              {formatPrice(detail.median_eur)}
-            </div>
-            <div className="mt-2 font-mono text-[9.5px] tracking-[0.18em] text-zinc-600">
-              MÉDIANE 30 J · {detail.n_obs} OBS
-            </div>
+            <ModelImage category={detail.category} url={detail.image_url} />
           </div>
-          <div>
-            <Sparkline90d points={detail.sparkline_90d} color={delta90dColor} />
-            <div className="mt-1 flex justify-between font-mono text-[9px] tracking-[0.12em] text-zinc-600">
-              <span>90 J</span>
-              <span style={{ color: delta90dColor }}>
-                {delta90d > 0 ? "+" : ""}
-                {delta90d.toFixed(1)}%
-              </span>
-              <span>AUJOURD'HUI</span>
-            </div>
-          </div>
-        </div>
 
-        <div
-          className="grid grid-cols-3 gap-3 pt-5"
-          style={{ borderTop: "0.5px solid rgba(255,255,255,0.05)" }}
-        >
-          <Stat label="TENDANCE 30 J" sub="vs il y a 30 jours">
-            <span className="font-mono text-[18px] font-medium tabular-nums" style={{ color: trendColor }}>
-              {trendSign}
-              {detail.trend_30d_pct.toFixed(1)}%
-            </span>
-            <TrendIcon size={13} style={{ color: trendColor }} strokeWidth={1.75} />
-          </Stat>
-          <Stat
-            label="LIQUIDITÉ"
-            sub={`vente médiane ${Math.max(1, Math.round(30 - detail.liquidity_pct * 0.25))} j`}
-          >
-            <span className="font-mono text-[18px] font-medium tabular-nums" style={{ color: liqColor }}>
-              {detail.liquidity_pct}%
-            </span>
-          </Stat>
-          <Stat
-            label="MARGE POTENTIELLE"
-            sub={`~ ${Math.round(detail.median_eur * (detail.margin_pct / 100))} € sur médiane`}
-          >
-            <span className="font-mono text-[18px] font-medium tabular-nums" style={{ color: trendColor }}>
-              {detail.margin_pct}%
-            </span>
-          </Stat>
+          <div className="flex flex-col justify-center">
+            <div className="mb-5 grid grid-cols-[auto_1fr_auto] items-center gap-6">
+              <div className="text-center">
+                <div
+                  className="font-mono text-[42px] font-medium leading-none tabular-nums"
+                  style={{ color: scoreColor, letterSpacing: "-0.02em" }}
+                >
+                  {detail.score}
+                </div>
+                <div className="mt-2 font-mono text-[9px] tracking-[0.2em] text-zinc-600">
+                  SCORE / 100
+                </div>
+              </div>
+              <div
+                className="text-center"
+                style={{
+                  borderLeft: "0.5px solid rgba(255,255,255,0.05)",
+                  borderRight: "0.5px solid rgba(255,255,255,0.05)",
+                  padding: "0 24px",
+                }}
+              >
+                <div
+                  className="font-mono text-[32px] font-medium leading-none tabular-nums text-zinc-100"
+                  style={{ letterSpacing: "-0.01em" }}
+                >
+                  {formatPrice(detail.median_eur)}
+                </div>
+                <div className="mt-2 font-mono text-[9.5px] tracking-[0.18em] text-zinc-600">
+                  MÉDIANE 30 J · {detail.n_obs} OBS
+                </div>
+              </div>
+              <div>
+                <Sparkline90d points={detail.sparkline_90d} color={delta90dColor} />
+                <div className="mt-1 flex justify-between font-mono text-[9px] tracking-[0.12em] text-zinc-600">
+                  <span>90 J</span>
+                  <span style={{ color: delta90dColor }}>
+                    {delta90d > 0 ? "+" : ""}
+                    {delta90d.toFixed(1)}%
+                  </span>
+                  <span>AUJOURD'HUI</span>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className="grid grid-cols-3 gap-3 pt-5"
+              style={{ borderTop: "0.5px solid rgba(255,255,255,0.05)" }}
+            >
+              <Stat label="TENDANCE 30 J" sub="vs il y a 30 jours">
+                <span className="font-mono text-[18px] font-medium tabular-nums" style={{ color: trendColor }}>
+                  {trendSign}
+                  {detail.trend_30d_pct.toFixed(1)}%
+                </span>
+                <TrendIcon size={13} style={{ color: trendColor }} strokeWidth={1.75} />
+              </Stat>
+              <Stat
+                label="LIQUIDITÉ"
+                sub={`vente médiane ${Math.max(1, Math.round(30 - detail.liquidity_pct * 0.25))} j`}
+              >
+                <span className="font-mono text-[18px] font-medium tabular-nums" style={{ color: liqColor }}>
+                  {detail.liquidity_pct}%
+                </span>
+              </Stat>
+              <Stat
+                label="MARGE POTENTIELLE"
+                sub={`~ ${Math.round(detail.median_eur * (detail.margin_pct / 100))} € sur médiane`}
+              >
+                <span className="font-mono text-[18px] font-medium tabular-nums" style={{ color: trendColor }}>
+                  {detail.margin_pct}%
+                </span>
+              </Stat>
+            </div>
+          </div>
         </div>
       </div>
     </section>
