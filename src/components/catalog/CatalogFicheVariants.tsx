@@ -1,5 +1,6 @@
+import type { KeyboardEvent } from "react";
 import { ArrowRight } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import SectionLabel from "../ui/SectionLabel";
 import type { VariantEntry } from "./modelDetail";
 import { getScoreColor, getTrendColor, getLiquidityColor } from "./datasets";
@@ -47,6 +48,7 @@ export default function CatalogFicheVariants({ variants, familyLabel }: Props) {
 const th = { borderBottom: "0.5px solid rgba(255,255,255,0.06)" } as const;
 
 function VariantRow({ v }: { v: VariantEntry }) {
+  const navigate = useNavigate();
   const scoreColor = getScoreColor(v.score);
   const trendColor = getTrendColor(v.trend_30d_pct);
   const liqColor = getLiquidityColor(v.liquidity_pct);
@@ -79,17 +81,23 @@ function VariantRow({ v }: { v: VariantEntry }) {
   }
 
   return (
-    <tr className="ease-expo transition-colors hover:bg-white/[0.025]">
-      <td className="px-4 py-2.5">
-        <Link
-          to="/catalogue/$modelId"
-          params={{ modelId: v.id }}
-          onClick={() => setNavIntent("variant")}
-          className="text-zinc-100"
-        >
-          {v.name}
-        </Link>
-      </td>
+    <tr
+      role="link"
+      tabIndex={0}
+      onClick={() => {
+        setNavIntent("variant");
+        navigate({ to: "/catalogue/$modelId", params: { modelId: v.id } });
+      }}
+      onKeyDown={(e: KeyboardEvent<HTMLTableRowElement>) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          setNavIntent("variant");
+          navigate({ to: "/catalogue/$modelId", params: { modelId: v.id } });
+        }
+      }}
+      className="ease-expo cursor-pointer transition-colors hover:bg-white/[0.045] focus:bg-white/[0.045] focus:outline-none"
+    >
+      <td className="px-4 py-2.5 text-zinc-100">{v.name}</td>
       <td className="px-2 py-2.5 font-mono font-medium" style={{ color: scoreColor }}>{v.score}</td>
       <td className="px-2 py-2.5 text-right font-mono tabular-nums text-zinc-300">{v.median_eur} €</td>
       <td className="px-2 py-2.5 text-right font-mono tabular-nums" style={{ color: trendColor }}>
@@ -99,14 +107,9 @@ function VariantRow({ v }: { v: VariantEntry }) {
         {v.liquidity_pct}%
       </td>
       <td className="px-4 py-2.5 text-right">
-        <Link
-          to="/catalogue/$modelId"
-          params={{ modelId: v.id }}
-          onClick={() => setNavIntent("variant")}
-          className="inline-flex text-zinc-500 hover:text-zinc-200"
-        >
+        <span className="inline-flex text-zinc-500">
           <ArrowRight size={12} strokeWidth={1.5} />
-        </Link>
+        </span>
       </td>
     </tr>
   );
