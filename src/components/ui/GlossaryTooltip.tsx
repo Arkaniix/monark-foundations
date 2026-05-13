@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Tooltip from "./Tooltip";
-import { GLOSSARY, type GlossaryKey } from "@/lib/glossary";
+import { GLOSSARY, type GlossaryEntry, type GlossaryKey } from "@/lib/glossary";
 
 type GlossaryTooltipProps = {
   term: GlossaryKey;
