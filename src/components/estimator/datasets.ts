@@ -1,9 +1,6 @@
 /**
  * Types et contracts pour le domaine Estimator.
- *
- * E2 : ajout price_history_30d, percentile_position_pct, observations_count, category_market_stats.
- * E3 : ajout score_total, score_breakdown, landmarks, data_quality.
- *      Migration : observations_count flat → data_quality.observations_count.
+ * E1 base, E2 §02, E3 §01+§03, E3.1 getScoreColor, E4 §04 Négociation.
  */
 
 import type { Verdict, HardwareCategory } from "../dashboard/datasets";
@@ -81,8 +78,6 @@ export type VerdictModifiers = {
   value_vs_new: number;
 };
 
-// === E2 — Market stats §02 ===
-
 export type TrendStatus = "En hausse" | "Stable" | "En baisse";
 
 export type MarketTrendStats = {
@@ -115,8 +110,6 @@ export type CategoryMarketStats = {
   value_vs_new: MarketValueVsNewStats;
 };
 
-// === E3 — Score breakdown §03 + landmarks §01 ===
-
 export type ScoreBreakdown = {
   base: number;
   trend: number;
@@ -137,6 +130,40 @@ export type DataQuality = {
   platform_specific: boolean;
 };
 
+// E4 — Négociation §04
+
+export type OfferTier = "lowball" | "negotiated" | "cordial";
+
+export type NegotiationOffer = {
+  tier: OfferTier;
+  label: string;
+  amount_eur: number;
+  pct_of_ask: number;
+  savings_eur: number;
+  estimated_net_margin_eur: number;
+  acceptance_probability_pct: number;
+};
+
+export type ArgumentWeight = "fort" | "modéré" | "faible";
+
+export type NegotiationArgument = {
+  category: "marché" | "état" | "concurrence" | "position";
+  label: string;
+  weight: ArgumentWeight;
+};
+
+export type NegotiationKeywords = {
+  opportunity: string[];
+  red_flag: string[];
+};
+
+export type NegotiationPlan = {
+  offers: NegotiationOffer[];
+  arguments: NegotiationArgument[];
+  keywords: NegotiationKeywords;
+  strategy_narrative: string;
+};
+
 export type EstimatorResult = {
   inputs: EstimatorInputs;
   model_name: string;
@@ -151,16 +178,16 @@ export type EstimatorResult = {
   platform_fees_pct: number;
   evaluated_at: string;
 
-  // E2 §02
   price_history_30d: number[];
   percentile_position_pct: number;
   category_market_stats: CategoryMarketStats;
 
-  // E3 §01 enrichi + §03
   score_total: number;
   score_breakdown: ScoreBreakdown;
   landmarks: BuyResaleLandmarks;
   data_quality: DataQuality;
+
+  negotiation: NegotiationPlan;
 };
 
 export type HardwareModel = {
@@ -192,10 +219,27 @@ export const HARDWARE_CATALOG: HardwareModel[] = [
   { name: "HX1200", category: "PSU", base_price_eur: 200 },
 ];
 
-/**
- * Couleur vert/jaune/rouge selon la valeur d'un score sur 100.
- * >= 75 vert, >= 50 jaune, < 50 rouge.
- */
+export const NEGOTIATION_KEYWORDS = {
+  opportunity: [
+    "urgent",
+    "déménagement",
+    "à débarrasser",
+    "raisonnable",
+    "à discuter",
+    "petit prix",
+    "vite",
+    "négociable",
+  ],
+  red_flag: [
+    "en l'état",
+    "pour pièces",
+    "no return",
+    "non testé",
+    "ne fonctionne plus",
+    "sans garantie",
+  ],
+};
+
 export function getScoreColor(value: number): string {
   if (value >= 75) return "#10B981";
   if (value >= 50) return "#F59E0B";
