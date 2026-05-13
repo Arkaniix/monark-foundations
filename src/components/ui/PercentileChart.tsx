@@ -8,7 +8,8 @@ type PercentileChartProps = {
     p75: number;
     p90: number;
   };
-  askPrice: number;
+  /** Prix demandé. Optionnel : si absent (cas fiche modèle catalogue), pas de marqueur prix ni footer "prix demandé". */
+  askPrice?: number;
   color: string;
   observationsLabel?: string;
   /**
@@ -67,8 +68,8 @@ export default function PercentileChart({
   const { p10, p25, p50, p75, p90 } = distribution;
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
 
-  const min = Math.min(p10, askPrice) * 0.92;
-  const max = Math.max(p90, askPrice) * 1.08;
+  const min = (askPrice !== undefined ? Math.min(p10, askPrice) : p10) * 0.92;
+  const max = (askPrice !== undefined ? Math.max(p90, askPrice) : p90) * 1.08;
   const X = (v: number) => ((v - min) / (max - min)) * 100;
 
   const points: number[] = [];
@@ -186,15 +187,19 @@ export default function PercentileChart({
               </text>
             </g>
           ))}
-          <line
-            x1={X(askPrice) * 8}
-            x2={X(askPrice) * 8}
-            y1={TOP_PAD - 18}
-            y2={VIEWBOX_H - BOTTOM_PAD + 8}
-            stroke={color}
-            strokeWidth="1.8"
-          />
-          <circle cx={X(askPrice) * 8} cy={TOP_PAD - 18} r="4.5" fill={color} />
+          {askPrice !== undefined && (
+            <>
+              <line
+                x1={X(askPrice) * 8}
+                x2={X(askPrice) * 8}
+                y1={TOP_PAD - 18}
+                y2={VIEWBOX_H - BOTTOM_PAD + 8}
+                stroke={color}
+                strokeWidth="1.8"
+              />
+              <circle cx={X(askPrice) * 8} cy={TOP_PAD - 18} r="4.5" fill={color} />
+            </>
+          )}
         </svg>
 
         {hoverIdx !== null && hoverBarPrice !== null && hoverBarPercentile !== null && (
@@ -225,21 +230,25 @@ export default function PercentileChart({
 
       <div className="mt-2 flex items-center justify-between font-mono text-[10px] text-zinc-500">
         <span>{p10} €</span>
-        <span className="flex items-center gap-2" style={{ color }}>
-          prix demandé · {askPrice} €
-          {percentilePosition !== undefined && (
-            <span
-              className="px-1.5 py-0.5 rounded text-[9.5px]"
-              style={{
-                color,
-                border: `0.5px solid ${color}`,
-                background: `${color}14`,
-              }}
-            >
-              P{percentilePosition}
-            </span>
-          )}
-        </span>
+        {askPrice !== undefined ? (
+          <span className="flex items-center gap-2" style={{ color }}>
+            prix demandé · {askPrice} €
+            {percentilePosition !== undefined && (
+              <span
+                className="px-1.5 py-0.5 rounded text-[9.5px]"
+                style={{
+                  color,
+                  border: `0.5px solid ${color}`,
+                  background: `${color}14`,
+                }}
+              >
+                P{percentilePosition}
+              </span>
+            )}
+          </span>
+        ) : (
+          <span className="text-zinc-500">médiane · {p50} €</span>
+        )}
         <span>{p90} €</span>
       </div>
     </div>

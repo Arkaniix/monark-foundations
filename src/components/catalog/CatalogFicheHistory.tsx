@@ -1,0 +1,113 @@
+import { TrendingUp, TrendingDown } from "lucide-react";
+import SectionLabel from "../ui/SectionLabel";
+import type { MonthlyHistoryEntry } from "./modelDetail";
+
+type Props = { monthly_history: MonthlyHistoryEntry[] };
+
+export default function CatalogFicheHistory({ monthly_history }: Props) {
+  if (monthly_history.length === 0) return null;
+  const chronological = [...monthly_history].reverse();
+  const max = Math.max(...chronological.map((m) => m.median_eur));
+  const min = Math.min(...chronological.map((m) => m.median_eur));
+
+  return (
+    <section className="flex flex-col gap-3.5">
+      <SectionLabel idx={5} label="HISTORIQUE 6 MOIS" />
+      <div
+        className="rounded-xl p-6"
+        style={{
+          background: "var(--mk-surface-1)",
+          border: "0.5px solid var(--mk-section-border)",
+        }}
+      >
+        <div className="mb-5">
+          <div className="flex items-end justify-between gap-2" style={{ height: 100 }}>
+            {chronological.map((m, i) => {
+              const range = max - min || 1;
+              const ratio = (m.median_eur - min) / range;
+              const h = 24 + ratio * 70;
+              const isAnnotated = m.annotation !== null;
+              const barColor =
+                m.annotation === "peak"
+                  ? "#10B981"
+                  : m.annotation === "trough"
+                    ? "#EF4444"
+                    : "rgba(255,255,255,0.18)";
+              return (
+                <div key={i} className="flex flex-1 flex-col items-center gap-2">
+                  <div
+                    className="font-mono text-[9.5px] tabular-nums"
+                    style={{ color: isAnnotated ? barColor : "#71717a" }}
+                  >
+                    {m.median_eur}
+                  </div>
+                  <div
+                    className="w-full rounded-t-sm"
+                    style={{ height: h, background: barColor, opacity: isAnnotated ? 0.85 : 1 }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-2 flex justify-between gap-2">
+            {chronological.map((m, i) => (
+              <div
+                key={i}
+                className="flex-1 text-center font-mono text-[9px] tracking-[0.1em] text-zinc-600"
+              >
+                {m.month_label.split(" ")[0]}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <table className="w-full border-collapse text-[11.5px]">
+          <thead>
+            <tr className="font-mono text-[9.5px] tracking-[0.16em] text-zinc-600">
+              <th className="px-2 py-2.5 text-left font-normal" style={th}>MOIS</th>
+              <th className="px-2 py-2.5 text-right font-normal" style={th}>MÉDIANE</th>
+              <th className="px-2 py-2.5 text-right font-normal" style={th}>Δ M-1</th>
+              <th className="px-2 py-2.5 text-right font-normal" style={th}>N OBS</th>
+              <th className="px-2 py-2.5 text-left font-normal" style={th}>ANNOTATION</th>
+            </tr>
+          </thead>
+          <tbody>
+            {monthly_history.map((m, i) => (
+              <HistoryRow key={i} m={m} isFirst={i === monthly_history.length - 1} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+const th = { borderBottom: "0.5px solid rgba(255,255,255,0.06)" } as const;
+
+function HistoryRow({ m, isFirst }: { m: MonthlyHistoryEntry; isFirst: boolean }) {
+  const deltaColor = m.delta_pct > 0.5 ? "#10B981" : m.delta_pct < -0.5 ? "#EF4444" : "#71717a";
+  const sign = m.delta_pct > 0 ? "+" : "";
+  return (
+    <tr>
+      <td className="px-2 py-2 font-mono text-zinc-100">{m.month_label}</td>
+      <td className="px-2 py-2 text-right font-mono tabular-nums text-zinc-300">{m.median_eur} €</td>
+      <td className="px-2 py-2 text-right font-mono tabular-nums" style={{ color: deltaColor }}>
+        {isFirst ? <span className="text-zinc-700">—</span> : `${sign}${m.delta_pct.toFixed(1)}%`}
+      </td>
+      <td className="px-2 py-2 text-right font-mono tabular-nums text-zinc-500">{m.n_obs}</td>
+      <td className="px-2 py-2 font-mono text-[10px] tracking-[0.08em]">
+        {m.annotation === "peak" ? (
+          <span className="inline-flex items-center gap-1 text-emerald-400">
+            <TrendingUp size={10} strokeWidth={2} /> PIC
+          </span>
+        ) : m.annotation === "trough" ? (
+          <span className="inline-flex items-center gap-1 text-red-400">
+            <TrendingDown size={10} strokeWidth={2} /> PLANCHER
+          </span>
+        ) : (
+          <span className="text-zinc-700">stable</span>
+        )}
+      </td>
+    </tr>
+  );
+}

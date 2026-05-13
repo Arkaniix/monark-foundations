@@ -27,10 +27,12 @@ export type EstimatorState =
 
 type EstimatorPageProps = {
   __devForceState?: EstimatorState;
+  initialModelFromQuery?: string;
 };
 
 export default function Estimator({
   __devForceState,
+  initialModelFromQuery,
 }: EstimatorPageProps = {}) {
   const [state, setState] = useState<EstimatorState>(
     __devForceState ?? { status: "idle" },
@@ -42,7 +44,11 @@ export default function Estimator({
   const [isCapModalOpen, setIsCapModalOpen] = useState(false);
   const [prefilledInputs, setPrefilledInputs] = useState<
     EstimatorInputs | undefined
-  >(undefined);
+  >(
+    initialModelFromQuery
+      ? { model: initialModelFromQuery, state: "Bon", ask_price_eur: 0, platform: "LBC" }
+      : undefined,
+  );
 
   const history = useEstimatorHistory();
 

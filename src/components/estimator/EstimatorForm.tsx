@@ -59,6 +59,11 @@ export default function EstimatorForm({
             disabled={disabled}
             className="w-full bg-zinc-950 border border-white/10 rounded-md px-3 py-2.5 text-[13.5px] focus:outline-none focus:border-blue-500/60 ease-expo transition-colors disabled:opacity-50"
           >
+            {!HARDWARE_CATALOG.some((m) => m.name === model) && model && (
+              <option key={model} value={model} className="bg-zinc-950">
+                {model} (catalogue)
+              </option>
+            )}
             {HARDWARE_CATALOG.map((m) => (
               <option key={m.name} value={m.name} className="bg-zinc-950">
                 {m.name} · {m.category}
