@@ -164,6 +164,25 @@ export type NegotiationPlan = {
   strategy_narrative: string;
 };
 
+// E5a — Où revendre §05a
+
+export type PlatformResaleStats = {
+  platform: Platform;
+  estimated_price_eur: number;
+  fees_pct: number;
+  net_margin_eur: number;
+  expected_delay_days: number;
+  recommendation_score: number;
+  is_top_pick: boolean;
+  narrative: string;
+};
+
+export type ResaleWhereRecommendation = {
+  cost_basis_eur: number;
+  platforms: PlatformResaleStats[];
+  top_pick_narrative: string;
+};
+
 export type EstimatorResult = {
   inputs: EstimatorInputs;
   model_name: string;
@@ -188,6 +207,8 @@ export type EstimatorResult = {
   data_quality: DataQuality;
 
   negotiation: NegotiationPlan;
+
+  resale_where: ResaleWhereRecommendation;
 };
 
 export type HardwareModel = {
