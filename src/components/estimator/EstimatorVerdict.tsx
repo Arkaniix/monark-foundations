@@ -126,18 +126,21 @@ export default function EstimatorVerdict({ result }: EstimatorVerdictProps) {
           value={`${landmarks.ceiling_buy_eur} €`}
           hint="à ne pas dépasser"
           color="#EF4444"
+          termKey="plafond"
         />
         <LandmarkCell
           label="ACHAT OPTIMAL"
           value={`${landmarks.optimal_buy_eur} €`}
           hint="prix idéal"
           color="#10B981"
+          termKey="optimal"
         />
         <LandmarkCell
           label="PLANCHER REVENTE"
           value={`${landmarks.floor_resale_eur} €`}
           hint="breakeven post-frais"
           color="#3B82F6"
+          termKey="plancherEstimator"
         />
       </div>
     </div>
@@ -149,17 +152,20 @@ function LandmarkCell({
   value,
   hint,
   color,
+  termKey,
 }: {
   label: string;
   value: string;
   hint: string;
   color: string;
+  termKey?: GlossaryKey;
 }) {
+  const labelEl = (
+    <span className="font-mono text-[9px] tracking-wider text-zinc-500">{label}</span>
+  );
   return (
     <div className="flex flex-col items-center gap-1 text-center">
-      <div className="font-mono text-[9px] tracking-wider text-zinc-500">
-        {label}
-      </div>
+      <div>{termKey ? <GlossaryTooltip term={termKey}>{labelEl}</GlossaryTooltip> : labelEl}</div>
       <div
         className="font-mono text-[15px] font-semibold tabular-nums"
         style={{ color }}
