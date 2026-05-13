@@ -99,7 +99,7 @@ export default function EstimatorForm({
         </Field>
 
         <Field label="Plateforme">
-          <div className="grid grid-cols-4 gap-1.5">
+        <div className="grid grid-cols-3 gap-1.5">
             {PLATFORMS.map((p) => (
               <button
                 key={p}
