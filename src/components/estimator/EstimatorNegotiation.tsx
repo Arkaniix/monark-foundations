@@ -7,6 +7,7 @@ import {
   type NegotiationOffer,
 } from "./datasets";
 import GlossaryTooltip from "@/components/ui/GlossaryTooltip";
+import AnimatedCounter from "@/components/ui/AnimatedCounter";
 import type { GlossaryKey } from "@/lib/glossary";
 
 const OFFER_TIER_TERMS: Record<string, GlossaryKey> = {
@@ -84,14 +85,20 @@ function OfferRow({ offer }: { offer: NegotiationOffer }) {
           </GlossaryTooltip>
         </div>
         <div className="font-mono text-[10px] tracking-[0.15em]" style={{ color: probaColor }}>
-          {offer.acceptance_probability_pct} % d'acceptation
+          <AnimatedCounter value={offer.acceptance_probability_pct} suffix=" %" /> d'acceptation
         </div>
       </div>
 
       <div className="flex items-baseline gap-3 flex-wrap">
-        <div className="text-2xl font-semibold text-zinc-100 tabular-nums">{offer.amount_eur} €</div>
-        <div className="text-xs text-zinc-500 tabular-nums">{offer.pct_of_ask} % du demandé</div>
-        <div className="text-xs text-zinc-400 tabular-nums">Économise {offer.savings_eur} €</div>
+        <div className="text-2xl font-semibold text-zinc-100 tabular-nums">
+          <AnimatedCounter value={offer.amount_eur} suffix=" €" />
+        </div>
+        <div className="text-xs text-zinc-500 tabular-nums">
+          <AnimatedCounter value={offer.pct_of_ask} suffix=" % du demandé" />
+        </div>
+        <div className="text-xs text-zinc-400 tabular-nums">
+          Économise <AnimatedCounter value={offer.savings_eur} suffix=" €" />
+        </div>
       </div>
 
       <div className="flex items-center gap-3">
@@ -107,8 +114,7 @@ function OfferRow({ offer }: { offer: NegotiationOffer }) {
         <div className="text-[11px] text-zinc-500 whitespace-nowrap">
           Marge si revente fair :{" "}
           <span className="tabular-nums font-medium" style={{ color: marginColor }}>
-            {marginSign}
-            {offer.estimated_net_margin_eur} €
+            <AnimatedCounter value={offer.estimated_net_margin_eur} prefix={marginSign} suffix=" €" />
           </span>
         </div>
       </div>
