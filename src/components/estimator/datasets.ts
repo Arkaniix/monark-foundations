@@ -191,3 +191,13 @@ export const HARDWARE_CATALOG: HardwareModel[] = [
   { name: "RM850x", category: "PSU", base_price_eur: 110 },
   { name: "HX1200", category: "PSU", base_price_eur: 200 },
 ];
+
+/**
+ * Couleur vert/jaune/rouge selon la valeur d'un score sur 100.
+ * >= 75 vert, >= 50 jaune, < 50 rouge.
+ */
+export function getScoreColor(value: number): string {
+  if (value >= 75) return "#10B981";
+  if (value >= 50) return "#F59E0B";
+  return "#EF4444";
+}
