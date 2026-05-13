@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { TrendingUp } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { catalogApi } from "@/lib/api";
 import CatalogPagination from "@/components/catalog/CatalogPagination";
 import { getAvailableFacets, getCategoryCounts } from "@/components/catalog/filters";
@@ -24,6 +25,7 @@ type CatalogState =
   | { status: "error"; message: string };
 
 export default function Catalog() {
+  const navigate = useNavigate();
   const [filters, setFilters] = useState<CatalogFilters>(DEFAULT_FILTERS);
   const [sort, setSort] = useState<CatalogSortKey>(DEFAULT_SORT);
   const [page, setPage] = useState(1);
@@ -85,11 +87,12 @@ export default function Catalog() {
     }));
   };
 
-  const handleOpenDetails = (model: CatalogModel) => {
-    // C2 séparé : page fiche /catalogue/[model] à venir.
-    // eslint-disable-next-line no-console
-    console.log("[catalog] open details", model.id, model.name);
-  };
+  const handleOpenDetails = useCallback(
+    (model: CatalogModel) => {
+      navigate({ to: "/catalogue/$modelId", params: { modelId: model.id } });
+    },
+    [navigate],
+  );
 
   return (
     <div className="flex flex-col gap-6">
