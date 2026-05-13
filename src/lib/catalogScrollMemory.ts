@@ -1,31 +1,26 @@
-const SCROLL_KEY_PREFIX = "monark.catalog.scroll:";
+/**
+ * Nav intent transitoire pour scroll restoration intelligent entre fiches catalogue.
+ *
+ * Backed by sessionStorage : effacé à la fermeture du tab.
+ *
+ * Une seule entité gérée : le nav intent (key monark.catalog.navIntent),
+ * consommé une fois. Permet de scroll vers #section-variants quand on
+ * navigue d'un variant vers un autre dans la table §03.
+ *
+ * Note : le scroll memory par modèle a été retiré (C2.4) — on revient au
+ * comportement scroll-top par défaut pour préserver la lisibilité de
+ * chaque fiche découverte.
+ */
+
 const NAV_INTENT_KEY = "monark.catalog.navIntent";
 
 export type NavIntent = "variant" | "card" | null;
 
 function isClient(): boolean {
-  return typeof window !== "undefined" && typeof window.sessionStorage !== "undefined";
-}
-
-export function saveScrollPosition(modelId: string, scrollY: number): void {
-  if (!isClient()) return;
-  try {
-    window.sessionStorage.setItem(SCROLL_KEY_PREFIX + modelId, String(scrollY));
-  } catch {
-    /* noop */
-  }
-}
-
-export function getScrollPosition(modelId: string): number | null {
-  if (!isClient()) return null;
-  try {
-    const raw = window.sessionStorage.getItem(SCROLL_KEY_PREFIX + modelId);
-    if (!raw) return null;
-    const n = parseInt(raw, 10);
-    return Number.isNaN(n) ? null : n;
-  } catch {
-    return null;
-  }
+  return (
+    typeof window !== "undefined" &&
+    typeof window.sessionStorage !== "undefined"
+  );
 }
 
 export function setNavIntent(intent: NavIntent): void {
@@ -37,10 +32,14 @@ export function setNavIntent(intent: NavIntent): void {
       window.sessionStorage.setItem(NAV_INTENT_KEY, intent);
     }
   } catch {
-    /* noop */
+    // silent fail
   }
 }
 
+/**
+ * Lit le nav intent et le supprime en même temps (consume-once pattern).
+ * Évite que le scroll-to-section-3 se rejoue par erreur sur une visite suivante.
+ */
 export function consumeNavIntent(): NavIntent {
   if (!isClient()) return null;
   try {
