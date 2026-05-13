@@ -215,6 +215,86 @@ function buildNegotiationPlan(askPrice: number, fairPrice: number, optimalBuy: n
   };
 }
 
+const PLATFORM_RESALE_PRICE_FACTOR: Record<Platform, number> = {
+  LBC: 1.0,
+  eBay: 1.05,
+  Vinted: 0.92,
+  Particulier: 0.95,
+};
+
+const PLATFORM_BASE_DELAY_DAYS: Record<Platform, number> = {
+  LBC: 7,
+  eBay: 12,
+  Vinted: 18,
+  Particulier: 25,
+};
+
+const PLATFORM_HARDWARE_AUDIENCE: Record<Platform, number> = {
+  LBC: 90,
+  eBay: 85,
+  Vinted: 35,
+  Particulier: 40,
+};
+
+const PLATFORM_NARRATIVES: Record<Platform, string> = {
+  LBC: "Audience locale française forte, délai court, frais modérés. Le standard pour le hardware d'occasion.",
+  eBay: "Audience internationale, prix légèrement plus haut acceptés. Frais 18 % et concurrence forte.",
+  Vinted: "Audience principalement textile — hardware peu performant, délais longs.",
+  Particulier: "Aucun frais mais visibilité limitée au réseau personnel. Délai long.",
+};
+
+const STATE_AUDIENCE_PENALTY: Record<ItemState, number> = {
+  Neuf: 0,
+  "Comme neuf": 0,
+  Bon: 0,
+  Acceptable: 5,
+  "Pour pièces": 15,
+};
+
+function buildResaleWhere(costBasis: number, fairPrice: number, category: HardwareCategory, compositeLiquidity: number, state: ItemState, verdict: Verdict): ResaleWhereRecommendation {
+  const liqNormalized = compositeLiquidity / 100;
+  const platforms = PLATFORMS.map((platform): PlatformResaleStats => {
+    const factor = PLATFORM_RESALE_PRICE_FACTOR[platform];
+    const baseDelay = PLATFORM_BASE_DELAY_DAYS[platform];
+    const baseAudience = PLATFORM_HARDWARE_AUDIENCE[platform];
+    const fees = PLATFORM_FEES_PCT[platform];
+    const feesFrac = fees / 100;
+    const estimatedPrice = Math.round(fairPrice * factor);
+    const netMargin = Math.round(estimatedPrice * (1 - feesFrac) - costBasis);
+    const expectedDelay = Math.max(3, Math.round(baseDelay * (2 - liqNormalized)));
+    const penalty = platform === "Vinted" || platform === "Particulier" ? STATE_AUDIENCE_PENALTY[state] : Math.round(STATE_AUDIENCE_PENALTY[state] / 3);
+    const audienceAdjusted = Math.max(10, baseAudience - penalty);
+    const marginRatio = costBasis > 0 ? netMargin / costBasis : 0;
+    const marginScore = Math.max(0, Math.min(100, 50 + marginRatio * 250));
+    const delayScore = Math.max(0, Math.min(100, 100 - expectedDelay * 2.5));
+    const recommendationScore = Math.max(5, Math.min(95, Math.round(marginScore * 0.4 + delayScore * 0.3 + audienceAdjusted * 0.3)));
+    return {
+      platform,
+      estimated_price_eur: estimatedPrice,
+      fees_pct: fees,
+      net_margin_eur: netMargin,
+      expected_delay_days: expectedDelay,
+      recommendation_score: recommendationScore,
+      is_top_pick: false,
+      narrative: PLATFORM_NARRATIVES[platform],
+    };
+  });
+  platforms.sort((a, b) => b.recommendation_score - a.recommendation_score);
+  if (platforms[0]) platforms[0].is_top_pick = true;
+  const topPick = platforms[0];
+  let topPickNarrative: string;
+  if (topPick.net_margin_eur < 0) {
+    topPickNarrative = `Aucune plateforme ne sort une marge positive avec le prix d'achat de référence. ${topPick.platform} limite la casse, mais reconsidère l'achat avant tout.`;
+  } else if (verdict === "FONCER") {
+    topPickNarrative = `${topPick.platform} sort en tête sur ce hardware liquide : marge confortable (+${topPick.net_margin_eur} €) et délai court (~${topPick.expected_delay_days} j). ${topPick.narrative}`;
+  } else if (verdict === "PASSER") {
+    topPickNarrative = `${topPick.platform} offre la meilleure issue malgré la marge tendue. ${topPick.narrative}`;
+  } else {
+    topPickNarrative = `${topPick.platform} offre le meilleur compromis marge × délai pour ce ${category} : +${topPick.net_margin_eur} € en ~${topPick.expected_delay_days} j. ${topPick.narrative}`;
+  }
+  return { cost_basis_eur: costBasis, platforms, top_pick_narrative: topPickNarrative };
+}
+
 export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult> {
   await mockDelay(380);
 
@@ -259,6 +339,8 @@ export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult
 
   const negotiation = buildNegotiationPlan(ask_price_eur, fair, optimalBuy, feesFrac, verdict, categoryMarketStats, state, percentilePosition, distribution, category);
 
+  const resaleWhere = buildResaleWhere(ask_price_eur, fair, category, compositeLiquidity, state, verdict);
+
   return {
     inputs,
     model_name: model,
@@ -284,5 +366,6 @@ export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult
     landmarks: { ceiling_buy_eur: ceilingBuy, optimal_buy_eur: optimalBuy, floor_resale_eur: floorResale },
     data_quality: { observations_count: observations, fresh_within_hours: 48, platform_specific: true },
     negotiation,
+    resale_where: resaleWhere,
   };
 }
