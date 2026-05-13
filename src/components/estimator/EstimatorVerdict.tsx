@@ -1,4 +1,6 @@
 import { ConfidenceGauge, Pill, VerdictCrystal } from "@/components/ui";
+import GlossaryTooltip from "@/components/ui/GlossaryTooltip";
+import type { GlossaryKey } from "@/lib/glossary";
 import {
   VERDICT_COLORS,
   VERDICT_DISPLAY_LABELS,
@@ -28,12 +30,19 @@ export default function EstimatorVerdict({ result }: EstimatorVerdictProps) {
 
   const marginSign = net_margin_eur >= 0 ? "+" : "";
   const marginColor = net_margin_eur >= 0 ? "#10B981" : "#EF4444";
+  const verdictTermMap: Record<string, GlossaryKey> = {
+    FONCER: "verdictFoncer",
+    "NÉGOCIER": "verdictNegocier",
+    TENTER: "verdictTenter",
+    PASSER: "verdictPasser",
+  };
+  const verdictTerm = verdictTermMap[result.verdict] ?? "verdict";
 
   return (
     <div className="mk-card p-6 fade-up flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div className="font-mono text-[10px] tracking-wider text-zinc-500">
-          VERDICT
+          <GlossaryTooltip term="verdict" position="bottom"><span>VERDICT</span></GlossaryTooltip>
         </div>
         <div className="font-mono text-[10px] tracking-wider text-zinc-600">
           {result.model_name} · {result.category}
@@ -43,18 +52,20 @@ export default function EstimatorVerdict({ result }: EstimatorVerdictProps) {
       <div className="flex flex-col items-center text-center gap-3">
         <VerdictCrystal color={color} size={140} />
 
-        <div
-          className={"text-[28px] font-semibold tracking-tight mt-1 " + glow}
-          style={{ color }}
-        >
-          {label}
-        </div>
+        <GlossaryTooltip term={verdictTerm}>
+          <span
+            className={"text-[28px] font-semibold tracking-tight mt-1 " + glow}
+            style={{ color }}
+          >
+            {label}
+          </span>
+        </GlossaryTooltip>
 
         {/* Score /100 avec barre */}
         <div className="w-full max-w-[280px] mt-2">
           <div className="flex items-baseline justify-between mb-1.5">
             <span className="font-mono text-[10px] tracking-wider text-zinc-500">
-              SCORE
+              <GlossaryTooltip term="score"><span>SCORE</span></GlossaryTooltip>
             </span>
             <span className="font-mono text-[12px] text-zinc-300">
               <span
@@ -115,18 +126,21 @@ export default function EstimatorVerdict({ result }: EstimatorVerdictProps) {
           value={`${landmarks.ceiling_buy_eur} €`}
           hint="à ne pas dépasser"
           color="#EF4444"
+          termKey="plafond"
         />
         <LandmarkCell
           label="ACHAT OPTIMAL"
           value={`${landmarks.optimal_buy_eur} €`}
           hint="prix idéal"
           color="#10B981"
+          termKey="optimal"
         />
         <LandmarkCell
           label="PLANCHER REVENTE"
           value={`${landmarks.floor_resale_eur} €`}
           hint="breakeven post-frais"
           color="#3B82F6"
+          termKey="plancherEstimator"
         />
       </div>
     </div>
@@ -138,17 +152,20 @@ function LandmarkCell({
   value,
   hint,
   color,
+  termKey,
 }: {
   label: string;
   value: string;
   hint: string;
   color: string;
+  termKey?: GlossaryKey;
 }) {
+  const labelEl = (
+    <span className="font-mono text-[9px] tracking-wider text-zinc-500">{label}</span>
+  );
   return (
     <div className="flex flex-col items-center gap-1 text-center">
-      <div className="font-mono text-[9px] tracking-wider text-zinc-500">
-        {label}
-      </div>
+      <div>{termKey ? <GlossaryTooltip term={termKey}>{labelEl}</GlossaryTooltip> : labelEl}</div>
       <div
         className="font-mono text-[15px] font-semibold tabular-nums"
         style={{ color }}

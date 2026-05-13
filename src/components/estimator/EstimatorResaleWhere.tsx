@@ -3,6 +3,7 @@ import type {
   Platform,
   PlatformResaleStats,
 } from "./datasets";
+import GlossaryTooltip from "@/components/ui/GlossaryTooltip";
 
 const PLATFORM_BRAND_COLORS: Record<Platform, string> = {
   LBC: "#FF6E14",
@@ -118,12 +119,14 @@ function PlatformCard({
               style={{ background: TOP_PICK_COLOR }}
               aria-hidden="true"
             />
-            <span
-              className="font-mono text-[10.5px] font-medium tracking-[0.1em]"
-              style={{ color: TOP_PICK_COLOR }}
-            >
-              TOP PICK
-            </span>
+            <GlossaryTooltip term="topPick">
+              <span
+                className="font-mono text-[10.5px] font-medium tracking-[0.1em]"
+                style={{ color: TOP_PICK_COLOR }}
+              >
+                TOP PICK
+              </span>
+            </GlossaryTooltip>
           </div>
         )}
       </div>
@@ -135,7 +138,7 @@ function PlatformCard({
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
           <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">
-            MARGE NETTE
+            <GlossaryTooltip term="margeNette"><span>MARGE NETTE</span></GlossaryTooltip>
           </div>
           <div
             className="font-mono text-[15px] font-medium tabular-nums"

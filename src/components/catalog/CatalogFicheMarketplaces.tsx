@@ -1,4 +1,5 @@
 import SectionLabel from "../ui/SectionLabel";
+import GlossaryTooltip from "../ui/GlossaryTooltip";
 import type { PlatformBreakdown } from "./modelDetail";
 import { PLATFORM_BRAND_COLORS } from "./modelDetail";
 
@@ -61,10 +62,12 @@ function PlatformCard({
         {entry.median_eur} €
       </div>
       <div className="mb-4 flex items-center gap-2 font-mono text-[10px] tracking-[0.12em] text-zinc-600">
-        <span>MÉDIANE</span>
-        <span style={{ color: spreadColor }}>
-          {spreadSign}{entry.spread_vs_global_pct.toFixed(1)}% vs global
-        </span>
+        <GlossaryTooltip term="median30d"><span>MÉDIANE</span></GlossaryTooltip>
+        <GlossaryTooltip term="spreadGlobal">
+          <span style={{ color: spreadColor }}>
+            {spreadSign}{entry.spread_vs_global_pct.toFixed(1)}% vs global
+          </span>
+        </GlossaryTooltip>
       </div>
 
       <div
@@ -75,7 +78,9 @@ function PlatformCard({
         }}
       >
         <div className="mb-1.5 flex items-baseline justify-between">
-          <span className="font-mono text-[9px] tracking-[0.16em] text-zinc-500">PART DE VOLUME</span>
+          <GlossaryTooltip term="partVolume">
+            <span className="font-mono text-[9px] tracking-[0.16em] text-zinc-500">PART DE VOLUME</span>
+          </GlossaryTooltip>
           <span className="font-mono text-[16px] font-medium tabular-nums" style={{ color: brand }}>
             {volumeSharePct.toFixed(0)}%
           </span>
@@ -89,9 +94,9 @@ function PlatformCard({
       </div>
 
       <div className="font-mono text-[10px] tracking-[0.08em] text-zinc-600">
-        <span>N OBS </span>
-        <span className="text-zinc-300">{entry.n_obs}</span>
-        <span className="text-zinc-700"> · 30 J</span>
+        <GlossaryTooltip term="observations">
+          <span><span>N OBS </span><span className="text-zinc-300">{entry.n_obs}</span><span className="text-zinc-700"> · 30 J</span></span>
+        </GlossaryTooltip>
       </div>
     </div>
   );

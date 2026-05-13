@@ -6,6 +6,14 @@ import {
   type NegotiationKeywords,
   type NegotiationOffer,
 } from "./datasets";
+import GlossaryTooltip from "@/components/ui/GlossaryTooltip";
+import type { GlossaryKey } from "@/lib/glossary";
+
+const OFFER_TIER_TERMS: Record<string, GlossaryKey> = {
+  lowball: "offreLowball",
+  negotiated: "offreNegociee",
+  cordial: "offreCordiale",
+};
 
 type EstimatorNegotiationProps = {
   result: EstimatorResult;
@@ -71,7 +79,9 @@ function OfferRow({ offer }: { offer: NegotiationOffer }) {
     <div className="rounded-xl border border-white/5 bg-white/[0.015] p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
         <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-400">
-          {offer.label.toUpperCase()}
+          <GlossaryTooltip term={OFFER_TIER_TERMS[offer.tier] ?? "offreNegociee"}>
+            <span>{offer.label.toUpperCase()}</span>
+          </GlossaryTooltip>
         </div>
         <div className="font-mono text-[10px] tracking-[0.15em]" style={{ color: probaColor }}>
           {offer.acceptance_probability_pct} % d'acceptation
