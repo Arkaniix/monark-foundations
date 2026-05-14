@@ -1,5 +1,6 @@
 import type { CatalogModel } from "./datasets";
 import CatalogCard from "./CatalogCard";
+import FadeInSection from "../ui/FadeInSection";
 
 type Props = {
   models: CatalogModel[];
@@ -8,6 +9,7 @@ type Props = {
   onToggleFavorite: (id: string) => void;
   onToggleAlert: (id: string) => void;
   onOpenDetails: (model: CatalogModel) => void;
+  gridKey?: string;
 };
 
 /**
@@ -20,19 +22,21 @@ export default function CatalogGrid({
   onToggleFavorite,
   onToggleAlert,
   onOpenDetails,
+  gridKey = "",
 }: Props) {
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {models.map((m) => (
-        <CatalogCard
-          key={m.id}
-          model={m}
-          isFavorite={favoriteIds.includes(m.id)}
-          hasAlert={alertIds.includes(m.id)}
-          onToggleFavorite={() => onToggleFavorite(m.id)}
-          onToggleAlert={() => onToggleAlert(m.id)}
-          onOpenDetails={() => onOpenDetails(m)}
-        />
+      {models.map((m, i) => (
+        <FadeInSection key={`${gridKey}_${m.id}`} delay={Math.min(i, 12) * 30}>
+          <CatalogCard
+            model={m}
+            isFavorite={favoriteIds.includes(m.id)}
+            hasAlert={alertIds.includes(m.id)}
+            onToggleFavorite={() => onToggleFavorite(m.id)}
+            onToggleAlert={() => onToggleAlert(m.id)}
+            onOpenDetails={() => onOpenDetails(m)}
+          />
+        </FadeInSection>
       ))}
     </div>
   );

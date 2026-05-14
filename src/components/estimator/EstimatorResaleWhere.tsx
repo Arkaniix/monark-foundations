@@ -4,6 +4,7 @@ import type {
   PlatformResaleStats,
 } from "./datasets";
 import GlossaryTooltip from "@/components/ui/GlossaryTooltip";
+import AnimatedCounter from "@/components/ui/AnimatedCounter";
 
 const PLATFORM_BRAND_COLORS: Record<Platform, string> = {
   LBC: "#FF6E14",
@@ -132,7 +133,8 @@ function PlatformCard({
       </div>
 
       <div className="font-mono text-[10px] text-zinc-600 -mt-2">
-        {platform.estimated_price_eur} € brut · {platform.fees_pct} % frais
+        <AnimatedCounter value={platform.estimated_price_eur} suffix=" €" decimals={0} /> brut ·{" "}
+        <AnimatedCounter value={platform.fees_pct} suffix=" %" decimals={0} /> frais
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -144,8 +146,12 @@ function PlatformCard({
             className="font-mono text-[15px] font-medium tabular-nums"
             style={{ color: marginColor }}
           >
-            {marginSign}
-            {platform.net_margin_eur} €
+            <AnimatedCounter
+              value={platform.net_margin_eur}
+              prefix={marginSign}
+              suffix=" €"
+              decimals={0}
+            />
           </div>
         </div>
         <div className="flex flex-col gap-1">
@@ -156,7 +162,7 @@ function PlatformCard({
             className="font-mono text-[15px] font-medium tabular-nums"
             style={{ color: delayColor }}
           >
-            ~{platform.expected_delay_days} j
+            ~<AnimatedCounter value={platform.expected_delay_days} suffix=" j" decimals={0} />
           </div>
         </div>
       </div>
