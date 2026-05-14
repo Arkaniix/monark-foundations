@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WatchlistRouteImport } from './routes/watchlist'
 import { Route as EstimatorRouteImport } from './routes/estimator'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
@@ -20,6 +21,11 @@ import { Route as Char91_devChar93EstimatorStatesRouteImport } from './routes/[_
 import { Route as Char91_devChar93DashboardStatesRouteImport } from './routes/[_dev].dashboard-states'
 import { Route as Char91_devChar93AppshellRouteImport } from './routes/[_dev].appshell'
 
+const WatchlistRoute = WatchlistRouteImport.update({
+  id: '/watchlist',
+  path: '/watchlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EstimatorRoute = EstimatorRouteImport.update({
   id: '/estimator',
   path: '/estimator',
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
+  '/watchlist': typeof WatchlistRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
   '/_dev/dashboard-states': typeof Char91_devChar93DashboardStatesRoute
   '/_dev/estimator-states': typeof Char91_devChar93EstimatorStatesRoute
@@ -92,6 +99,7 @@ export interface FileRoutesByTo {
   '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
+  '/watchlist': typeof WatchlistRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
   '/_dev/dashboard-states': typeof Char91_devChar93DashboardStatesRoute
   '/_dev/estimator-states': typeof Char91_devChar93EstimatorStatesRoute
@@ -105,6 +113,7 @@ export interface FileRoutesById {
   '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
+  '/watchlist': typeof WatchlistRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
   '/_dev/dashboard-states': typeof Char91_devChar93DashboardStatesRoute
   '/_dev/estimator-states': typeof Char91_devChar93EstimatorStatesRoute
@@ -119,6 +128,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/dashboard'
     | '/estimator'
+    | '/watchlist'
     | '/_dev/appshell'
     | '/_dev/dashboard-states'
     | '/_dev/estimator-states'
@@ -131,6 +141,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/dashboard'
     | '/estimator'
+    | '/watchlist'
     | '/_dev/appshell'
     | '/_dev/dashboard-states'
     | '/_dev/estimator-states'
@@ -143,6 +154,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/dashboard'
     | '/estimator'
+    | '/watchlist'
     | '/_dev/appshell'
     | '/_dev/dashboard-states'
     | '/_dev/estimator-states'
@@ -156,6 +168,7 @@ export interface RootRouteChildren {
   CatalogueRoute: typeof CatalogueRoute
   DashboardRoute: typeof DashboardRoute
   EstimatorRoute: typeof EstimatorRoute
+  WatchlistRoute: typeof WatchlistRoute
   Char91_devChar93AppshellRoute: typeof Char91_devChar93AppshellRoute
   Char91_devChar93DashboardStatesRoute: typeof Char91_devChar93DashboardStatesRoute
   Char91_devChar93EstimatorStatesRoute: typeof Char91_devChar93EstimatorStatesRoute
@@ -165,6 +178,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/watchlist': {
+      id: '/watchlist'
+      path: '/watchlist'
+      fullPath: '/watchlist'
+      preLoaderRoute: typeof WatchlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/estimator': {
       id: '/estimator'
       path: '/estimator'
@@ -244,6 +264,7 @@ const rootRouteChildren: RootRouteChildren = {
   CatalogueRoute: CatalogueRoute,
   DashboardRoute: DashboardRoute,
   EstimatorRoute: EstimatorRoute,
+  WatchlistRoute: WatchlistRoute,
   Char91_devChar93AppshellRoute: Char91_devChar93AppshellRoute,
   Char91_devChar93DashboardStatesRoute: Char91_devChar93DashboardStatesRoute,
   Char91_devChar93EstimatorStatesRoute: Char91_devChar93EstimatorStatesRoute,
