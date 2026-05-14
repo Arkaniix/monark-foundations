@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Star, Bell, Calculator } from "lucide-react";
+import { ArrowLeft, Star, Calculator } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import type { CatalogModelDetail } from "./modelDetail";
 import { MANUFACTURER_DOT_COLOR, getScoreColor } from "./datasets";
@@ -7,35 +7,24 @@ import { MANUFACTURER_DOT_COLOR, getScoreColor } from "./datasets";
 type Props = {
   detail: CatalogModelDetail;
   isFavorite: boolean;
-  hasAlert: boolean;
   onToggleFavorite: () => void;
-  onToggleAlert: () => void;
   onEstimate: () => void;
 };
 
 export default function CatalogFicheHeader({
   detail,
   isFavorite,
-  hasAlert,
   onToggleFavorite,
-  onToggleAlert,
   onEstimate,
 }: Props) {
   const scoreColor = getScoreColor(detail.score);
   const brandDot = MANUFACTURER_DOT_COLOR[detail.manufacturer];
   const [isStarPopping, setIsStarPopping] = useState(false);
-  const [isBellPopping, setIsBellPopping] = useState(false);
 
   const handleStarClick = () => {
     setIsStarPopping(true);
     onToggleFavorite();
     setTimeout(() => setIsStarPopping(false), 250);
-  };
-
-  const handleBellClick = () => {
-    setIsBellPopping(true);
-    onToggleAlert();
-    setTimeout(() => setIsBellPopping(false), 250);
   };
 
   return (
@@ -102,24 +91,6 @@ export default function CatalogFicheHeader({
             strokeWidth={1.75}
             fill={isFavorite ? "#F59E0B" : "transparent"}
             className={isStarPopping ? "icon-pop" : ""}
-          />
-        </button>
-        <button
-          type="button"
-          aria-label={hasAlert ? "Désactiver l'alerte" : "Activer l'alerte prix"}
-          onClick={handleBellClick}
-          className="ease-expo flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-white/[0.04]"
-          style={{
-            border: "0.5px solid rgba(255,255,255,0.08)",
-            color: hasAlert ? "#3B82F6" : "#71717a",
-            background: hasAlert ? "rgba(59,130,246,0.08)" : "transparent",
-          }}
-        >
-          <Bell
-            size={14}
-            strokeWidth={1.75}
-            fill={hasAlert ? "#3B82F6" : "transparent"}
-            className={isBellPopping ? "icon-pop" : ""}
           />
         </button>
         <button
