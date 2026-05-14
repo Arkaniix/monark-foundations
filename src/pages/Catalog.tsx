@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { TrendingUp } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { catalogApi } from "@/lib/api";
+import FadeInSection from "@/components/ui/FadeInSection";
 import CatalogPagination from "@/components/catalog/CatalogPagination";
 import { getAvailableFacets, getCategoryCounts } from "@/components/catalog/filters";
 import { CATALOG_MODELS } from "@/components/catalog/mockData";
@@ -38,6 +39,11 @@ export default function Catalog() {
     [filters.category],
   );
   const counts = useMemo(() => getCategoryCounts(CATALOG_MODELS), []);
+
+  const gridKey = useMemo(
+    () => `${JSON.stringify(filters)}_${sort}_${page}`,
+    [filters, sort, page],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -128,20 +134,24 @@ export default function Catalog() {
         </div>
       </header>
 
-      <CatalogCategoryTabs
-        active={filters.category}
-        counts={counts}
-        onChange={handleChangeCategory}
-      />
+      <FadeInSection delay={0}>
+        <CatalogCategoryTabs
+          active={filters.category}
+          counts={counts}
+          onChange={handleChangeCategory}
+        />
+      </FadeInSection>
 
-      <CatalogFilterBar
-        filters={filters}
-        sort={sort}
-        facets={facets}
-        onChangeFilters={handleChangeFilters}
-        onChangeSort={handleChangeSort}
-        onReset={handleReset}
-      />
+      <FadeInSection delay={60}>
+        <CatalogFilterBar
+          filters={filters}
+          sort={sort}
+          facets={facets}
+          onChangeFilters={handleChangeFilters}
+          onChangeSort={handleChangeSort}
+          onReset={handleReset}
+        />
+      </FadeInSection>
 
       {state.status === "error" && (
         <div className="mk-card-flat-soft p-6 text-sm text-zinc-400">
@@ -159,12 +169,14 @@ export default function Catalog() {
 
       {state.status === "success" && (
         <>
-          <div className="flex items-center justify-between font-mono text-[11px] tracking-[0.12em] text-zinc-600">
-            <span>{state.data.total} RÉSULTATS</span>
-            <span>
-              PAGE {state.data.page} / {state.data.total_pages}
-            </span>
-          </div>
+          <FadeInSection key={`meta_${gridKey}`} delay={120}>
+            <div className="flex items-center justify-between font-mono text-[11px] tracking-[0.12em] text-zinc-600">
+              <span>{state.data.total} RÉSULTATS</span>
+              <span>
+                PAGE {state.data.page} / {state.data.total_pages}
+              </span>
+            </div>
+          </FadeInSection>
 
           {state.data.models.length === 0 ? (
             <div className="mk-card-flat-soft p-8 text-center text-sm text-zinc-500">
@@ -172,6 +184,7 @@ export default function Catalog() {
             </div>
           ) : (
             <CatalogGrid
+              gridKey={gridKey}
               models={state.data.models}
               favoriteIds={favorites.ids}
               alertIds={alerts.ids}
@@ -181,11 +194,13 @@ export default function Catalog() {
             />
           )}
 
-          <CatalogPagination
-            page={state.data.page}
-            totalPages={state.data.total_pages}
-            onChangePage={setPage}
-          />
+          <FadeInSection key={`pagi_${gridKey}`} delay={240}>
+            <CatalogPagination
+              page={state.data.page}
+              totalPages={state.data.total_pages}
+              onChangePage={setPage}
+            />
+          </FadeInSection>
         </>
       )}
     </div>
