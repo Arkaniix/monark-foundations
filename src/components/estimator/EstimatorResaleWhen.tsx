@@ -5,6 +5,7 @@ import type {
   ResaleWhenOption,
 } from "./datasets";
 import GlossaryTooltip from "@/components/ui/GlossaryTooltip";
+import AnimatedCounter from "@/components/ui/AnimatedCounter";
 import type { GlossaryKey } from "@/lib/glossary";
 
 const TIMING_TERMS: Record<string, GlossaryKey> = {
@@ -158,26 +159,30 @@ function TimingRow({
           )}
         </div>
         <div className="font-mono text-[14px] font-medium tabular-nums text-zinc-200">
-          {option.expected_price_eur} €
+          <AnimatedCounter value={option.expected_price_eur} suffix=" €" decimals={0} />
         </div>
         <div
           className="font-mono text-[14px] font-medium tabular-nums"
           style={{ color: delayColor }}
         >
-          ~{option.expected_delay_days} j
+          ~<AnimatedCounter value={option.expected_delay_days} suffix=" j" decimals={0} />
         </div>
         <div
           className="font-mono text-[14px] font-medium tabular-nums"
           style={{ color: marginColor }}
         >
-          {marginSign}
-          {option.net_margin_eur} €
+          <AnimatedCounter
+            value={option.net_margin_eur}
+            prefix={marginSign}
+            suffix=" €"
+            decimals={0}
+          />
         </div>
         <div
           className="font-mono text-[14px] font-medium tabular-nums"
           style={{ color: accColor }}
         >
-          {option.acceptance_probability_pct} %
+          <AnimatedCounter value={option.acceptance_probability_pct} suffix=" %" decimals={0} />
         </div>
         <div className="text-[12.5px] text-zinc-400 leading-relaxed">
           {option.narrative}
@@ -217,7 +222,7 @@ function TimingRow({
           <div className="flex flex-col gap-1">
             <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">PRIX</div>
             <div className="font-mono text-[14px] font-medium tabular-nums text-zinc-200">
-              {option.expected_price_eur} €
+              <AnimatedCounter value={option.expected_price_eur} suffix=" €" decimals={0} />
             </div>
           </div>
           <div className="flex flex-col gap-1">
@@ -226,7 +231,7 @@ function TimingRow({
               className="font-mono text-[14px] font-medium tabular-nums"
               style={{ color: delayColor }}
             >
-              ~{option.expected_delay_days} j
+              ~<AnimatedCounter value={option.expected_delay_days} suffix=" j" decimals={0} />
             </div>
           </div>
           <div className="flex flex-col gap-1">
@@ -237,8 +242,12 @@ function TimingRow({
               className="font-mono text-[14px] font-medium tabular-nums"
               style={{ color: marginColor }}
             >
-              {marginSign}
-              {option.net_margin_eur} €
+              <AnimatedCounter
+                value={option.net_margin_eur}
+                prefix={marginSign}
+                suffix=" €"
+                decimals={0}
+              />
             </div>
           </div>
           <div className="flex flex-col gap-1">
@@ -247,7 +256,7 @@ function TimingRow({
               className="font-mono text-[14px] font-medium tabular-nums"
               style={{ color: accColor }}
             >
-              {option.acceptance_probability_pct} %
+              <AnimatedCounter value={option.acceptance_probability_pct} suffix=" %" decimals={0} />
             </div>
           </div>
         </div>
