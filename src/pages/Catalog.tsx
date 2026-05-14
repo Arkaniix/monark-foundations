@@ -10,7 +10,6 @@ import CatalogCategoryTabs from "@/components/catalog/CatalogCategoryTabs";
 import CatalogFilterBar from "@/components/catalog/CatalogFilterBar";
 import CatalogGrid from "@/components/catalog/CatalogGrid";
 import { useCatalogFavorites } from "@/lib/catalogFavorites";
-import { useCatalogAlerts } from "@/lib/catalogAlerts";
 import {
   DEFAULT_FILTERS,
   DEFAULT_SORT,
@@ -32,7 +31,6 @@ export default function Catalog() {
   const [page, setPage] = useState(1);
   const [state, setState] = useState<CatalogState>({ status: "loading" });
   const favorites = useCatalogFavorites();
-  const alerts = useCatalogAlerts();
 
   const facets = useMemo(
     () => getAvailableFacets(CATALOG_MODELS, filters.category),
@@ -187,9 +185,10 @@ export default function Catalog() {
               gridKey={gridKey}
               models={state.data.models}
               favoriteIds={favorites.ids}
-              alertIds={alerts.ids}
-              onToggleFavorite={favorites.toggle}
-              onToggleAlert={alerts.toggle}
+              onToggleFavorite={(id) => {
+                const model = state.data.models.find((m) => m.id === id);
+                favorites.toggle(id, model?.median_eur);
+              }}
               onOpenDetails={handleOpenDetails}
             />
           )}
