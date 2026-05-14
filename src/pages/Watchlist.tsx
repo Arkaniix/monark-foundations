@@ -12,6 +12,7 @@ import WatchlistFilterBar from "@/components/watchlist/WatchlistFilterBar";
 import WatchlistTable from "@/components/watchlist/WatchlistTable";
 import WatchlistEmptyState from "@/components/watchlist/WatchlistEmptyState";
 import WatchlistAlertsBanner from "@/components/watchlist/WatchlistAlertsBanner";
+import WatchlistDrawer from "@/components/watchlist/WatchlistDrawer";
 import {
   DEFAULT_WATCHLIST_FILTERS,
   DEFAULT_WATCHLIST_SORT,
@@ -28,6 +29,7 @@ export default function Watchlist() {
   const [tab, setTab] = useState<WatchlistTabKey>("favorites");
   const [filters, setFilters] = useState<WatchlistFilters>(DEFAULT_WATCHLIST_FILTERS);
   const [sort, setSort] = useState<WatchlistSortKey>(DEFAULT_WATCHLIST_SORT);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // Hydratation des snapshots null (migrés depuis v1) au mount uniquement.
   useEffect(() => {
@@ -80,8 +82,8 @@ export default function Watchlist() {
     [alerts],
   );
 
-  const handleSelectRow = useCallback((_model: CatalogModel) => {
-    // P3 : ouvrira le drawer. Pour l'instant, no-op.
+  const handleSelectRow = useCallback((model: CatalogModel) => {
+    setSelectedId(model.id);
   }, []);
 
   const totalSuivis = favorites.ids.length + alerts.ids.length;
@@ -182,6 +184,13 @@ export default function Watchlist() {
           />
         </FadeInSection>
       )}
+
+      <WatchlistDrawer
+        models={visibleModels}
+        selectedId={selectedId}
+        onClose={() => setSelectedId(null)}
+        onSelectId={setSelectedId}
+      />
     </div>
   );
 }
