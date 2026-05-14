@@ -3,7 +3,6 @@ import { useNavigate } from "@tanstack/react-router";
 import {
   X,
   Star,
-  Bell,
   ArrowRight,
   ArrowUp,
   ArrowDown,
@@ -24,10 +23,9 @@ import { Sparkline } from "@/components/ui/Sparkline";
 import PercentileChart from "@/components/ui/PercentileChart";
 import { Skeleton } from "@/components/ui/Skeleton";
 import {
-  useCatalogAlerts,
-  computeAlertDelta,
-} from "@/lib/catalogAlerts";
-import { useCatalogFavorites } from "@/lib/catalogFavorites";
+  useCatalogFavorites,
+  computeMovementDelta,
+} from "@/lib/catalogFavorites";
 import { formatRelativeShort } from "./datasets";
 
 type Props = {
@@ -52,7 +50,6 @@ export default function WatchlistDrawer({
   const isOpen = selectedId !== null;
   const navigate = useNavigate();
   const favorites = useCatalogFavorites();
-  const alerts = useCatalogAlerts();
 
   const [detail, setDetail] = useState<CatalogModelDetail | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -123,8 +120,8 @@ export default function WatchlistDrawer({
   if (!model) return null;
 
   const isFavorite = favorites.has(model.id);
-  const alertEntry = alerts.getSnapshot(model.id);
-  const delta = computeAlertDelta(alertEntry, model.median_eur);
+  const favoriteEntry = favorites.getSnapshot(model.id);
+  const delta = computeMovementDelta(favoriteEntry, model.median_eur);
 
   const currentIdx = models.findIndex((m) => m.id === model.id);
   const navPrev = () => {
@@ -198,28 +195,20 @@ export default function WatchlistDrawer({
               <div className="flex items-center gap-2">
                 <ActionButton
                   label="Favori"
-                  onClick={() => favorites.toggle(model.id)}
+                  onClick={() => favorites.toggle(model.id, model.median_eur)}
                   active={isFavorite}
                   activeColor="#F59E0B"
                 >
                   <Star size={14} fill={isFavorite ? "#F59E0B" : "none"} />
                 </ActionButton>
-                <ActionButton
-                  label="Alerte"
-                  onClick={() => alerts.toggle(model.id, model.median_eur)}
-                  active={alertEntry !== null}
-                  activeColor="#3B82F6"
-                >
-                  <Bell size={14} fill={alertEntry !== null ? "#3B82F6" : "none"} />
-                </ActionButton>
               </div>
             </div>
 
-            {/* Snapshot panel (alerted only) */}
-            {alertEntry && delta !== null && alertEntry.snapshot_eur !== null && (
+            {/* Évolution depuis épinglage */}
+            {favoriteEntry && delta !== null && favoriteEntry.snapshot_eur !== null && (
               <SnapshotPanel
-                snapshotEur={alertEntry.snapshot_eur}
-                snapshotAt={alertEntry.snapshot_at}
+                snapshotEur={favoriteEntry.snapshot_eur}
+                snapshotAt={favoriteEntry.snapshot_at}
                 currentMedian={model.median_eur}
                 deltaPct={delta.pct}
                 isSignificant={delta.isSignificant}
@@ -379,10 +368,10 @@ function SnapshotPanel({
       ? "rgba(15,31,18,0.6)"
       : "rgba(13,26,46,0.6)";
   const label = isDrop
-    ? "▼ PRICE DROP DEPUIS ALERTE"
+    ? "▼ ÉVOLUTION DEPUIS PIN"
     : isUp
-      ? "▲ PRICE UP DEPUIS ALERTE"
-      : "MOUVEMENT DEPUIS ALERTE";
+      ? "▲ ÉVOLUTION DEPUIS PIN"
+      : "ÉVOLUTION";
 
   return (
     <div
