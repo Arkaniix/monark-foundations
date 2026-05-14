@@ -1,6 +1,7 @@
 import { PercentileChart, Sparkline } from "@/components/ui";
 import { MarketStatCard } from "./MarketStatCard";
 import GlossaryTooltip from "@/components/ui/GlossaryTooltip";
+import AnimatedCounter from "@/components/ui/AnimatedCounter";
 import { VERDICT_COLORS, type EstimatorResult } from "./datasets";
 
 type EstimatorPositioningProps = {
@@ -65,20 +66,20 @@ export default function EstimatorPositioning({
           <p className="text-[13px] text-zinc-300 mt-4 leading-relaxed">
             Votre prix de{" "}
             <span className="font-mono font-medium text-zinc-100">
-              {result.inputs.ask_price_eur} €
+              <AnimatedCounter value={result.inputs.ask_price_eur} suffix=" €" decimals={0} />
             </span>{" "}
             est{" "}
             {position < 40 ? (
               <>
                 <span className="font-mono" style={{ color: verdictColor }}>
-                  moins cher que {100 - position} %
+                  moins cher que <AnimatedCounter value={100 - position} suffix=" %" decimals={0} />
                 </span>{" "}
                 du marché.
               </>
             ) : position > 60 ? (
               <>
                 <span className="font-mono" style={{ color: verdictColor }}>
-                  plus cher que {position} %
+                  plus cher que <AnimatedCounter value={position} suffix=" %" decimals={0} />
                 </span>{" "}
                 du marché.
               </>
@@ -115,7 +116,7 @@ export default function EstimatorPositioning({
                 MÉDIANE
               </div>
               <div className="font-mono text-[14px] text-zinc-100">
-                {result.percentile_distribution.p50} €
+                <AnimatedCounter value={result.percentile_distribution.p50} suffix=" €" decimals={0} />
               </div>
             </div>
             <div>
@@ -128,8 +129,12 @@ export default function EstimatorPositioning({
                   color: trend.delta_7d_pct >= 0 ? "#10B981" : "#EF4444",
                 }}
               >
-                {trend.delta_7d_pct >= 0 ? "+" : ""}
-                {trend.delta_7d_pct.toFixed(1)} %
+                <AnimatedCounter
+                  value={trend.delta_7d_pct}
+                  prefix={trend.delta_7d_pct >= 0 ? "+" : ""}
+                  suffix=" %"
+                  decimals={1}
+                />
               </div>
             </div>
             <div>
@@ -142,8 +147,12 @@ export default function EstimatorPositioning({
                   color: trend.delta_30d_pct >= 0 ? "#10B981" : "#EF4444",
                 }}
               >
-                {trend.delta_30d_pct >= 0 ? "+" : ""}
-                {trend.delta_30d_pct.toFixed(1)} %
+                <AnimatedCounter
+                  value={trend.delta_30d_pct}
+                  prefix={trend.delta_30d_pct >= 0 ? "+" : ""}
+                  suffix=" %"
+                  decimals={1}
+                />
               </div>
             </div>
           </div>
