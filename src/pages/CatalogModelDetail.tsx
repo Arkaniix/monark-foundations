@@ -3,7 +3,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { catalogApi } from "@/lib/api";
 import type { CatalogModelDetail as CatalogModelDetailT } from "@/components/catalog/modelDetail";
 import { useCatalogFavorites } from "@/lib/catalogFavorites";
-import { useCatalogAlerts } from "@/lib/catalogAlerts";
 import CatalogFicheHeader from "@/components/catalog/CatalogFicheHeader";
 import CatalogFicheOverview from "@/components/catalog/CatalogFicheOverview";
 import CatalogFichePercentiles from "@/components/catalog/CatalogFichePercentiles";
@@ -26,7 +25,6 @@ export default function CatalogModelDetail({ modelId }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const { has: isFavorite, toggle: toggleFav } = useCatalogFavorites();
-  const { has: hasAlert, toggle: toggleAlert } = useCatalogAlerts();
 
   useEffect(() => {
     let cancelled = false;
@@ -98,9 +96,7 @@ export default function CatalogModelDetail({ modelId }: Props) {
       <CatalogFicheHeader
         detail={detail}
         isFavorite={isFavorite(detail.id)}
-        hasAlert={hasAlert(detail.id)}
-        onToggleFavorite={() => toggleFav(detail.id)}
-        onToggleAlert={() => toggleAlert(detail.id)}
+        onToggleFavorite={() => toggleFav(detail.id, detail.median_eur)}
         onEstimate={handleEstimate}
       />
       <div className="flex flex-col gap-8 px-6 py-6">
