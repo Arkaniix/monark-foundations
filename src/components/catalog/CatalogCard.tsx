@@ -14,6 +14,8 @@ import {
 } from "./datasets";
 import ModelImage from "./ModelImage";
 import CatalogScoreChip from "./CatalogScoreChip";
+import AnimatedCounter from "../ui/AnimatedCounter";
+import AnimatedBar from "../ui/AnimatedBar";
 
 type Props = {
   model: CatalogModel;
@@ -100,7 +102,7 @@ export default function CatalogCard({
         {/* 4. Prix + sparkline + delta */}
         <div className="flex items-end justify-between gap-2">
           <div className="font-mono text-[18px] tabular-nums text-zinc-100">
-            {formatPrice(model.median_eur)}
+            <AnimatedCounter value={model.median_eur} suffix=" €" decimals={0} />
           </div>
           <div className="flex items-center gap-1.5">
             <Sparkline
@@ -113,8 +115,12 @@ export default function CatalogCard({
               className="font-mono text-[11px] tabular-nums"
               style={{ color: trendColor }}
             >
-              {trendSign}
-              {model.trend_30d_pct.toFixed(1)}%
+              <AnimatedCounter
+                value={model.trend_30d_pct}
+                prefix={trendSign}
+                suffix="%"
+                decimals={1}
+              />
             </span>
             <TrendIcon className="h-3 w-3" style={{ color: trendColor }} strokeWidth={2} />
           </div>
@@ -130,18 +136,15 @@ export default function CatalogCard({
           <div className="flex items-center justify-between font-mono text-[10px] tracking-[0.14em]">
             <span className="text-zinc-600">LIQUIDITÉ</span>
             <span className="tabular-nums" style={{ color: liqColor }}>
-              {model.liquidity_pct}%
+              <AnimatedCounter value={model.liquidity_pct} suffix="%" decimals={0} />
             </span>
           </div>
-          <div className="h-[3px] w-full overflow-hidden rounded-full bg-white/[0.05]">
-            <div
-              className="h-full rounded-full"
-              style={{
-                width: `${Math.max(0, Math.min(100, model.liquidity_pct))}%`,
-                background: liqColor,
-              }}
-            />
-          </div>
+          <AnimatedBar
+            percent={Math.max(0, Math.min(100, model.liquidity_pct))}
+            color={liqColor}
+            height={3}
+            rail="rgba(255,255,255,0.05)"
+          />
           <div className="flex items-center justify-between font-mono text-[9.5px] tracking-[0.14em] text-zinc-600">
             <span>
               N OBS <span className="ml-1 tabular-nums text-zinc-400">{model.n_obs}</span>
