@@ -5,9 +5,7 @@ import FadeInSection from "../ui/FadeInSection";
 type Props = {
   models: CatalogModel[];
   favoriteIds: string[];
-  alertIds: string[];
   onToggleFavorite: (id: string) => void;
-  onToggleAlert: (id: string) => void;
   onOpenDetails: (model: CatalogModel) => void;
   gridKey?: string;
 };
@@ -18,9 +16,7 @@ type Props = {
 export default function CatalogGrid({
   models,
   favoriteIds,
-  alertIds,
   onToggleFavorite,
-  onToggleAlert,
   onOpenDetails,
   gridKey = "",
 }: Props) {
@@ -31,9 +27,7 @@ export default function CatalogGrid({
           <CatalogCard
             model={m}
             isFavorite={favoriteIds.includes(m.id)}
-            hasAlert={alertIds.includes(m.id)}
             onToggleFavorite={() => onToggleFavorite(m.id)}
-            onToggleAlert={() => onToggleAlert(m.id)}
             onOpenDetails={() => onOpenDetails(m)}
           />
         </FadeInSection>

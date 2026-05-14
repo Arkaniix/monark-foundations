@@ -7,17 +7,6 @@
 
 import type { CatalogModel, HardwareCategory } from "../catalog/datasets";
 
-export type WatchlistTabKey = "favorites" | "alerts";
-
-export const WATCHLIST_TABS: Array<{
-  key: WatchlistTabKey;
-  label: string;
-  iconColor: string;
-}> = [
-  { key: "favorites", label: "Favoris", iconColor: "#F59E0B" },
-  { key: "alerts", label: "Alertes", iconColor: "#3B82F6" },
-];
-
 export type WatchlistFilterCategory = HardwareCategory | "ALL";
 
 export type WatchlistSortKey =
