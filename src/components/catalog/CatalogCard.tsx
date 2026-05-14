@@ -1,6 +1,5 @@
 import {
   Star,
-  Bell,
   ArrowRight,
   TrendingUp,
   TrendingDown,
@@ -20,9 +19,7 @@ import AnimatedBar from "../ui/AnimatedBar";
 type Props = {
   model: CatalogModel;
   isFavorite: boolean;
-  hasAlert: boolean;
   onToggleFavorite: () => void;
-  onToggleAlert: () => void;
   onOpenDetails: () => void;
 };
 
@@ -32,9 +29,7 @@ type Props = {
 export default function CatalogCard({
   model,
   isFavorite,
-  hasAlert,
   onToggleFavorite,
-  onToggleAlert,
   onOpenDetails,
 }: Props) {
   const trendColor = getTrendColor(model.trend_30d_pct);
@@ -179,21 +174,6 @@ export default function CatalogCard({
               className="h-3.5 w-3.5"
               strokeWidth={1.5}
               fill={isFavorite ? "#F59E0B" : "none"}
-            />
-          </IconButton>
-          <IconButton
-            label={hasAlert ? "Retirer l'alerte" : "Créer une alerte"}
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleAlert();
-            }}
-            active={hasAlert}
-            activeColor="#3B82F6"
-          >
-            <Bell
-              className="h-3.5 w-3.5"
-              strokeWidth={1.5}
-              fill={hasAlert ? "#3B82F6" : "none"}
             />
           </IconButton>
         </div>
