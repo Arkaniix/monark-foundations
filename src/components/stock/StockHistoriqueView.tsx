@@ -21,6 +21,7 @@ import {
 import { HARDWARE_CATEGORIES, type HardwareCategory } from "@/components/catalog/datasets";
 import ModelImage from "@/components/catalog/ModelImage";
 import StockKebabMenu, { type KebabAction } from "./StockKebabMenu";
+import DropdownSelect, { type DropdownItem } from "./DropdownSelect";
 
 type Props = {
   items: StockItem[];
@@ -168,23 +169,18 @@ export default function StockHistoriqueView({
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <select
+          <DropdownSelect
             value={filters.sort}
-            onChange={(e) =>
-              setFilters({ ...filters, sort: e.target.value as typeof filters.sort })
+            label={
+              STOCK_HISTORIQUE_SORT_OPTIONS.find((o) => o.key === filters.sort)
+                ?.label ?? ""
             }
-            className="ease-expo rounded-md px-3 py-2 font-mono text-[11px] tracking-[0.06em] text-zinc-300 transition-colors hover:text-zinc-100 focus:outline-none"
-            style={{
-              background: "rgba(255,255,255,0.02)",
-              boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
-            }}
-          >
-            {STOCK_HISTORIQUE_SORT_OPTIONS.map((opt) => (
-              <option key={opt.key} value={opt.key} style={{ background: "#18181B" }}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+            items={STOCK_HISTORIQUE_SORT_OPTIONS.map<DropdownItem<typeof filters.sort>>(
+              (o) => ({ type: "option", value: o.key, label: o.label }),
+            )}
+            onChange={(sort) => setFilters({ ...filters, sort })}
+            minWidth={140}
+          />
           <div className="flex items-center gap-2">
             <span className="font-mono text-[10px] tracking-[0.18em] text-zinc-600">
               DENSITÉ

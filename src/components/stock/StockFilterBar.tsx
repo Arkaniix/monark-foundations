@@ -3,11 +3,11 @@ import {
   type StockFilters,
   type StockDensity,
   type StockCategoryFilter,
-  type StockSortKey,
   STOCK_SORT_OPTIONS,
   STOCK_DENSITIES,
 } from "./datasets";
 import { HARDWARE_CATEGORIES } from "@/components/catalog/datasets";
+import DropdownSelect, { type DropdownItem } from "./DropdownSelect";
 
 type Props = {
   filters: StockFilters;
@@ -80,26 +80,19 @@ export default function StockFilterBar({
       </div>
 
       <div className="flex items-center gap-3">
-        <select
+        <DropdownSelect
           value={filters.sort}
-          onChange={(e) =>
-            onChangeFilters({
-              ...filters,
-              sort: e.target.value as StockSortKey,
-            })
+          label={
+            STOCK_SORT_OPTIONS.find((o) => o.key === filters.sort)?.label ?? ""
           }
-          className="ease-expo rounded-md px-3 py-2 font-mono text-[11px] tracking-[0.06em] text-zinc-300 transition-colors hover:text-zinc-100 focus:outline-none"
-          style={{
-            background: "rgba(255,255,255,0.02)",
-            boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
-          }}
-        >
-          {STOCK_SORT_OPTIONS.map((opt) => (
-            <option key={opt.key} value={opt.key} style={{ background: "#18181B" }}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          items={STOCK_SORT_OPTIONS.map<DropdownItem<typeof filters.sort>>((o) => ({
+            type: "option",
+            value: o.key,
+            label: o.label,
+          }))}
+          onChange={(sort) => onChangeFilters({ ...filters, sort })}
+          minWidth={120}
+        />
 
         <div className="flex items-center gap-2">
           <span className="font-mono text-[10px] tracking-[0.18em] text-zinc-600">
