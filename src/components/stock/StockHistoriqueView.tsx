@@ -237,6 +237,8 @@ export default function StockHistoriqueView({
           </div>
           {visible.map((item) => {
             const isReturned = item.status === "returned";
+            const isFromBuild =
+              item.build_id != null && (item.sale_price_eur ?? 0) === 0;
             const nette = getMargeNette(item);
             const pct = getMargeNettePct(item);
             const duree = getDureeVente(item);
@@ -280,13 +282,23 @@ export default function StockHistoriqueView({
                     <span
                       className="mt-0.5 inline-flex w-fit items-center rounded px-1 py-0.5 font-mono text-[9px] tracking-[0.14em]"
                       style={{
-                        background: isReturned
-                          ? "rgba(113,113,122,0.18)"
-                          : "rgba(16,185,129,0.12)",
-                        color: isReturned ? "#A1A1AA" : "#10B981",
+                        background: isFromBuild
+                          ? "rgba(96,165,250,0.14)"
+                          : isReturned
+                            ? "rgba(113,113,122,0.18)"
+                            : "rgba(16,185,129,0.12)",
+                        color: isFromBuild
+                          ? "#60A5FA"
+                          : isReturned
+                            ? "#A1A1AA"
+                            : "#10B981",
                       }}
                     >
-                      {isReturned ? "RETOURNÉ" : "VENDU"}
+                      {isFromBuild
+                        ? "DU BUILD"
+                        : isReturned
+                          ? "RETOURNÉ"
+                          : "VENDU"}
                     </span>
                   </div>
                 </div>
