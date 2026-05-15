@@ -27,8 +27,8 @@ export default function Hero() {
             <span className="font-mono text-[10.5px] tracking-wider text-zinc-400">MARKET DATA · MISE À JOUR EN CONTINU</span>
           </div>
           <h1 className="fade-up text-[54px] leading-[1.02] font-semibold tracking-tight text-zinc-50" style={{ animationDelay: "0ms" }}>
-            Ne flairez plus<br/>les bons coups.<br/>
-            <span className="text-zinc-500">Mesurez-les.</span>
+            Le bon prix,<br/>le bon deal,<br/>la bonne plateforme.<br/>
+            <span className="text-zinc-500">En 3 secondes.</span>
           </h1>
           <p className="fade-up mt-5 text-[16px] leading-relaxed text-zinc-400 max-w-md" style={{ animationDelay: "150ms" }}>
             Extension navigateur et moteur d'estimation pour le hardware PC d'occasion. Lit Leboncoin, Vinted, eBay et Facebook Marketplace en temps réel — vous donne un verdict reseller, un fair price, une marge nette.
