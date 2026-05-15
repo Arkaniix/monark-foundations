@@ -15,16 +15,28 @@ function load(): StockItem[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (x): x is StockItem =>
-        x != null &&
-        typeof x === "object" &&
-        typeof x.id === "string" &&
-        (x.source === "catalog" || x.source === "custom") &&
-        typeof x.purchase_price_eur === "number" &&
-        typeof x.purchase_date === "string" &&
-        typeof x.status === "string",
-    );
+    return parsed
+      .filter(
+        (x): x is StockItem =>
+          x != null &&
+          typeof x === "object" &&
+          typeof x.id === "string" &&
+          (x.source === "catalog" || x.source === "custom") &&
+          typeof x.purchase_price_eur === "number" &&
+          typeof x.purchase_date === "string" &&
+          typeof x.status === "string",
+      )
+      .map((x) => {
+        const events = Array.isArray(x.events) ? x.events : [];
+        if (events.length === 0) {
+          events.push(newStockEvent("added", undefined));
+          // backfill timestamp from created_at if available
+          if (typeof x.created_at === "string") {
+            events[0] = { ...events[0], at: x.created_at };
+          }
+        }
+        return { ...x, events };
+      });
   } catch {
     return [];
   }
