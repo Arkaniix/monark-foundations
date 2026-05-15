@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Pencil, Tag, Euro, Trash2, ArrowLeft, RefreshCw } from "lucide-react";
 import FadeInSection from "@/components/ui/FadeInSection";
 import { useStockItems } from "@/lib/useStockItems";
+import { useAccountingEntries } from "@/lib/useAccountingEntries";
 import {
   DEFAULT_STOCK_FILTERS,
   type StockFilters,
@@ -30,9 +31,13 @@ import EditStockItemModal, {
 import StockDrawer from "@/components/stock/StockDrawer";
 import StockHistoriqueView from "@/components/stock/StockHistoriqueView";
 import type { KebabAction } from "@/components/stock/StockKebabMenu";
+import StockComptesView from "@/components/stock/StockComptesView";
+import AccountingEntryModal from "@/components/stock/AccountingEntryModal";
+import type { AccountingEntry } from "@/components/stock/accountingDatasets";
 
 export default function Stock() {
   const stock = useStockItems();
+  const accounting = useAccountingEntries();
   const [activeTab, setActiveTab] = useState<StockTab>("actifs");
   const [filters, setFilters] = useState<StockFilters>(DEFAULT_STOCK_FILTERS);
   const [density, setDensity] = useState<StockDensity>(() => loadStockDensity());
@@ -41,6 +46,8 @@ export default function Stock() {
   const [editItem, setEditItem] = useState<StockItem | null>(null);
   const [editMode, setEditMode] = useState<EditStockItemMode>("edit");
   const [drawerId, setDrawerId] = useState<string | null>(null);
+  const [accModalOpen, setAccModalOpen] = useState(false);
+  const [accEditEntry, setAccEditEntry] = useState<AccountingEntry | null>(null);
 
   useEffect(() => {
     saveStockDensity(density);
@@ -54,7 +61,7 @@ export default function Stock() {
   const tabCounts = {
     actifs: actifsCount,
     historique: stock.historique.length,
-    comptes: 0,
+    comptes: accounting.entries.length,
     builds: 0,
   };
 
@@ -116,9 +123,25 @@ export default function Stock() {
     ];
   };
 
+  const handleHeaderAdd = () => {
+    if (activeTab === "comptes") {
+      setAccModalOpen(true);
+    } else if (activeTab === "actifs" || activeTab === "historique") {
+      setModalOpen(true);
+    }
+  };
+
+  const headerAddLabel =
+    activeTab === "comptes" ? "+ AJOUTER UNE ENTRÉE" : "+ AJOUTER UN ITEM";
+  const headerAddDisabled = activeTab === "builds";
+
   return (
     <div className="flex flex-col gap-8">
-      <StockHeader onOpenAdd={() => setModalOpen(true)} />
+      <StockHeader
+        onOpenAdd={handleHeaderAdd}
+        addLabel={headerAddLabel}
+        addDisabled={headerAddDisabled}
+      />
 
       <StockSegmentedTabs
         value={activeTab}
@@ -180,10 +203,12 @@ export default function Stock() {
 
       {activeTab === "comptes" && (
         <FadeInSection>
-          <StockPlaceholderTab
-            title="Comptes plateformes"
-            description="Suivi des comptes LBC / Vinted / eBay, indicateurs de réputation, frais et plafonds."
-            patchLabel="P1C"
+          <StockComptesView
+            entries={accounting.entries}
+            stockItems={stock.items}
+            onOpenAdd={() => setAccModalOpen(true)}
+            onEdit={(entry) => setAccEditEntry(entry)}
+            onDelete={accounting.remove}
           />
         </FadeInSection>
       )}
@@ -237,6 +262,30 @@ export default function Stock() {
         onOpenEditModal={openEdit}
         onCancelSale={stock.cancelSale}
         onDelete={stock.remove}
+      />
+
+      <AccountingEntryModal
+        open={accModalOpen}
+        mode="add"
+        onClose={() => setAccModalOpen(false)}
+        onSubmit={(entry) => accounting.add(entry)}
+      />
+
+      <AccountingEntryModal
+        open={accEditEntry !== null}
+        mode="edit"
+        initial={accEditEntry}
+        onClose={() => setAccEditEntry(null)}
+        onSubmit={(entry) => {
+          if (accEditEntry) {
+            accounting.update(accEditEntry.id, {
+              category: entry.category,
+              amount_eur: entry.amount_eur,
+              date: entry.date,
+              note: entry.note,
+            });
+          }
+        }}
       />
     </div>
   );
