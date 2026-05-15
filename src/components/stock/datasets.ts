@@ -142,7 +142,7 @@ export const STOCK_TABS: Array<{
   { key: "builds", label: "BUILDS", available: false },
 ];
 
-export type StockCategoryFilter = HardwareCategory | "ALL";
+export type StockCategoryFilter = HardwareCategory | "OTHER" | "ALL";
 
 export type StockSortKey =
   | "recent_desc"

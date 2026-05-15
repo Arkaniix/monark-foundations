@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { X, Lock, Wrench, Info } from "lucide-react";
 import type { CatalogModel } from "@/components/catalog/datasets";
 import {
   type StockItem,
@@ -25,7 +25,9 @@ type Props = {
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
 export default function AddStockItemModal({ open, onClose, onAdd }: Props) {
+  const [mode, setMode] = useState<"catalog" | "custom">("catalog");
   const [model, setModel] = useState<CatalogModel | null>(null);
+  const [customName, setCustomName] = useState("");
   const [priceStr, setPriceStr] = useState("");
   const [date, setDate] = useState<string>(todayIso());
   const [platform, setPlatform] = useState<PlatformKey>("LBC");
@@ -35,7 +37,9 @@ export default function AddStockItemModal({ open, onClose, onAdd }: Props) {
 
   useEffect(() => {
     if (!open) {
+      setMode("catalog");
       setModel(null);
+      setCustomName("");
       setPriceStr("");
       setDate(todayIso());
       setPlatform("LBC");
@@ -66,24 +70,28 @@ export default function AddStockItemModal({ open, onClose, onAdd }: Props) {
   if (!open) return null;
 
   const price = Number.parseFloat(priceStr.replace(",", "."));
-  const isValid =
-    model !== null &&
+  const baseValid =
     Number.isFinite(price) &&
     price > 0 &&
     date.length === 10 &&
     new Date(date).getTime() <= Date.now();
+  const modelValid =
+    mode === "catalog" ? model !== null : customName.trim().length > 0;
+  const isValid = baseValid && modelValid;
 
   const handleSubmit = () => {
-    if (!isValid || !model) return;
+    if (!isValid) return;
     const nowIso = new Date().toISOString();
+    const isCustom = mode === "custom";
+    const trimmedName = customName.trim();
     const item: StockItem = {
       id: newStockItemId(),
-      source: "catalog",
-      model_id: model.id,
-      custom_name: null,
-      custom_category: null,
-      model_name_snapshot: model.name,
-      category_snapshot: model.category,
+      source: isCustom ? "custom" : "catalog",
+      model_id: isCustom ? null : model!.id,
+      custom_name: isCustom ? trimmedName : null,
+      custom_category: isCustom ? "OTHER" : null,
+      model_name_snapshot: isCustom ? trimmedName : model!.name,
+      category_snapshot: isCustom ? "OTHER" : model!.category,
       purchase_price_eur: Math.round(price),
       purchase_date: date,
       purchase_platform: platform,
@@ -105,7 +113,7 @@ export default function AddStockItemModal({ open, onClose, onAdd }: Props) {
     onClose();
   };
 
-  const suggestedPrice = model?.median_eur ?? null;
+  const suggestedPrice = mode === "catalog" ? model?.median_eur ?? null : null;
 
   return createPortal(
     <div
@@ -155,9 +163,27 @@ export default function AddStockItemModal({ open, onClose, onAdd }: Props) {
         </div>
 
         <div className="flex flex-col gap-4 px-5 py-5">
-          <Field label="Modèle" required>
-            <ModelPicker value={model} onChange={setModel} />
-          </Field>
+          {mode === "catalog" ? (
+            <Field label="Modèle" required>
+              <ModelPicker
+                value={model}
+                onChange={setModel}
+                onSwitchToCustom={(initialName) => {
+                  setMode("custom");
+                  setCustomName(initialName);
+                }}
+              />
+            </Field>
+          ) : (
+            <CustomModelBlock
+              name={customName}
+              onChangeName={setCustomName}
+              onBackToCatalog={() => {
+                setMode("catalog");
+                setCustomName("");
+              }}
+            />
+          )}
 
           <Field label="Prix d'achat" required>
             <div className="flex items-stretch gap-2">
@@ -351,6 +377,121 @@ function SegmentRow({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+function CustomModelBlock({
+  name,
+  onChangeName,
+  onBackToCatalog,
+}: {
+  name: string;
+  onChangeName: (v: string) => void;
+  onBackToCatalog: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[10px] tracking-[0.14em] text-zinc-500">
+            MODÈLE <span style={{ color: "#3B82F6" }}>*</span>
+          </span>
+          <span
+            className="font-mono font-medium"
+            style={{
+              fontSize: 9,
+              letterSpacing: "0.12em",
+              color: "#60A5FA",
+              background: "rgba(59,130,246,0.12)",
+              padding: "4px 8px",
+              borderRadius: 3,
+            }}
+          >
+            SAISIE LIBRE
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onBackToCatalog}
+          className="ease-expo font-mono text-[9.5px] tracking-[0.08em] text-zinc-600 transition-colors hover:text-zinc-300"
+        >
+          ← retour au catalogue
+        </button>
+      </div>
+
+      <div
+        className="flex items-center gap-3 rounded-md px-3 py-2.5"
+        style={{
+          background: "rgba(255,255,255,0.02)",
+          boxShadow: "inset 0 0 0 1px rgba(59,130,246,0.3)",
+        }}
+      >
+        <div
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded"
+          style={{ background: "rgba(255,255,255,0.03)" }}
+        >
+          <Wrench className="h-3.5 w-3.5 text-zinc-600" strokeWidth={1.5} />
+        </div>
+        <input
+          type="text"
+          autoFocus
+          value={name}
+          onChange={(e) => onChangeName(e.target.value)}
+          placeholder="Ex. Noctua NH-D15"
+          className="flex-1 bg-transparent text-[14px] text-zinc-100 placeholder:text-zinc-600 focus:outline-none"
+        />
+      </div>
+      <div className="font-mono text-[10px] text-zinc-600 -mt-1">
+        Nom complet (marque + modèle)
+      </div>
+
+      <div className="flex items-end gap-3">
+        <div className="flex flex-col gap-1.5">
+          <span className="font-mono text-[10px] tracking-[0.14em] text-zinc-500">
+            CATÉGORIE
+          </span>
+          <div
+            className="flex items-center justify-between gap-2 rounded-md px-3"
+            style={{
+              width: 180,
+              height: 38,
+              background: "rgba(255,255,255,0.02)",
+              boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
+            }}
+          >
+            <span className="font-mono text-[12px] font-medium tracking-[0.12em] text-zinc-400">
+              OTHER
+            </span>
+            <Lock className="h-3 w-3 text-zinc-600" strokeWidth={1.5} />
+          </div>
+        </div>
+        <div className="font-mono text-[10px] text-zinc-500 pb-1.5">
+          Toutes les pièces hors-catalogue sont rangées dans OTHER.
+        </div>
+      </div>
+
+      <div
+        className="flex items-start gap-2.5 rounded-md px-3 py-2.5"
+        style={{
+          background: "rgba(245,158,11,0.04)",
+          boxShadow: "inset 0 0 0 1px rgba(245,158,11,0.18)",
+        }}
+      >
+        <Info
+          className="mt-0.5 h-3.5 w-3.5 shrink-0"
+          style={{ color: "#F59E0B" }}
+          strokeWidth={1.5}
+        />
+        <div className="flex flex-col gap-0.5">
+          <div className="font-mono text-[11px]" style={{ color: "#F59E0B" }}>
+            Pas de valeur de revente Monark pour ce type d'item.
+          </div>
+          <div className="font-mono text-[10px] text-zinc-300">
+            Le Δ potentiel et l'estimation de marché seront masqués pour cet item.
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

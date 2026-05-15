@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { X, Lock, Wrench, Info } from "lucide-react";
 import {
   type StockItem,
   type PlatformKey,
@@ -38,6 +38,7 @@ export default function EditStockItemModal({
 }: Props) {
   // Achat
   const [priceStr, setPriceStr] = useState("");
+  const [customName, setCustomName] = useState("");
   const [date, setDate] = useState<string>(todayIso());
   const [platform, setPlatform] = useState<PlatformKey>("LBC");
   const [condition, setCondition] = useState<ConditionKey>("TBE");
@@ -52,6 +53,7 @@ export default function EditStockItemModal({
   useEffect(() => {
     if (open && item) {
       setPriceStr(String(item.purchase_price_eur));
+      setCustomName(item.custom_name ?? "");
       setDate(item.purchase_date);
       setPlatform(item.purchase_platform);
       setCondition(item.condition);
@@ -87,6 +89,8 @@ export default function EditStockItemModal({
   const price = Number.parseFloat(priceStr.replace(",", "."));
   const dateOk = date.length === 10 && new Date(date).getTime() <= Date.now();
   const baseValid = Number.isFinite(price) && price > 0 && dateOk;
+  const isCustom = item.source === "custom";
+  const customValid = !isCustom || customName.trim().length > 0;
 
   const salePrice = Number.parseFloat(salePriceStr.replace(",", "."));
   const fees = Number.parseFloat(feesStr.replace(",", ".")) || 0;
@@ -96,7 +100,10 @@ export default function EditStockItemModal({
     saleDate.length === 10 &&
     new Date(saleDate).getTime() <= Date.now();
 
-  const isValid = mode === "edit-sale" ? baseValid && saleValid : baseValid;
+  const isValid =
+    mode === "edit-sale"
+      ? baseValid && saleValid
+      : baseValid && customValid;
   const isHwCat = item.category_snapshot !== "OTHER";
   const catalogModel = item.model_id
     ? CATALOG_MODELS.find((m) => m.id === item.model_id)
@@ -113,6 +120,7 @@ export default function EditStockItemModal({
         notes: notes.trim() || null,
       });
     } else {
+      const trimmedName = customName.trim();
       onSave({
         purchase_price_eur: Math.round(price),
         purchase_date: date,
@@ -120,6 +128,12 @@ export default function EditStockItemModal({
         condition,
         status,
         notes: notes.trim() || null,
+        ...(isCustom
+          ? {
+              custom_name: trimmedName,
+              model_name_snapshot: trimmedName,
+            }
+          : {}),
       });
     }
     onClose();
@@ -178,42 +192,49 @@ export default function EditStockItemModal({
         </div>
 
         <div className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto px-5 py-5">
-          {/* Modèle (lecture seule) */}
-          <div
-            className="flex items-center gap-3 rounded-md p-3"
-            style={{
-              background: "rgba(255,255,255,0.02)",
-              boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
-            }}
-          >
+          {/* Modèle */}
+          {isCustom && mode === "edit" ? (
+            <CustomModelEditBlock
+              name={customName}
+              onChangeName={setCustomName}
+            />
+          ) : (
             <div
-              className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded"
+              className="flex items-center gap-3 rounded-md p-3"
               style={{
-                background: "rgba(255,255,255,0.03)",
-                boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.05)",
+                background: "rgba(255,255,255,0.02)",
+                boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
               }}
             >
-              {isHwCat ? (
+              <div
+                className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded"
+                style={{
+                  background: "rgba(255,255,255,0.03)",
+                  boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.05)",
+                }}
+              >
                 <ModelImage
-                  category={item.category_snapshot as HardwareCategory}
+                  category={
+                    isHwCat
+                      ? (item.category_snapshot as HardwareCategory)
+                      : "OTHER"
+                  }
                   url={null}
                   className="opacity-70"
                 />
-              ) : (
-                <span className="font-mono text-[9px] text-zinc-600">—</span>
-              )}
-            </div>
-            <div className="flex min-w-0 flex-col">
-              <div className="truncate text-[13px] text-zinc-100">
-                {item.model_name_snapshot}
               </div>
-              <div className="font-mono text-[10.5px] tabular-nums text-zinc-500">
-                {catalogModel
-                  ? `médiane ${formatEur(catalogModel.median_eur)} €`
-                  : item.category_snapshot}
+              <div className="flex min-w-0 flex-col">
+                <div className="truncate text-[13px] text-zinc-100">
+                  {item.model_name_snapshot}
+                </div>
+                <div className="font-mono text-[10.5px] tabular-nums text-zinc-500">
+                  {catalogModel
+                    ? `médiane ${formatEur(catalogModel.median_eur)} €`
+                    : item.category_snapshot}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Section ACHAT */}
           {mode === "edit-sale" ? (
@@ -462,6 +483,78 @@ function SegmentRow({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+function CustomModelEditBlock({
+  name,
+  onChangeName,
+}: {
+  name: string;
+  onChangeName: (v: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      <span className="font-mono text-[10px] tracking-[0.14em] text-zinc-500">
+        MODÈLE <span style={{ color: "#3B82F6" }}>*</span>
+      </span>
+      <div
+        className="flex items-center gap-3 rounded-md px-3 py-2.5"
+        style={{
+          background: "rgba(255,255,255,0.02)",
+          boxShadow: "inset 0 0 0 1px rgba(59,130,246,0.3)",
+        }}
+      >
+        <div
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded"
+          style={{ background: "rgba(255,255,255,0.03)" }}
+        >
+          <Wrench className="h-3.5 w-3.5 text-zinc-600" strokeWidth={1.5} />
+        </div>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => onChangeName(e.target.value)}
+          placeholder="Ex. Noctua NH-D15"
+          className="flex-1 bg-transparent text-[14px] text-zinc-100 placeholder:text-zinc-600 focus:outline-none"
+        />
+      </div>
+      <div className="flex items-end gap-3 -mt-1">
+        <div
+          className="flex items-center justify-between gap-2 rounded-md px-3"
+          style={{
+            width: 180,
+            height: 38,
+            background: "rgba(255,255,255,0.02)",
+            boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
+          }}
+        >
+          <span className="font-mono text-[12px] font-medium tracking-[0.12em] text-zinc-400">
+            OTHER
+          </span>
+          <Lock className="h-3 w-3 text-zinc-600" strokeWidth={1.5} />
+        </div>
+        <div className="font-mono text-[10px] text-zinc-500 pb-1.5">
+          Catégorie verrouillée pour les pièces hors-catalogue.
+        </div>
+      </div>
+      <div
+        className="flex items-start gap-2.5 rounded-md px-3 py-2.5"
+        style={{
+          background: "rgba(245,158,11,0.04)",
+          boxShadow: "inset 0 0 0 1px rgba(245,158,11,0.18)",
+        }}
+      >
+        <Info
+          className="mt-0.5 h-3.5 w-3.5 shrink-0"
+          style={{ color: "#F59E0B" }}
+          strokeWidth={1.5}
+        />
+        <div className="font-mono text-[11px]" style={{ color: "#F59E0B" }}>
+          Pas de valeur de revente Monark — Δ potentiel et estimation marché masqués.
+        </div>
+      </div>
     </div>
   );
 }
