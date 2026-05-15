@@ -44,14 +44,16 @@ export default function ModelPicker({ value, onChange }: Props) {
             boxShadow: "inset 0 0 0 1px rgba(59,130,246,0.3)",
           }}
         >
-          <ModelImage category={value.category} url={value.image_url} />
-          <div className="flex-1 text-left">
-            <div className="text-[13px] text-zinc-100">{value.name}</div>
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-sm bg-white/[0.02]">
+            <ModelImage category={value.category} url={value.image_url} />
+          </div>
+          <div className="min-w-0 flex-1 text-left">
+            <div className="truncate text-[13px] text-zinc-100">{value.name}</div>
             <div className="font-mono text-[10px] tracking-[0.1em] text-zinc-500">
               {value.category} · médiane {value.median_eur} €
             </div>
           </div>
-          <span className="font-mono text-[10px] text-zinc-500">CHANGER</span>
+          <span className="flex-shrink-0 font-mono text-[10px] text-zinc-500">CHANGER</span>
         </button>
       ) : (
         <div
@@ -84,11 +86,11 @@ export default function ModelPicker({ value, onChange }: Props) {
 
       {dropdownOpen && (
         <div
-          className="absolute left-0 right-0 top-full z-[60] mt-1 max-h-[280px] overflow-y-auto rounded-md py-1"
+          className="absolute left-0 right-0 top-full z-[110] mt-1 max-h-[280px] overflow-y-auto rounded-md py-1"
           style={{
             background: "#18181B",
             boxShadow:
-              "0 8px 24px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.06)",
+              "0 8px 24px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.08)",
           }}
         >
           {results.length === 0 ? (
@@ -108,14 +110,16 @@ export default function ModelPicker({ value, onChange }: Props) {
                 }}
                 className="ease-expo flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-white/[0.04]"
               >
-                <ModelImage category={m.category} url={m.image_url} />
+                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center overflow-hidden rounded-sm bg-white/[0.02]">
+                  <ModelImage category={m.category} url={m.image_url} />
+                </div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-[13px] text-zinc-200">{m.name}</div>
                   <div className="font-mono text-[10px] tracking-[0.1em] text-zinc-500">
                     {m.category} · {m.manufacturer}
                   </div>
                 </div>
-                <div className="font-mono text-[12px] tabular-nums text-zinc-400">
+                <div className="flex-shrink-0 font-mono text-[12px] tabular-nums text-zinc-400">
                   {m.median_eur} €
                 </div>
               </button>
