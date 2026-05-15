@@ -139,7 +139,7 @@ export const STOCK_TABS: Array<{
   { key: "actifs", label: "ACTIFS", available: true },
   { key: "historique", label: "HISTORIQUE", available: true },
   { key: "comptes", label: "COMPTES", available: true },
-  { key: "builds", label: "BUILDS", available: false },
+  { key: "builds", label: "BUILDS", available: true },
 ];
 
 export type StockCategoryFilter = HardwareCategory | "OTHER" | "ALL";
@@ -312,7 +312,13 @@ export type HistoriqueKpis = {
 };
 
 export function computeHistoriqueKpis(items: StockItem[]): HistoriqueKpis {
-  const sold = items.filter((it) => it.status === "sold");
+  // Items "consommés par un build vendu" (build_id != null AND sale_price = 0)
+  // → exclus du CA / marge / durée pour ne pas double-compter le CA.
+  const isBuildConsumed = (it: StockItem) =>
+    it.build_id != null && (it.sale_price_eur ?? 0) === 0;
+  const sold = items.filter(
+    (it) => it.status === "sold" && !isBuildConsumed(it),
+  );
   const returned = items.filter((it) => it.status === "returned");
   const caEur = sold.reduce((s, it) => s + (it.sale_price_eur ?? 0), 0);
   const margeCumuleeEur = sold.reduce(
