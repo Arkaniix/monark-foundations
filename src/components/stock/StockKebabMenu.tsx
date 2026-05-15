@@ -1,18 +1,61 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { MoreHorizontal, Trash2 } from "lucide-react";
 
 type Props = {
   onDelete: () => void;
 };
 
+const MENU_WIDTH = 160;
+const MENU_ESTIMATED_HEIGHT = 40;
+const MENU_GAP = 4;
+const VIEWPORT_MARGIN = 8;
+
 export default function StockKebabMenu({ onDelete }: Props) {
   const [open, setOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open || !wrapperRef.current) return;
+
+    const updatePosition = () => {
+      const rect = wrapperRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const shouldOpenUp = rect.bottom + MENU_GAP + MENU_ESTIMATED_HEIGHT > window.innerHeight - VIEWPORT_MARGIN;
+      const top = shouldOpenUp
+        ? Math.max(VIEWPORT_MARGIN, rect.top - MENU_GAP - MENU_ESTIMATED_HEIGHT)
+        : rect.bottom + MENU_GAP;
+      const left = Math.min(
+        window.innerWidth - MENU_WIDTH - VIEWPORT_MARGIN,
+        Math.max(VIEWPORT_MARGIN, rect.right - MENU_WIDTH),
+      );
+
+      setMenuPosition({
+        top,
+        left,
+      });
+    };
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
     const handleClickOutside = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const isInsideButton = wrapperRef.current?.contains(target);
+      const isInsideMenu = menuRef.current?.contains(target);
+
+      if (!isInsideButton && !isInsideMenu) {
         setOpen(false);
       }
     };
@@ -41,10 +84,13 @@ export default function StockKebabMenu({ onDelete }: Props) {
         <MoreHorizontal className="h-4 w-4 text-zinc-400" strokeWidth={1.5} />
       </button>
 
-      {open && (
+      {open && createPortal(
         <div
-          className="absolute right-0 top-8 z-30 min-w-[160px] overflow-hidden rounded-md"
+          ref={menuRef}
+          className="fixed z-[120] min-w-[160px] overflow-hidden rounded-md"
           style={{
+            top: menuPosition.top,
+            left: menuPosition.left,
             background: "#18181B",
             boxShadow:
               "0 8px 24px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.08)",
@@ -63,7 +109,8 @@ export default function StockKebabMenu({ onDelete }: Props) {
             <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
             Supprimer
           </button>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
