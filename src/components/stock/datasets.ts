@@ -129,7 +129,7 @@ export function saveStockDensity(d: StockDensity) {
   }
 }
 
-export type StockTab = "actifs" | "historique" | "comptes" | "builds";
+export type StockTab = "actifs" | "historique" | "comptes" | "builds" | "bilan";
 
 export const STOCK_TABS: Array<{
   key: StockTab;
@@ -140,6 +140,7 @@ export const STOCK_TABS: Array<{
   { key: "historique", label: "HISTORIQUE", available: true },
   { key: "comptes", label: "COMPTES", available: true },
   { key: "builds", label: "BUILDS", available: true },
+  { key: "bilan", label: "BILAN", available: true },
 ];
 
 export type StockCategoryFilter = HardwareCategory | "OTHER" | "ALL";
