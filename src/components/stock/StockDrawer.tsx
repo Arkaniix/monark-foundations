@@ -163,6 +163,19 @@ export default function StockDrawer({
   const isHwCat = item.category_snapshot !== "OTHER";
   const badge = STATUS_BADGE_STYLE[item.status];
 
+  const goToEstimator = () =>
+    navigate({
+      to: "/estimator",
+      search: { model: item.model_name_snapshot } as never,
+    });
+  const goToFiche = () => {
+    if (!item.model_id) return;
+    navigate({
+      to: "/catalogue_/$modelId",
+      params: { modelId: item.model_id },
+    });
+  };
+
   return createPortal(
     <div className="fixed inset-0 z-[100]">
       <style>{`
