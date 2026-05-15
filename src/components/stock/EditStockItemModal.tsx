@@ -486,3 +486,75 @@ function SegmentRow({
     </div>
   );
 }
+
+function CustomModelEditBlock({
+  name,
+  onChangeName,
+}: {
+  name: string;
+  onChangeName: (v: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      <span className="font-mono text-[10px] tracking-[0.14em] text-zinc-500">
+        MODÈLE <span style={{ color: "#3B82F6" }}>*</span>
+      </span>
+      <div
+        className="flex items-center gap-3 rounded-md px-3 py-2.5"
+        style={{
+          background: "rgba(255,255,255,0.02)",
+          boxShadow: "inset 0 0 0 1px rgba(59,130,246,0.3)",
+        }}
+      >
+        <div
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded"
+          style={{ background: "rgba(255,255,255,0.03)" }}
+        >
+          <Wrench className="h-3.5 w-3.5 text-zinc-600" strokeWidth={1.5} />
+        </div>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => onChangeName(e.target.value)}
+          placeholder="Ex. Noctua NH-D15"
+          className="flex-1 bg-transparent text-[14px] text-zinc-100 placeholder:text-zinc-600 focus:outline-none"
+        />
+      </div>
+      <div className="flex items-end gap-3 -mt-1">
+        <div
+          className="flex items-center justify-between gap-2 rounded-md px-3"
+          style={{
+            width: 180,
+            height: 38,
+            background: "rgba(255,255,255,0.02)",
+            boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
+          }}
+        >
+          <span className="font-mono text-[12px] font-medium tracking-[0.12em] text-zinc-400">
+            OTHER
+          </span>
+          <Lock className="h-3 w-3 text-zinc-600" strokeWidth={1.5} />
+        </div>
+        <div className="font-mono text-[10px] text-zinc-500 pb-1.5">
+          Catégorie verrouillée pour les pièces hors-catalogue.
+        </div>
+      </div>
+      <div
+        className="flex items-start gap-2.5 rounded-md px-3 py-2.5"
+        style={{
+          background: "rgba(245,158,11,0.04)",
+          boxShadow: "inset 0 0 0 1px rgba(245,158,11,0.18)",
+        }}
+      >
+        <Info
+          className="mt-0.5 h-3.5 w-3.5 shrink-0"
+          style={{ color: "#F59E0B" }}
+          strokeWidth={1.5}
+        />
+        <div className="font-mono text-[11px]" style={{ color: "#F59E0B" }}>
+          Pas de valeur de revente Monark — Δ potentiel et estimation marché masqués.
+        </div>
+      </div>
+    </div>
+  );
+}
