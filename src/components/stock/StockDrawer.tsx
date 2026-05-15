@@ -399,6 +399,7 @@ export default function StockDrawer({
                   MARQUER COMME VENDU
                 </PrimaryBtn>
               </div>
+              {item.model_id && (
               <div className="grid grid-cols-2 gap-2">
                 <SecondaryBtn
                   icon={<Calculator className="h-3.5 w-3.5" strokeWidth={1.5} />}
@@ -422,6 +423,7 @@ export default function StockDrawer({
                   VOIR FICHE MODÈLE
                 </SecondaryBtn>
               </div>
+              )}
             </>
           )}
 
@@ -443,6 +445,7 @@ export default function StockDrawer({
                   MARQUER COMME VENDU
                 </PrimaryBtn>
               </div>
+              {item.model_id && (
               <div className="grid grid-cols-2 gap-2">
                 <SecondaryBtn
                   icon={<Calculator className="h-3.5 w-3.5" strokeWidth={1.5} />}
@@ -458,6 +461,7 @@ export default function StockDrawer({
                   VOIR FICHE MODÈLE
                 </SecondaryBtn>
               </div>
+              )}
             </>
           )}
 
@@ -502,13 +506,14 @@ export default function StockDrawer({
                   </PrimaryBtn>
                 )}
               </div>
-              <SecondaryBtn
-                icon={<ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />}
-                disabled={!item.model_id}
-                onClick={goToFiche}
-              >
-                VOIR FICHE MODÈLE
-              </SecondaryBtn>
+              {item.model_id && (
+                <SecondaryBtn
+                  icon={<ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />}
+                  onClick={goToFiche}
+                >
+                  VOIR FICHE MODÈLE
+                </SecondaryBtn>
+              )}
             </>
           )}
 
@@ -530,13 +535,14 @@ export default function StockDrawer({
                   REMETTRE EN STOCK
                 </PrimaryBtn>
               </div>
-              <SecondaryBtn
-                icon={<ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />}
-                disabled={!item.model_id}
-                onClick={goToFiche}
-              >
-                VOIR FICHE MODÈLE
-              </SecondaryBtn>
+              {item.model_id && (
+                <SecondaryBtn
+                  icon={<ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />}
+                  onClick={goToFiche}
+                >
+                  VOIR FICHE MODÈLE
+                </SecondaryBtn>
+              )}
             </>
           )}
 
