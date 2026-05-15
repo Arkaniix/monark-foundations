@@ -104,15 +104,11 @@ export default function StockTableActifs({
                   boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.05)",
                 }}
               >
-                {isHwCat ? (
-                  <ModelImage
-                    category={cat as HardwareCategory}
-                    url={null}
-                    className="opacity-70"
-                  />
-                ) : (
-                  <span className="font-mono text-[9px] text-zinc-600">—</span>
-                )}
+              <ModelImage
+                category={isHwCat ? (cat as HardwareCategory) : "OTHER"}
+                url={null}
+                className="opacity-70"
+              />
               </div>
               <div className="flex min-w-0 flex-col">
                 <div className="truncate text-[13px] text-zinc-100">
