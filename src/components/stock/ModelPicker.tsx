@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, ArrowRight } from "lucide-react";
 import { CATALOG_MODELS } from "@/components/catalog/mockData";
 import type { CatalogModel } from "@/components/catalog/datasets";
 import ModelImage from "@/components/catalog/ModelImage";
@@ -7,9 +7,10 @@ import ModelImage from "@/components/catalog/ModelImage";
 type Props = {
   value: CatalogModel | null;
   onChange: (next: CatalogModel | null) => void;
+  onSwitchToCustom?: (initialName: string) => void;
 };
 
-export default function ModelPicker({ value, onChange }: Props) {
+export default function ModelPicker({ value, onChange, onSwitchToCustom }: Props) {
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
 
@@ -94,8 +95,13 @@ export default function ModelPicker({ value, onChange }: Props) {
           }}
         >
           {results.length === 0 ? (
-            <div className="px-3 py-3 text-[12px] text-zinc-500">
-              Aucun modèle trouvé pour «&nbsp;{trimmedQuery}&nbsp;».
+            <div className="px-3 py-3">
+              <div className="text-[12px] text-zinc-300">
+                Aucun modèle trouvé pour «&nbsp;{trimmedQuery}&nbsp;».
+              </div>
+              <div className="mt-1 font-mono text-[10px] tracking-[0.06em] text-zinc-500">
+                Le catalogue Monark se limite aux GPU/CPU/RAM/SSD/MOBO/PSU principaux.
+              </div>
             </div>
           ) : (
             results.map((m) => (
@@ -124,6 +130,45 @@ export default function ModelPicker({ value, onChange }: Props) {
                 </div>
               </button>
             ))
+          )}
+          {onSwitchToCustom && (
+            <>
+              <div
+                className="my-1 h-px"
+                style={{ background: "rgba(255,255,255,0.06)" }}
+              />
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  onSwitchToCustom(trimmedQuery);
+                  setQuery("");
+                  setFocused(false);
+                }}
+                className="ease-expo flex w-full items-center gap-2.5 px-3.5 py-3 text-left transition-colors"
+                style={{ background: "rgba(59,130,246,0.04)" }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "rgba(59,130,246,0.08)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = "rgba(59,130,246,0.04)")
+                }
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="font-mono text-[13px]" style={{ color: "#60A5FA" }}>
+                    + Saisir un modèle non listé
+                  </div>
+                  <div className="mt-0.5 font-mono text-[10px] text-zinc-500">
+                    Pour les pièces hors-catalogue (cooling, boîtiers, câbles, etc.)
+                  </div>
+                </div>
+                <ArrowRight
+                  className="h-3.5 w-3.5 flex-shrink-0"
+                  style={{ color: "#60A5FA" }}
+                  strokeWidth={1.5}
+                />
+              </button>
+            </>
           )}
         </div>
       )}
