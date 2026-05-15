@@ -2,12 +2,14 @@ type Props = {
   onOpenAdd: () => void;
   addLabel?: string;
   addDisabled?: boolean;
+  showAdd?: boolean;
 };
 
 export default function StockHeader({
   onOpenAdd,
   addLabel = "+ AJOUTER UN ITEM",
   addDisabled = false,
+  showAdd = true,
 }: Props) {
   return (
     <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -30,7 +32,8 @@ export default function StockHeader({
         </p>
       </div>
 
-      <button
+      {showAdd && (
+        <button
         type="button"
         onClick={onOpenAdd}
         disabled={addDisabled}
@@ -52,7 +55,8 @@ export default function StockHeader({
         >
           {addLabel}
         </span>
-      </button>
+        </button>
+      )}
     </header>
   );
 }
