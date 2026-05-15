@@ -20,7 +20,6 @@ import {
   type Build,
   type BuildComponent,
   type BuildComponentKind,
-  type BuildStatus,
   BUILD_COMPONENT_KIND_BADGE,
   BUILD_EVENT_COLOR,
   BUILD_EVENT_LABEL,
@@ -1285,6 +1284,3 @@ function ManualField({
     </div>
   );
 }
-
-// avoid unused import warning when no status helper used directly
-export type _BuildStatusUsed = BuildStatus;
