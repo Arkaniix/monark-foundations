@@ -164,7 +164,25 @@ export default function AddStockItemModal({ open, onClose, onAdd }: Props) {
 
         <div className="flex flex-col gap-4 px-5 py-5">
           {mode === "catalog" ? (
-            <Field label="Modèle" required>
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                <div className="font-mono text-[10px] tracking-[0.14em] text-zinc-500">
+                  MODÈLE <span style={{ color: "#3B82F6" }}>*</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("custom");
+                    setCustomName("");
+                  }}
+                  className="ease-expo cursor-pointer font-mono text-[10px] tracking-[0.08em] transition-colors"
+                  style={{ color: "#60A5FA" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "#93C5FD")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "#60A5FA")}
+                >
+                  Saisie libre →
+                </button>
+              </div>
               <ModelPicker
                 value={model}
                 onChange={setModel}
@@ -173,7 +191,7 @@ export default function AddStockItemModal({ open, onClose, onAdd }: Props) {
                   setCustomName(initialName);
                 }}
               />
-            </Field>
+            </div>
           ) : (
             <CustomModelBlock
               name={customName}
