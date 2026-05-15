@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { X, Lock, Wrench, Info } from "lucide-react";
 import type { CatalogModel } from "@/components/catalog/datasets";
 import {
   type StockItem,
@@ -25,7 +25,9 @@ type Props = {
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
 export default function AddStockItemModal({ open, onClose, onAdd }: Props) {
+  const [mode, setMode] = useState<"catalog" | "custom">("catalog");
   const [model, setModel] = useState<CatalogModel | null>(null);
+  const [customName, setCustomName] = useState("");
   const [priceStr, setPriceStr] = useState("");
   const [date, setDate] = useState<string>(todayIso());
   const [platform, setPlatform] = useState<PlatformKey>("LBC");
@@ -35,7 +37,9 @@ export default function AddStockItemModal({ open, onClose, onAdd }: Props) {
 
   useEffect(() => {
     if (!open) {
+      setMode("catalog");
       setModel(null);
+      setCustomName("");
       setPriceStr("");
       setDate(todayIso());
       setPlatform("LBC");
@@ -66,24 +70,28 @@ export default function AddStockItemModal({ open, onClose, onAdd }: Props) {
   if (!open) return null;
 
   const price = Number.parseFloat(priceStr.replace(",", "."));
-  const isValid =
-    model !== null &&
+  const baseValid =
     Number.isFinite(price) &&
     price > 0 &&
     date.length === 10 &&
     new Date(date).getTime() <= Date.now();
+  const modelValid =
+    mode === "catalog" ? model !== null : customName.trim().length > 0;
+  const isValid = baseValid && modelValid;
 
   const handleSubmit = () => {
-    if (!isValid || !model) return;
+    if (!isValid) return;
     const nowIso = new Date().toISOString();
+    const isCustom = mode === "custom";
+    const trimmedName = customName.trim();
     const item: StockItem = {
       id: newStockItemId(),
-      source: "catalog",
-      model_id: model.id,
-      custom_name: null,
-      custom_category: null,
-      model_name_snapshot: model.name,
-      category_snapshot: model.category,
+      source: isCustom ? "custom" : "catalog",
+      model_id: isCustom ? null : model!.id,
+      custom_name: isCustom ? trimmedName : null,
+      custom_category: isCustom ? "OTHER" : null,
+      model_name_snapshot: isCustom ? trimmedName : model!.name,
+      category_snapshot: isCustom ? "OTHER" : model!.category,
       purchase_price_eur: Math.round(price),
       purchase_date: date,
       purchase_platform: platform,
@@ -105,7 +113,7 @@ export default function AddStockItemModal({ open, onClose, onAdd }: Props) {
     onClose();
   };
 
-  const suggestedPrice = model?.median_eur ?? null;
+  const suggestedPrice = mode === "catalog" ? model?.median_eur ?? null : null;
 
   return createPortal(
     <div
@@ -155,9 +163,27 @@ export default function AddStockItemModal({ open, onClose, onAdd }: Props) {
         </div>
 
         <div className="flex flex-col gap-4 px-5 py-5">
-          <Field label="Modèle" required>
-            <ModelPicker value={model} onChange={setModel} />
-          </Field>
+          {mode === "catalog" ? (
+            <Field label="Modèle" required>
+              <ModelPicker
+                value={model}
+                onChange={setModel}
+                onSwitchToCustom={(initialName) => {
+                  setMode("custom");
+                  setCustomName(initialName);
+                }}
+              />
+            </Field>
+          ) : (
+            <CustomModelBlock
+              name={customName}
+              onChangeName={setCustomName}
+              onBackToCatalog={() => {
+                setMode("catalog");
+                setCustomName("");
+              }}
+            />
+          )}
 
           <Field label="Prix d'achat" required>
             <div className="flex items-stretch gap-2">
