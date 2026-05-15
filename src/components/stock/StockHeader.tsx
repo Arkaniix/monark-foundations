@@ -1,8 +1,14 @@
 type Props = {
   onOpenAdd: () => void;
+  addLabel?: string;
+  addDisabled?: boolean;
 };
 
-export default function StockHeader({ onOpenAdd }: Props) {
+export default function StockHeader({
+  onOpenAdd,
+  addLabel = "+ AJOUTER UN ITEM",
+  addDisabled = false,
+}: Props) {
   return (
     <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div>
@@ -27,17 +33,24 @@ export default function StockHeader({ onOpenAdd }: Props) {
       <button
         type="button"
         onClick={onOpenAdd}
+        disabled={addDisabled}
         className="ease-expo flex items-center justify-center gap-2 rounded-md px-4 py-2.5 transition-colors"
         style={{
-          background: "rgba(59,130,246,0.14)",
-          boxShadow: "inset 0 0 0 1px rgba(59,130,246,0.3)",
+          background: addDisabled
+            ? "rgba(255,255,255,0.04)"
+            : "rgba(59,130,246,0.14)",
+          boxShadow: addDisabled
+            ? "inset 0 0 0 1px rgba(255,255,255,0.06)"
+            : "inset 0 0 0 1px rgba(59,130,246,0.3)",
+          cursor: addDisabled ? "not-allowed" : "pointer",
+          opacity: addDisabled ? 0.5 : 1,
         }}
       >
         <span
           className="font-mono text-[12px] tracking-wider"
-          style={{ color: "#3B82F6" }}
+          style={{ color: addDisabled ? "#71717A" : "#3B82F6" }}
         >
-          + AJOUTER UN ITEM
+          {addLabel}
         </span>
       </button>
     </header>
