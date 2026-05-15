@@ -11,8 +11,12 @@ export default function StockKpiActifs({ items }: { items: StockItem[] }) {
     const m = CATALOG_MODELS.find((x) => x.id === it.model_id);
     return s + (m?.median_eur ?? it.purchase_price_eur);
   }, 0);
-  const dEur = totalMarche - totalImmo;
-  const dPct = totalImmo > 0 ? (dEur / totalImmo) * 100 : 0;
+  const catalogImmo = catalogActifs.reduce(
+    (s, it) => s + it.purchase_price_eur,
+    0,
+  );
+  const dEur = totalMarche - catalogImmo;
+  const dPct = catalogImmo > 0 ? (dEur / catalogImmo) * 100 : 0;
   const dormants = actifs.filter((it) => isDormant(it)).length;
   const has = dormants > 0;
   return (
@@ -20,7 +24,7 @@ export default function StockKpiActifs({ items }: { items: StockItem[] }) {
       <Tile label="ITEMS ACTIFS" value={String(totalActifs)} subtitle="en inventaire" />
       <Tile label="VALEUR IMMOBILISÉE" value={`${formatEur(totalImmo)} €`} subtitle="somme prix d'achat" />
       <Tile label="VALEUR MARCHÉ EST." value={`${formatEur(totalMarche)} €`}
-        subtitle={totalImmo > 0 ? `${dEur >= 0 ? "+" : ""}${formatEur(dEur)} € potentiel (${dPct >= 0 ? "+" : ""}${dPct.toFixed(1)}%)` : "—"}
+        subtitle={catalogImmo > 0 ? `${dEur >= 0 ? "+" : ""}${formatEur(dEur)} € potentiel (${dPct >= 0 ? "+" : ""}${dPct.toFixed(1)}%)` : "—"}
         subtitleColor={dEur > 0 ? "#10B981" : dEur < 0 ? "#EF4444" : "#71717A"} />
       <Tile label="ITEMS DORMANTS" value={String(dormants)}
         subtitle={has ? "à liquider" : "> 60 jours"}
