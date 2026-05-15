@@ -348,7 +348,7 @@ export default function StockDrawer({
           <SectionHeader idx="05" label="HISTORIQUE" />
           <div className="px-5 pb-6 pt-3">
             <ol className="flex flex-col gap-2.5">
-              {[...item.events].reverse().map((ev, i) => (
+              {[...(item.events ?? [])].reverse().map((ev, i) => (
                 <li key={i} className="flex items-start gap-2.5">
                   <span
                     className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full"
