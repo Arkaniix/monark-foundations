@@ -264,15 +264,15 @@ export default function StockHistoriqueView({
                       boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.05)",
                     }}
                   >
-                    {isHwCat ? (
-                      <ModelImage
-                        category={item.category_snapshot as HardwareCategory}
-                        url={null}
-                        className={isReturned ? "opacity-40" : "opacity-70"}
-                      />
-                    ) : (
-                      <span className="font-mono text-[9px] text-zinc-600">—</span>
-                    )}
+                    <ModelImage
+                      category={
+                        isHwCat
+                          ? (item.category_snapshot as HardwareCategory)
+                          : "OTHER"
+                      }
+                      url={null}
+                      className={isReturned ? "opacity-40" : "opacity-70"}
+                    />
                   </div>
                   <div className="flex min-w-0 flex-col">
                     <div
