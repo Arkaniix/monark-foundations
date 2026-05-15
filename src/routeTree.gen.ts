@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WatchlistRouteImport } from './routes/watchlist'
+import { Route as StockRouteImport } from './routes/stock'
 import { Route as EstimatorRouteImport } from './routes/estimator'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
@@ -24,6 +25,11 @@ import { Route as Char91_devChar93AppshellRouteImport } from './routes/[_dev].ap
 const WatchlistRoute = WatchlistRouteImport.update({
   id: '/watchlist',
   path: '/watchlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StockRoute = StockRouteImport.update({
+  id: '/stock',
+  path: '/stock',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EstimatorRoute = EstimatorRouteImport.update({
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
+  '/stock': typeof StockRoute
   '/watchlist': typeof WatchlistRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
   '/_dev/dashboard-states': typeof Char91_devChar93DashboardStatesRoute
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
+  '/stock': typeof StockRoute
   '/watchlist': typeof WatchlistRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
   '/_dev/dashboard-states': typeof Char91_devChar93DashboardStatesRoute
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
+  '/stock': typeof StockRoute
   '/watchlist': typeof WatchlistRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
   '/_dev/dashboard-states': typeof Char91_devChar93DashboardStatesRoute
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/dashboard'
     | '/estimator'
+    | '/stock'
     | '/watchlist'
     | '/_dev/appshell'
     | '/_dev/dashboard-states'
@@ -141,6 +151,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/dashboard'
     | '/estimator'
+    | '/stock'
     | '/watchlist'
     | '/_dev/appshell'
     | '/_dev/dashboard-states'
@@ -154,6 +165,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/dashboard'
     | '/estimator'
+    | '/stock'
     | '/watchlist'
     | '/_dev/appshell'
     | '/_dev/dashboard-states'
@@ -168,6 +180,7 @@ export interface RootRouteChildren {
   CatalogueRoute: typeof CatalogueRoute
   DashboardRoute: typeof DashboardRoute
   EstimatorRoute: typeof EstimatorRoute
+  StockRoute: typeof StockRoute
   WatchlistRoute: typeof WatchlistRoute
   Char91_devChar93AppshellRoute: typeof Char91_devChar93AppshellRoute
   Char91_devChar93DashboardStatesRoute: typeof Char91_devChar93DashboardStatesRoute
@@ -183,6 +196,13 @@ declare module '@tanstack/react-router' {
       path: '/watchlist'
       fullPath: '/watchlist'
       preLoaderRoute: typeof WatchlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stock': {
+      id: '/stock'
+      path: '/stock'
+      fullPath: '/stock'
+      preLoaderRoute: typeof StockRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/estimator': {
@@ -264,6 +284,7 @@ const rootRouteChildren: RootRouteChildren = {
   CatalogueRoute: CatalogueRoute,
   DashboardRoute: DashboardRoute,
   EstimatorRoute: EstimatorRoute,
+  StockRoute: StockRoute,
   WatchlistRoute: WatchlistRoute,
   Char91_devChar93AppshellRoute: Char91_devChar93AppshellRoute,
   Char91_devChar93DashboardStatesRoute: Char91_devChar93DashboardStatesRoute,
@@ -274,3 +295,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
