@@ -7,27 +7,103 @@
 
 import type { CatalogModel, HardwareCategory } from "../catalog/datasets";
 
-export type WatchlistFilterCategory = HardwareCategory | "ALL";
+/* -------------------------------------------------------------------------- */
+/* Densité d'affichage                                                         */
+/* -------------------------------------------------------------------------- */
 
-export type WatchlistSortKey =
-  | "score_desc"
-  | "trend_desc"
-  | "liquidity_desc"
-  | "median_desc"
-  | "median_asc"
-  | "name_asc";
+export type WatchlistDensity = "compact" | "aere" | "cards";
 
-export const WATCHLIST_SORT_OPTIONS: Array<{
-  key: WatchlistSortKey;
+export const WATCHLIST_DENSITIES: Array<{
+  key: WatchlistDensity;
   label: string;
 }> = [
-  { key: "score_desc", label: "Score \u2193" },
-  { key: "trend_desc", label: "Tendance \u2193" },
-  { key: "liquidity_desc", label: "Liquidit\u00e9 \u2193" },
-  { key: "median_desc", label: "Prix \u2193" },
-  { key: "median_asc", label: "Prix \u2191" },
-  { key: "name_asc", label: "A \u2192 Z" },
+  { key: "compact", label: "COMPACT" },
+  { key: "aere", label: "AÉRÉ" },
+  { key: "cards", label: "CARDS" },
 ];
+
+export const DEFAULT_WATCHLIST_DENSITY: WatchlistDensity = "compact";
+
+const DENSITY_STORAGE_KEY = "monark.watchlist.density.v1";
+
+export function loadDensity(): WatchlistDensity {
+  if (typeof window === "undefined") return DEFAULT_WATCHLIST_DENSITY;
+  try {
+    const raw = window.localStorage.getItem(DENSITY_STORAGE_KEY);
+    if (raw === "compact" || raw === "aere" || raw === "cards") return raw;
+    return DEFAULT_WATCHLIST_DENSITY;
+  } catch {
+    return DEFAULT_WATCHLIST_DENSITY;
+  }
+}
+
+export function saveDensity(density: WatchlistDensity) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(DENSITY_STORAGE_KEY, density);
+  } catch {
+    /* noop */
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tri tri-state                                                               */
+/* -------------------------------------------------------------------------- */
+
+export type SortableColumn =
+  | "name"
+  | "score"
+  | "median"
+  | "snapshot"
+  | "delta"
+  | "trend"
+  | "liquidity"
+  | "margin";
+
+export type SortDirection = "asc" | "desc";
+
+export type SortState = { column: SortableColumn; direction: SortDirection } | null;
+
+export const DEFAULT_SORT_STATE: SortState = { column: "score", direction: "desc" };
+
+export function cycleSort(current: SortState, column: SortableColumn): SortState {
+  if (!current || current.column !== column) {
+    return { column, direction: "desc" };
+  }
+  if (current.direction === "desc") {
+    return { column, direction: "asc" };
+  }
+  return null;
+}
+
+export type WatchlistFilterCategory = HardwareCategory | "ALL";
+
+export const WATCHLIST_SORT_OPTIONS: Array<{
+  key: string;
+  label: string;
+  state: SortState;
+}> = [
+  { key: "score_desc", label: "Score \u2193", state: { column: "score", direction: "desc" } },
+  { key: "trend_desc", label: "Tendance \u2193", state: { column: "trend", direction: "desc" } },
+  { key: "liquidity_desc", label: "Liquidit\u00e9 \u2193", state: { column: "liquidity", direction: "desc" } },
+  { key: "margin_desc", label: "Marge \u2193", state: { column: "margin", direction: "desc" } },
+  { key: "median_desc", label: "Prix \u2193", state: { column: "median", direction: "desc" } },
+  { key: "median_asc", label: "Prix \u2191", state: { column: "median", direction: "asc" } },
+  { key: "delta_desc", label: "\u0394 depuis pin \u2193", state: { column: "delta", direction: "desc" } },
+  { key: "name_asc", label: "A \u2192 Z", state: { column: "name", direction: "asc" } },
+  { key: "default", label: "Par d\u00e9faut", state: null },
+];
+
+export function sortStateToOptionKey(state: SortState): string {
+  if (!state) return "default";
+  const match = WATCHLIST_SORT_OPTIONS.find(
+    (opt) =>
+      opt.state !== null &&
+      opt.state.column === state.column &&
+      opt.state.direction === state.direction,
+  );
+  return match?.key ?? "default";
+}
 
 export type WatchlistFilters = {
   category: WatchlistFilterCategory;
@@ -39,12 +115,11 @@ export const DEFAULT_WATCHLIST_FILTERS: WatchlistFilters = {
   search: "",
 };
 
-export const DEFAULT_WATCHLIST_SORT: WatchlistSortKey = "score_desc";
-
 export function applyWatchlistFilters(
   models: CatalogModel[],
   filters: WatchlistFilters,
-  sort: WatchlistSortKey,
+  sortState: SortState,
+  snapshotsByModelId?: Record<string, { snapshot_eur: number | null }>,
 ): CatalogModel[] {
   let result = models;
 
@@ -62,20 +137,37 @@ export function applyWatchlistFilters(
     );
   }
 
+  if (!sortState) return result;
+
+  const dir = sortState.direction === "asc" ? 1 : -1;
+  const snaps = snapshotsByModelId ?? {};
+
   return [...result].sort((a, b) => {
-    switch (sort) {
-      case "score_desc":
-        return b.score - a.score;
-      case "trend_desc":
-        return b.trend_30d_pct - a.trend_30d_pct;
-      case "liquidity_desc":
-        return b.liquidity_pct - a.liquidity_pct;
-      case "median_desc":
-        return b.median_eur - a.median_eur;
-      case "median_asc":
-        return a.median_eur - b.median_eur;
-      case "name_asc":
-        return a.name.localeCompare(b.name);
+    switch (sortState.column) {
+      case "name":
+        return a.name.localeCompare(b.name) * dir;
+      case "score":
+        return (a.score - b.score) * dir;
+      case "median":
+        return (a.median_eur - b.median_eur) * dir;
+      case "trend":
+        return (a.trend_30d_pct - b.trend_30d_pct) * dir;
+      case "liquidity":
+        return (a.liquidity_pct - b.liquidity_pct) * dir;
+      case "margin":
+        return (a.margin_pct - b.margin_pct) * dir;
+      case "snapshot": {
+        const va = snaps[a.id]?.snapshot_eur ?? 0;
+        const vb = snaps[b.id]?.snapshot_eur ?? 0;
+        return (va - vb) * dir;
+      }
+      case "delta": {
+        const sa = snaps[a.id]?.snapshot_eur;
+        const sb = snaps[b.id]?.snapshot_eur;
+        const da = sa && sa !== 0 ? ((a.median_eur - sa) / sa) * 100 : 0;
+        const db = sb && sb !== 0 ? ((b.median_eur - sb) / sb) * 100 : 0;
+        return (da - db) * dir;
+      }
       default:
         return 0;
     }

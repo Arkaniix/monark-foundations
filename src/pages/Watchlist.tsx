@@ -10,14 +10,18 @@ import {
 } from "@/lib/catalogFavorites";
 import WatchlistFilterBar from "@/components/watchlist/WatchlistFilterBar";
 import WatchlistTable from "@/components/watchlist/WatchlistTable";
+import WatchlistCardGrid from "@/components/watchlist/WatchlistCardGrid";
 import WatchlistMovementsBanner from "@/components/watchlist/WatchlistMovementsBanner";
 import WatchlistDrawer from "@/components/watchlist/WatchlistDrawer";
 import {
   DEFAULT_WATCHLIST_FILTERS,
-  DEFAULT_WATCHLIST_SORT,
+  DEFAULT_SORT_STATE,
   applyWatchlistFilters,
+  loadDensity,
+  saveDensity,
   type WatchlistFilters,
-  type WatchlistSortKey,
+  type SortState,
+  type WatchlistDensity,
 } from "@/components/watchlist/datasets";
 import type { CatalogModel } from "@/components/catalog/datasets";
 
@@ -25,8 +29,13 @@ export default function Watchlist() {
   const favorites = useCatalogFavorites();
   const navigate = useNavigate();
   const [filters, setFilters] = useState<WatchlistFilters>(DEFAULT_WATCHLIST_FILTERS);
-  const [sort, setSort] = useState<WatchlistSortKey>(DEFAULT_WATCHLIST_SORT);
+  const [sortState, setSortState] = useState<SortState>(DEFAULT_SORT_STATE);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [density, setDensity] = useState<WatchlistDensity>(() => loadDensity());
+
+  useEffect(() => {
+    saveDensity(density);
+  }, [density]);
 
   useEffect(() => {
     favorites.entries.forEach((entry) => {
@@ -55,9 +64,18 @@ export default function Watchlist() {
     return count;
   }, [pinnedModels, favorites.entries]);
 
+  const snapshotsByModelId = useMemo(() => {
+    const map: Record<string, { snapshot_eur: number | null }> = {};
+    for (const entry of favorites.entries) {
+      map[entry.id] = { snapshot_eur: entry.snapshot_eur };
+    }
+    return map;
+  }, [favorites.entries]);
+
   const visibleModels = useMemo(
-    () => applyWatchlistFilters(pinnedModels, filters, sort),
-    [pinnedModels, filters, sort],
+    () =>
+      applyWatchlistFilters(pinnedModels, filters, sortState, snapshotsByModelId),
+    [pinnedModels, filters, sortState, snapshotsByModelId],
   );
 
   const handleToggleFavorite = useCallback(
@@ -120,9 +138,11 @@ export default function Watchlist() {
         <FadeInSection delay={60}>
           <WatchlistFilterBar
             filters={filters}
-            sort={sort}
+            sortState={sortState}
+            density={density}
             onChangeFilters={setFilters}
-            onChangeSort={setSort}
+            onChangeSortState={setSortState}
+            onChangeDensity={setDensity}
           />
         </FadeInSection>
       )}
@@ -176,15 +196,27 @@ export default function Watchlist() {
         </FadeInSection>
       ) : (
         <FadeInSection
-          key={`${filters.category}_${filters.search}_${sort}`}
+          key={`${filters.category}_${filters.search}_${density}_${sortState?.column ?? "none"}_${sortState?.direction ?? "none"}`}
           delay={120}
         >
-          <WatchlistTable
-            models={visibleModels}
-            favoriteEntries={favorites.entries}
-            onToggleFavorite={handleToggleFavorite}
-            onSelectRow={handleSelectRow}
-          />
+          {density === "cards" ? (
+            <WatchlistCardGrid
+              models={visibleModels}
+              favoriteEntries={favorites.entries}
+              onToggleFavorite={handleToggleFavorite}
+              onSelectRow={handleSelectRow}
+            />
+          ) : (
+            <WatchlistTable
+              models={visibleModels}
+              favoriteEntries={favorites.entries}
+              density={density}
+              sortState={sortState}
+              onChangeSortState={setSortState}
+              onToggleFavorite={handleToggleFavorite}
+              onSelectRow={handleSelectRow}
+            />
+          )}
         </FadeInSection>
       )}
 

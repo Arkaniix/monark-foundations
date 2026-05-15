@@ -2,32 +2,46 @@ import { Search, ChevronDown } from "lucide-react";
 import { HARDWARE_CATEGORIES, CATEGORY_LABELS } from "../catalog/datasets";
 import {
   WATCHLIST_SORT_OPTIONS,
+  sortStateToOptionKey,
   type WatchlistFilters,
-  type WatchlistSortKey,
+  type SortState,
   type WatchlistFilterCategory,
+  type WatchlistDensity,
 } from "./datasets";
+import WatchlistDensityToggle from "./WatchlistDensityToggle";
 
 type Props = {
   filters: WatchlistFilters;
-  sort: WatchlistSortKey;
+  sortState: SortState;
+  density: WatchlistDensity;
   onChangeFilters: (next: WatchlistFilters) => void;
-  onChangeSort: (next: WatchlistSortKey) => void;
+  onChangeSortState: (next: SortState) => void;
+  onChangeDensity: (next: WatchlistDensity) => void;
 };
 
 export default function WatchlistFilterBar({
   filters,
-  sort,
+  sortState,
+  density,
   onChangeFilters,
-  onChangeSort,
+  onChangeSortState,
+  onChangeDensity,
 }: Props) {
   const setCategory = (cat: WatchlistFilterCategory) =>
     onChangeFilters({ ...filters, category: cat });
 
   const allCategories: WatchlistFilterCategory[] = ["ALL", ...HARDWARE_CATEGORIES];
 
+  const selectedKey = sortStateToOptionKey(sortState);
+
+  const handleSortDropdownChange = (optionKey: string) => {
+    const opt = WATCHLIST_SORT_OPTIONS.find((o) => o.key === optionKey);
+    if (opt) onChangeSortState(opt.state);
+  };
+
   return (
     <div className="mk-card-flat-soft flex flex-wrap items-center gap-3 p-3">
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-1">
         {allCategories.map((cat) => {
           const isActive = filters.category === cat;
           const label = cat === "ALL" ? "TOUS" : CATEGORY_LABELS[cat];
@@ -50,30 +64,36 @@ export default function WatchlistFilterBar({
         })}
       </div>
 
-      <div className="ml-auto flex items-center gap-2">
-        <span className="font-mono text-[10px] tracking-[0.14em] text-zinc-600">
-          TRI
-        </span>
-        <div className="relative">
-          <select
-            value={sort}
-            onChange={(e) => onChangeSort(e.target.value as WatchlistSortKey)}
-            className="ease-expo appearance-none rounded-md border border-white/10 bg-white/[0.02] py-1.5 pl-3 pr-8 font-mono text-[11.5px] text-zinc-200 outline-none transition-colors hover:bg-white/[0.04]"
-          >
-            {WATCHLIST_SORT_OPTIONS.map((opt) => (
-              <option key={opt.key} value={opt.key}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <ChevronDown
-            className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-zinc-600"
-            strokeWidth={1.5}
-          />
-        </div>
-      </div>
+      <div className="flex-1" />
 
-      <div className="flex w-full items-center gap-2 rounded-md border border-white/10 bg-white/[0.02] px-3 py-1.5 sm:w-[260px]">
+      <WatchlistDensityToggle value={density} onChange={onChangeDensity} />
+
+      {density === "cards" && (
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[10px] tracking-[0.14em] text-zinc-600">
+            TRI
+          </span>
+          <div className="relative">
+            <select
+              value={selectedKey}
+              onChange={(e) => handleSortDropdownChange(e.target.value)}
+              className="ease-expo appearance-none rounded-md border border-white/10 bg-white/[0.02] py-1.5 pl-3 pr-8 font-mono text-[11.5px] text-zinc-200 outline-none transition-colors hover:bg-white/[0.04]"
+            >
+              {WATCHLIST_SORT_OPTIONS.map((opt) => (
+                <option key={opt.key} value={opt.key} className="bg-zinc-900">
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-zinc-500"
+              strokeWidth={1.5}
+            />
+          </div>
+        </div>
+      )}
+
+      <div className="flex min-w-[220px] items-center gap-2 rounded-md border border-white/10 bg-white/[0.02] px-3 py-1.5">
         <Search className="h-3.5 w-3.5 text-zinc-600" strokeWidth={1.5} />
         <input
           type="text"
