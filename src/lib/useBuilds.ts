@@ -459,16 +459,4 @@ export function useBuilds(stockApi: StockCascadeApi) {
   };
 }
 
-// Re-export for convenience
 export type UseBuildsReturn = ReturnType<typeof useBuilds>;
-export { newStockEvent }; // ensure tree-shake friendliness for callers
-
-// Suppress unused warning for BuildStatus type re-export usage
-export type { BuildStatus };
-
-// Suppress unused
-void newStockEvent;
-
-/* eslint-disable */
-
-/* helper unused imports placeholder */
