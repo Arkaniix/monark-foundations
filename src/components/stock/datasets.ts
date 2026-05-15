@@ -138,7 +138,7 @@ export const STOCK_TABS: Array<{
 }> = [
   { key: "actifs", label: "ACTIFS", available: true },
   { key: "historique", label: "HISTORIQUE", available: true },
-  { key: "comptes", label: "COMPTES", available: false },
+  { key: "comptes", label: "COMPTES", available: true },
   { key: "builds", label: "BUILDS", available: false },
 ];
 
