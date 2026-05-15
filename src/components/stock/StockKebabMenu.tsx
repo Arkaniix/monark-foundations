@@ -6,6 +6,11 @@ type Props = {
   onDelete: () => void;
 };
 
+const MENU_WIDTH = 160;
+const MENU_ESTIMATED_HEIGHT = 40;
+const MENU_GAP = 4;
+const VIEWPORT_MARGIN = 8;
+
 export default function StockKebabMenu({ onDelete }: Props) {
   const [open, setOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
@@ -19,9 +24,18 @@ export default function StockKebabMenu({ onDelete }: Props) {
       const rect = wrapperRef.current?.getBoundingClientRect();
       if (!rect) return;
 
+      const shouldOpenUp = rect.bottom + MENU_GAP + MENU_ESTIMATED_HEIGHT > window.innerHeight - VIEWPORT_MARGIN;
+      const top = shouldOpenUp
+        ? Math.max(VIEWPORT_MARGIN, rect.top - MENU_GAP - MENU_ESTIMATED_HEIGHT)
+        : rect.bottom + MENU_GAP;
+      const left = Math.min(
+        window.innerWidth - MENU_WIDTH - VIEWPORT_MARGIN,
+        Math.max(VIEWPORT_MARGIN, rect.right - MENU_WIDTH),
+      );
+
       setMenuPosition({
-        top: rect.bottom + 4,
-        left: Math.max(8, rect.right - 160),
+        top,
+        left,
       });
     };
 
