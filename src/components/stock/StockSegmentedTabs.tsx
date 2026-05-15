@@ -2,7 +2,13 @@ import { STOCK_TABS, type StockTab } from "./datasets";
 
 type Props = {
   value: StockTab;
-  counts: { actifs: number; historique: number; comptes: number; builds: number };
+  counts: {
+    actifs: number;
+    historique: number;
+    comptes: number;
+    builds: number;
+    bilan: number;
+  };
   onChange: (next: StockTab) => void;
 };
 
