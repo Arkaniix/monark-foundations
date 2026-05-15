@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { Search } from "lucide-react";
+import DropdownSelect, { type DropdownItem } from "./DropdownSelect";
 import {
   ACCOUNTING_CATEGORIES_META,
   EXPENSE_CATEGORIES,
