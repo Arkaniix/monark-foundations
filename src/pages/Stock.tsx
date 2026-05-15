@@ -38,6 +38,7 @@ import StockBuildsView from "@/components/stock/StockBuildsView";
 import BuildDrawer from "@/components/stock/BuildDrawer";
 import MarkBuildAsSoldModal from "@/components/stock/MarkBuildAsSoldModal";
 import type { Build } from "@/components/stock/buildsDatasets";
+import StockBilanView from "@/components/stock/StockBilanView";
 
 export default function Stock() {
   const stock = useStockItems();
@@ -55,6 +56,9 @@ export default function Stock() {
   const [accEditEntry, setAccEditEntry] = useState<AccountingEntry | null>(null);
   const [buildDrawerId, setBuildDrawerId] = useState<string | null>(null);
   const [soldBuild, setSoldBuild] = useState<Build | null>(null);
+  const [bilanYear, setBilanYear] = useState<number>(() =>
+    new Date().getFullYear(),
+  );
 
   useEffect(() => {
     saveStockDensity(density);
@@ -70,6 +74,7 @@ export default function Stock() {
     historique: stock.historique.length,
     comptes: accounting.entries.length,
     builds: builds.builds.length,
+    bilan: bilanYear,
   };
 
   const visibleActifs = useMemo(
@@ -157,6 +162,7 @@ export default function Stock() {
         ? "+ AJOUTER UN BUILD"
         : "+ AJOUTER UN ITEM";
   const headerAddDisabled = false;
+  const showHeaderAdd = activeTab !== "bilan";
 
   return (
     <div className="flex flex-col gap-8">
@@ -164,6 +170,7 @@ export default function Stock() {
         onOpenAdd={handleHeaderAdd}
         addLabel={headerAddLabel}
         addDisabled={headerAddDisabled}
+        showAdd={showHeaderAdd}
       />
 
       <StockSegmentedTabs
@@ -258,6 +265,17 @@ export default function Stock() {
             onMarkAsUntested={builds.markAsUntested}
             onOpenSold={(b) => setSoldBuild(b)}
             onResume={(id) => builds.resumeFromFailed(id, "reinject")}
+          />
+        </FadeInSection>
+      )}
+
+      {activeTab === "bilan" && (
+        <FadeInSection>
+          <StockBilanView
+            stockItems={stock.items}
+            builds={builds.builds}
+            accountingEntries={accounting.entries}
+            onYearChange={setBilanYear}
           />
         </FadeInSection>
       )}
