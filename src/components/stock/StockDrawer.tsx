@@ -404,10 +404,7 @@ export default function StockDrawer({
                   disabled={!item.model_id}
                   onClick={() => {
                     if (!item.model_id) return;
-                    navigate({
-                      to: "/catalogue/$modelId",
-                      params: { modelId: item.model_id },
-                    });
+                    goToFiche();
                   }}
                 >
                   VOIR FICHE MODÈLE
@@ -437,25 +434,14 @@ export default function StockDrawer({
               <div className="grid grid-cols-2 gap-2">
                 <SecondaryBtn
                   icon={<Calculator className="h-3.5 w-3.5" strokeWidth={1.5} />}
-                  onClick={() =>
-                    navigate({
-                      to: "/estimator",
-                      search: { model: item.model_name_snapshot } as never,
-                    })
-                  }
+                  onClick={goToEstimator}
                 >
                   ESTIMER LA REVENTE
                 </SecondaryBtn>
                 <SecondaryBtn
                   icon={<ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />}
                   disabled={!item.model_id}
-                  onClick={() => {
-                    if (!item.model_id) return;
-                    navigate({
-                      to: "/catalogue/$modelId",
-                      params: { modelId: item.model_id },
-                    });
-                  }}
+                  onClick={goToFiche}
                 >
                   VOIR FICHE MODÈLE
                 </SecondaryBtn>
@@ -507,13 +493,7 @@ export default function StockDrawer({
               <SecondaryBtn
                 icon={<ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />}
                 disabled={!item.model_id}
-                onClick={() => {
-                  if (!item.model_id) return;
-                  navigate({
-                    to: "/catalogue/$modelId",
-                    params: { modelId: item.model_id },
-                  });
-                }}
+                onClick={goToFiche}
               >
                 VOIR FICHE MODÈLE
               </SecondaryBtn>
@@ -541,13 +521,7 @@ export default function StockDrawer({
               <SecondaryBtn
                 icon={<ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />}
                 disabled={!item.model_id}
-                onClick={() => {
-                  if (!item.model_id) return;
-                  navigate({
-                    to: "/catalogue/$modelId",
-                    params: { modelId: item.model_id },
-                  });
-                }}
+                onClick={goToFiche}
               >
                 VOIR FICHE MODÈLE
               </SecondaryBtn>
