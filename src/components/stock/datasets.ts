@@ -9,6 +9,24 @@ export type StockStatus = "in_stock" | "listed" | "sold" | "returned";
 export type PlatformKey = "LBC" | "VINTED" | "EBAY" | "LOCAL" | "AUTRE";
 export type ConditionKey = "NEUF" | "TBE" | "BON" | "ACCEPTABLE" | "POUR_PIECES";
 
+export type StockEventType =
+  | "added"
+  | "listed"
+  | "delisted"
+  | "sold"
+  | "sale_cancelled"
+  | "returned";
+
+export type StockEvent = {
+  type: StockEventType;
+  at: string;
+  payload?: {
+    price_eur?: number;
+    platform?: PlatformKey;
+    fees_eur?: number;
+  };
+};
+
 export type StockItem = {
   id: string;
   source: StockSource;
@@ -29,6 +47,7 @@ export type StockItem = {
   fees_eur: number | null;
   build_id: string | null;
   created_at: string;
+  events: StockEvent[];
 };
 
 export const PLATFORM_LABELS: Record<PlatformKey, string> = {
@@ -118,7 +137,7 @@ export const STOCK_TABS: Array<{
   available: boolean;
 }> = [
   { key: "actifs", label: "ACTIFS", available: true },
-  { key: "historique", label: "HISTORIQUE", available: false },
+  { key: "historique", label: "HISTORIQUE", available: true },
   { key: "comptes", label: "COMPTES", available: false },
   { key: "builds", label: "BUILDS", available: false },
 ];
@@ -161,6 +180,10 @@ export function daysHeld(item: StockItem, now: Date = new Date()): number {
 
 export function isActif(item: StockItem): boolean {
   return item.status === "in_stock" || item.status === "listed";
+}
+
+export function isHistorique(item: StockItem): boolean {
+  return item.status === "sold" || item.status === "returned";
 }
 
 export function isDormant(item: StockItem, thresholdDays = 60): boolean {
@@ -236,4 +259,186 @@ export function applyActifsFilters(
       break;
   }
   return sorted;
+}
+
+// ---------------------------------------------------------------------------
+// Historique : helpers, KPI, filtres
+// ---------------------------------------------------------------------------
+
+export function getMargeBrute(item: StockItem): number | null {
+  if (item.sale_price_eur == null) return null;
+  return item.sale_price_eur - item.purchase_price_eur;
+}
+
+export function getMargeNette(item: StockItem): number | null {
+  const fees = item.fees_eur ?? 0;
+  if (item.status === "returned") {
+    return -fees;
+  }
+  if (item.sale_price_eur == null) return null;
+  return item.sale_price_eur - item.purchase_price_eur - fees;
+}
+
+export function getMargeNettePct(item: StockItem): number | null {
+  const net = getMargeNette(item);
+  if (net == null || item.purchase_price_eur <= 0) return null;
+  return (net / item.purchase_price_eur) * 100;
+}
+
+export function getDureeVente(item: StockItem): number | null {
+  if (!item.sale_date) return null;
+  const purchase = new Date(item.purchase_date).getTime();
+  const sale = new Date(item.sale_date).getTime();
+  if (Number.isNaN(purchase) || Number.isNaN(sale)) return null;
+  return Math.max(0, Math.floor((sale - purchase) / (1000 * 60 * 60 * 24)));
+}
+
+export function median(values: number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0
+    ? (sorted[mid - 1] + sorted[mid]) / 2
+    : sorted[mid];
+}
+
+export type HistoriqueKpis = {
+  caEur: number;
+  margeCumuleeEur: number;
+  margePondereeMoyennePct: number;
+  dureeMedianeJ: number;
+  countSold: number;
+  countReturned: number;
+};
+
+export function computeHistoriqueKpis(items: StockItem[]): HistoriqueKpis {
+  const sold = items.filter((it) => it.status === "sold");
+  const returned = items.filter((it) => it.status === "returned");
+  const caEur = sold.reduce((s, it) => s + (it.sale_price_eur ?? 0), 0);
+  const margeCumuleeEur = sold.reduce(
+    (s, it) => s + (getMargeNette(it) ?? 0),
+    0,
+  );
+  const margePondereeMoyennePct = caEur > 0 ? (margeCumuleeEur / caEur) * 100 : 0;
+  const durees = sold
+    .map((it) => getDureeVente(it))
+    .filter((v): v is number => v != null);
+  const dureeMedianeJ = Math.round(median(durees));
+  return {
+    caEur,
+    margeCumuleeEur,
+    margePondereeMoyennePct,
+    dureeMedianeJ,
+    countSold: sold.length,
+    countReturned: returned.length,
+  };
+}
+
+export type StockHistoriqueSortKey =
+  | "sale_date_desc"
+  | "sale_date_asc"
+  | "marge_desc"
+  | "marge_asc"
+  | "duree_desc"
+  | "duree_asc"
+  | "sale_price_desc"
+  | "sale_price_asc";
+
+export const STOCK_HISTORIQUE_SORT_OPTIONS: Array<{
+  key: StockHistoriqueSortKey;
+  label: string;
+}> = [
+  { key: "sale_date_desc", label: "Date vente ↓" },
+  { key: "sale_date_asc", label: "Date vente ↑" },
+  { key: "marge_desc", label: "Marge ↓" },
+  { key: "marge_asc", label: "Marge ↑" },
+  { key: "duree_desc", label: "Durée ↓" },
+  { key: "duree_asc", label: "Durée ↑" },
+  { key: "sale_price_desc", label: "Prix vente ↓" },
+  { key: "sale_price_asc", label: "Prix vente ↑" },
+];
+
+export type StockHistoriqueFilters = {
+  category: StockCategoryFilter;
+  search: string;
+  sort: StockHistoriqueSortKey;
+};
+
+export const DEFAULT_STOCK_HISTORIQUE_FILTERS: StockHistoriqueFilters = {
+  category: "ALL",
+  search: "",
+  sort: "sale_date_desc",
+};
+
+export function applyHistoriqueFilters(
+  items: StockItem[],
+  filters: StockHistoriqueFilters,
+): StockItem[] {
+  let result = items.filter(isHistorique);
+
+  if (filters.category !== "ALL") {
+    result = result.filter((it) => it.category_snapshot === filters.category);
+  }
+
+  if (filters.search.trim()) {
+    const q = filters.search.trim().toLowerCase();
+    result = result.filter((it) =>
+      it.model_name_snapshot.toLowerCase().includes(q),
+    );
+  }
+
+  const sorted = [...result];
+  const safeSale = (it: StockItem) => it.sale_date ?? "";
+  switch (filters.sort) {
+    case "sale_date_desc":
+      sorted.sort((a, b) => safeSale(b).localeCompare(safeSale(a)));
+      break;
+    case "sale_date_asc":
+      sorted.sort((a, b) => safeSale(a).localeCompare(safeSale(b)));
+      break;
+    case "marge_desc":
+      sorted.sort((a, b) => (getMargeNette(b) ?? 0) - (getMargeNette(a) ?? 0));
+      break;
+    case "marge_asc":
+      sorted.sort((a, b) => (getMargeNette(a) ?? 0) - (getMargeNette(b) ?? 0));
+      break;
+    case "duree_desc":
+      sorted.sort((a, b) => (getDureeVente(b) ?? 0) - (getDureeVente(a) ?? 0));
+      break;
+    case "duree_asc":
+      sorted.sort((a, b) => (getDureeVente(a) ?? 0) - (getDureeVente(b) ?? 0));
+      break;
+    case "sale_price_desc":
+      sorted.sort((a, b) => (b.sale_price_eur ?? 0) - (a.sale_price_eur ?? 0));
+      break;
+    case "sale_price_asc":
+      sorted.sort((a, b) => (a.sale_price_eur ?? 0) - (b.sale_price_eur ?? 0));
+      break;
+  }
+  return sorted;
+}
+
+export const STOCK_EVENT_LABEL: Record<StockEventType, string> = {
+  added: "Ajouté à l'inventaire",
+  listed: "Mis en vente",
+  delisted: "Retiré de la vente",
+  sold: "Vendu",
+  sale_cancelled: "Vente annulée",
+  returned: "Retourné",
+};
+
+export const STOCK_EVENT_COLOR: Record<StockEventType, string> = {
+  added: "#60A5FA",
+  listed: "#F59E0B",
+  delisted: "#A1A1AA",
+  sold: "#10B981",
+  sale_cancelled: "#A1A1AA",
+  returned: "#71717A",
+};
+
+export function newStockEvent(
+  type: StockEventType,
+  payload?: StockEvent["payload"],
+): StockEvent {
+  return { type, at: new Date().toISOString(), ...(payload ? { payload } : {}) };
 }

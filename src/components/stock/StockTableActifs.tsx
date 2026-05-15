@@ -16,11 +16,13 @@ import type { HardwareCategory } from "@/components/catalog/datasets";
 import { CATALOG_MODELS } from "@/components/catalog/mockData";
 import ModelImage from "@/components/catalog/ModelImage";
 import StockKebabMenu from "./StockKebabMenu";
+import type { KebabAction } from "./StockKebabMenu";
 
 type Props = {
   items: StockItem[];
   density: StockDensity;
-  onDelete: (id: string) => void;
+  onRowClick?: (item: StockItem) => void;
+  buildActions: (item: StockItem) => KebabAction[];
 };
 
 const HEADERS = [
@@ -34,7 +36,12 @@ const HEADERS = [
   { key: "delta", label: "Δ POT.", className: "col-span-2 text-right" },
 ];
 
-export default function StockTableActifs({ items, density, onDelete }: Props) {
+export default function StockTableActifs({
+  items,
+  density,
+  onRowClick,
+  buildActions,
+}: Props) {
   const rowPadY = density === "compact" ? "py-2.5" : "py-3.5";
 
   return (
@@ -82,11 +89,12 @@ export default function StockTableActifs({ items, density, onDelete }: Props) {
         return (
           <div
             key={item.id}
-            className={`group relative grid grid-cols-12 items-center gap-3 px-4 ${rowPadY} ease-expo transition-colors hover:bg-white/[0.02]`}
+            className={`group relative grid cursor-pointer grid-cols-12 items-center gap-3 px-4 ${rowPadY} ease-expo transition-colors hover:bg-white/[0.02]`}
             style={{
               background: accent ?? undefined,
               boxShadow: "inset 0 -1px 0 rgba(255,255,255,0.04)",
             }}
+            onClick={() => onRowClick?.(item)}
           >
             <div className="col-span-4 flex items-center gap-3 min-w-0">
               <div
@@ -198,8 +206,11 @@ export default function StockTableActifs({ items, density, onDelete }: Props) {
               ) : (
                 <span className="text-[12px] text-zinc-600">—</span>
               )}
-              <div className="opacity-0 transition-opacity group-hover:opacity-100">
-                <StockKebabMenu onDelete={() => onDelete(item.id)} />
+              <div
+                className="opacity-0 transition-opacity group-hover:opacity-100"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <StockKebabMenu actions={buildActions(item)} />
               </div>
             </div>
           </div>

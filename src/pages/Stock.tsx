@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Pencil, Tag, Euro, Trash2, ArrowLeft, RefreshCw } from "lucide-react";
 import FadeInSection from "@/components/ui/FadeInSection";
 import { useStockItems } from "@/lib/useStockItems";
 import {
@@ -6,10 +7,13 @@ import {
   type StockFilters,
   type StockDensity,
   type StockTab,
+  type StockItem,
   applyActifsFilters,
   isActif,
   loadStockDensity,
   saveStockDensity,
+  applyHistoriqueFilters,
+  DEFAULT_STOCK_HISTORIQUE_FILTERS,
 } from "@/components/stock/datasets";
 import StockHeader from "@/components/stock/StockHeader";
 import StockSegmentedTabs from "@/components/stock/StockSegmentedTabs";
@@ -19,6 +23,13 @@ import StockTableActifs from "@/components/stock/StockTableActifs";
 import StockEmptyState from "@/components/stock/StockEmptyState";
 import StockPlaceholderTab from "@/components/stock/StockPlaceholderTab";
 import AddStockItemModal from "@/components/stock/AddStockItemModal";
+import MarkAsSoldModal from "@/components/stock/MarkAsSoldModal";
+import EditStockItemModal, {
+  type EditStockItemMode,
+} from "@/components/stock/EditStockItemModal";
+import StockDrawer from "@/components/stock/StockDrawer";
+import StockHistoriqueView from "@/components/stock/StockHistoriqueView";
+import type { KebabAction } from "@/components/stock/StockKebabMenu";
 
 export default function Stock() {
   const stock = useStockItems();
@@ -26,6 +37,10 @@ export default function Stock() {
   const [filters, setFilters] = useState<StockFilters>(DEFAULT_STOCK_FILTERS);
   const [density, setDensity] = useState<StockDensity>(() => loadStockDensity());
   const [modalOpen, setModalOpen] = useState(false);
+  const [soldItem, setSoldItem] = useState<StockItem | null>(null);
+  const [editItem, setEditItem] = useState<StockItem | null>(null);
+  const [editMode, setEditMode] = useState<EditStockItemMode>("edit");
+  const [drawerId, setDrawerId] = useState<string | null>(null);
 
   useEffect(() => {
     saveStockDensity(density);
@@ -38,7 +53,7 @@ export default function Stock() {
 
   const tabCounts = {
     actifs: actifsCount,
-    historique: 0,
+    historique: stock.historique.length,
     comptes: 0,
     builds: 0,
   };
@@ -47,6 +62,59 @@ export default function Stock() {
     () => applyActifsFilters(stock.items, filters),
     [stock.items, filters],
   );
+  const visibleHistorique = useMemo(
+    () =>
+      applyHistoriqueFilters(stock.items, DEFAULT_STOCK_HISTORIQUE_FILTERS),
+    [stock.items],
+  );
+
+  const drawerItem = drawerId ? stock.getById(drawerId) : null;
+  const drawerVisibleList =
+    activeTab === "historique" ? visibleHistorique : visibleActifs;
+
+  const openEdit = (item: StockItem, mode: EditStockItemMode) => {
+    setEditItem(item);
+    setEditMode(mode);
+  };
+
+  const buildActifsActions = (item: StockItem): KebabAction[] => {
+    const isListed = item.status === "listed";
+    return [
+      {
+        key: "edit",
+        label: "Modifier",
+        icon: Pencil,
+        onClick: () => openEdit(item, "edit"),
+      },
+      isListed
+        ? {
+            key: "unlisted",
+            label: "Retirer de la vente",
+            icon: ArrowLeft,
+            onClick: () => stock.markAsUnlisted(item.id),
+          }
+        : {
+            key: "listed",
+            label: "Marquer comme listé",
+            icon: Tag,
+            onClick: () => stock.markAsListed(item.id),
+          },
+      {
+        key: "sold",
+        label: "Marquer comme vendu",
+        icon: Euro,
+        onClick: () => setSoldItem(item),
+      },
+      {
+        key: "delete",
+        label: "Supprimer",
+        icon: Trash2,
+        destructive: true,
+        separatorBefore: true,
+        onClick: () => stock.remove(item.id),
+      },
+    ];
+  };
 
   return (
     <div className="flex flex-col gap-8">
@@ -79,7 +147,8 @@ export default function Stock() {
                 <StockTableActifs
                   items={visibleActifs}
                   density={density}
-                  onDelete={stock.remove}
+                  onRowClick={(it) => setDrawerId(it.id)}
+                  buildActions={buildActifsActions}
                 />
               )}
             </div>
@@ -89,11 +158,23 @@ export default function Stock() {
 
       {activeTab === "historique" && (
         <FadeInSection>
-          <StockPlaceholderTab
-            title="Historique des ventes"
-            description="Marge réalisée, ROI, courbes de performance par catégorie. Disponible au prochain patch."
-            patchLabel="P1B"
-          />
+          {stock.historique.length === 0 ? (
+            <div className="mk-card-flat-soft px-6 py-16 text-center text-[13px] text-zinc-500">
+              Aucune vente enregistrée pour le moment. Vendez un item pour le
+              voir apparaître ici.
+            </div>
+          ) : (
+            <StockHistoriqueView
+              items={stock.items}
+              density={density}
+              onChangeDensity={setDensity}
+              onRowClick={(it) => setDrawerId(it.id)}
+              onEditSale={(it) => openEdit(it, "edit-sale")}
+              onCancelSale={(it) => stock.cancelSale(it.id, "in_stock")}
+              onReSell={(it) => setSoldItem(it)}
+              onDelete={stock.remove}
+            />
+          )}
         </FadeInSection>
       )}
 
@@ -121,6 +202,41 @@ export default function Stock() {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onAdd={stock.add}
+      />
+
+      <MarkAsSoldModal
+        open={soldItem !== null}
+        item={soldItem}
+        onClose={() => setSoldItem(null)}
+        onConfirm={(sale) => {
+          if (soldItem) stock.markAsSold(soldItem.id, sale);
+          setSoldItem(null);
+        }}
+      />
+
+      <EditStockItemModal
+        open={editItem !== null}
+        item={editItem}
+        mode={editMode}
+        onClose={() => setEditItem(null)}
+        onSave={(patch) => {
+          if (editItem) stock.update(editItem.id, patch);
+        }}
+      />
+
+      <StockDrawer
+        open={drawerItem !== null}
+        item={drawerItem}
+        visibleItems={drawerVisibleList}
+        onClose={() => setDrawerId(null)}
+        onSelectItem={(id) => setDrawerId(id)}
+        onUpdate={stock.update}
+        onMarkAsListed={stock.markAsListed}
+        onMarkAsUnlisted={stock.markAsUnlisted}
+        onOpenSoldModal={(it) => setSoldItem(it)}
+        onOpenEditModal={openEdit}
+        onCancelSale={stock.cancelSale}
+        onDelete={stock.remove}
       />
     </div>
   );
