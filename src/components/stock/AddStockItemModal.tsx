@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import type { CatalogModel } from "@/components/catalog/datasets";
 import {
@@ -101,16 +102,16 @@ export default function AddStockItemModal({ open, onClose, onAdd }: Props) {
 
   const suggestedPrice = model?.median_eur ?? null;
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6"
-      style={{ background: "rgba(0,0,0,0.6)" }}
+      className="fixed inset-0 z-[100] flex items-center justify-center px-4 py-6"
+      style={{ background: "rgba(0,0,0,0.72)" }}
       onClick={onClose}
     >
       <div
         className="w-full max-w-[560px] overflow-hidden rounded-lg"
         style={{
-          background: "var(--mk-card-deep, #0F0F11)",
+          background: "#0F0F11",
           boxShadow:
             "0 24px 60px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.08)",
           animation: "stock-modal-in 180ms cubic-bezier(0.16,1,0.3,1) both",
@@ -284,7 +285,8 @@ export default function AddStockItemModal({ open, onClose, onAdd }: Props) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
