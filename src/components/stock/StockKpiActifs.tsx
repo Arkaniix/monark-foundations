@@ -6,12 +6,10 @@ export default function StockKpiActifs({ items }: { items: StockItem[] }) {
   const actifs = useMemo(() => items.filter(isActif), [items]);
   const totalActifs = actifs.length;
   const totalImmo = actifs.reduce((s, it) => s + it.purchase_price_eur, 0);
-  const totalMarche = actifs.reduce((s, it) => {
-    if (it.model_id) {
-      const m = CATALOG_MODELS.find((x) => x.id === it.model_id);
-      return s + (m?.median_eur ?? it.purchase_price_eur);
-    }
-    return s + it.purchase_price_eur;
+  const catalogActifs = actifs.filter((it) => it.source === "catalog" && it.model_id);
+  const totalMarche = catalogActifs.reduce((s, it) => {
+    const m = CATALOG_MODELS.find((x) => x.id === it.model_id);
+    return s + (m?.median_eur ?? it.purchase_price_eur);
   }, 0);
   const dEur = totalMarche - totalImmo;
   const dPct = totalImmo > 0 ? (dEur / totalImmo) * 100 : 0;
