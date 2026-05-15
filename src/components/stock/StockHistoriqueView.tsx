@@ -36,6 +36,7 @@ type Props = {
 const CATEGORY_OPTIONS: Array<{ key: StockCategoryFilter; label: string }> = [
   { key: "ALL", label: "TOUS" },
   ...HARDWARE_CATEGORIES.map((c) => ({ key: c as StockCategoryFilter, label: c })),
+  { key: "OTHER", label: "OTHER" },
 ];
 
 export default function StockHistoriqueView({
