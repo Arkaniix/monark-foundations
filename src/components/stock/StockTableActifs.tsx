@@ -1,3 +1,4 @@
+import { Link2 } from "lucide-react";
 import {
   type StockItem,
   type StockDensity,
@@ -111,8 +112,19 @@ export default function StockTableActifs({
               />
               </div>
               <div className="flex min-w-0 flex-col">
-                <div className="truncate text-[13px] text-zinc-100">
-                  {item.model_name_snapshot}
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <div className="truncate text-[13px] text-zinc-100">
+                    {item.model_name_snapshot}
+                  </div>
+                  {item.build_id && (
+                    <span title="Dans un build" className="shrink-0">
+                      <Link2
+                        className="h-3 w-3"
+                        style={{ color: "#60A5FA" }}
+                        strokeWidth={1.75}
+                      />
+                    </span>
+                  )}
                 </div>
                 <div className="font-mono text-[10px] tracking-[0.14em] text-zinc-600">
                   {item.category_snapshot}
