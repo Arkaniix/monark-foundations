@@ -12,6 +12,7 @@ import {
   CONDITIONS,
   CONDITION_LABELS,
   newStockItemId,
+  newStockEvent,
 } from "./datasets";
 import ModelPicker from "./ModelPicker";
 
@@ -95,6 +96,7 @@ export default function AddStockItemModal({ open, onClose, onAdd }: Props) {
       fees_eur: null,
       build_id: null,
       created_at: nowIso,
+      events: [newStockEvent(initialStatus === "listed" ? "listed" : "added")],
     };
     onAdd(item);
     onClose();
