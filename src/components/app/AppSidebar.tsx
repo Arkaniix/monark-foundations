@@ -43,7 +43,7 @@ const TOOLS: ToolItem[] = [
   { to: "/estimator", label: "Estimateur", Icon: Calculator },
   { to: "/catalogue", label: "Catalogue", Icon: Layers },
   { to: "/watchlist", label: "Watchlist", Icon: Eye },
-  { to: "/stock", label: "Stock", Icon: Boxes },
+  { to: "/stock", label: "Inventaire", Icon: Boxes },
   { to: "/repair", label: "Repair Guide", Icon: Wrench },
 ];
 
