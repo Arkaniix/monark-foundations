@@ -1,17 +1,18 @@
-import { Cpu, MemoryStick, HardDrive, CircuitBoard, Plug, Gamepad2 } from "lucide-react";
+import { Cpu, MemoryStick, HardDrive, CircuitBoard, Plug, Gamepad2, Wrench } from "lucide-react";
 import type { HardwareCategory } from "./datasets";
 
-const ICON: Record<HardwareCategory, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
+const ICON: Record<HardwareCategory | "OTHER", React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
   GPU: Gamepad2,
   CPU: Cpu,
   RAM: MemoryStick,
   SSD: HardDrive,
   MOBO: CircuitBoard,
   PSU: Plug,
+  OTHER: Wrench,
 };
 
 type Props = {
-  category: HardwareCategory;
+  category: HardwareCategory | "OTHER";
   url?: string | null;
   className?: string;
 };
