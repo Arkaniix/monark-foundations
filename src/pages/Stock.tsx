@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Pencil, Tag, Euro, Trash2, ArrowLeft, RefreshCw } from "lucide-react";
+import { Pencil, Tag, Euro, Trash2, ArrowLeft } from "lucide-react";
 import FadeInSection from "@/components/ui/FadeInSection";
 import { useStockItems } from "@/lib/useStockItems";
 import { useAccountingEntries } from "@/lib/useAccountingEntries";
+import { useBuilds } from "@/lib/useBuilds";
 import {
   DEFAULT_STOCK_FILTERS,
   type StockFilters,
@@ -22,7 +23,6 @@ import StockKpiActifs from "@/components/stock/StockKpiActifs";
 import StockFilterBar from "@/components/stock/StockFilterBar";
 import StockTableActifs from "@/components/stock/StockTableActifs";
 import StockEmptyState from "@/components/stock/StockEmptyState";
-import StockPlaceholderTab from "@/components/stock/StockPlaceholderTab";
 import AddStockItemModal from "@/components/stock/AddStockItemModal";
 import MarkAsSoldModal from "@/components/stock/MarkAsSoldModal";
 import EditStockItemModal, {
@@ -34,10 +34,15 @@ import type { KebabAction } from "@/components/stock/StockKebabMenu";
 import StockComptesView from "@/components/stock/StockComptesView";
 import AccountingEntryModal from "@/components/stock/AccountingEntryModal";
 import type { AccountingEntry } from "@/components/stock/accountingDatasets";
+import StockBuildsView from "@/components/stock/StockBuildsView";
+import BuildDrawer from "@/components/stock/BuildDrawer";
+import MarkBuildAsSoldModal from "@/components/stock/MarkBuildAsSoldModal";
+import type { Build } from "@/components/stock/buildsDatasets";
 
 export default function Stock() {
   const stock = useStockItems();
   const accounting = useAccountingEntries();
+  const builds = useBuilds({ getById: stock.getById, update: stock.update });
   const [activeTab, setActiveTab] = useState<StockTab>("actifs");
   const [filters, setFilters] = useState<StockFilters>(DEFAULT_STOCK_FILTERS);
   const [density, setDensity] = useState<StockDensity>(() => loadStockDensity());
@@ -48,6 +53,8 @@ export default function Stock() {
   const [drawerId, setDrawerId] = useState<string | null>(null);
   const [accModalOpen, setAccModalOpen] = useState(false);
   const [accEditEntry, setAccEditEntry] = useState<AccountingEntry | null>(null);
+  const [buildDrawerId, setBuildDrawerId] = useState<string | null>(null);
+  const [soldBuild, setSoldBuild] = useState<Build | null>(null);
 
   useEffect(() => {
     saveStockDensity(density);
@@ -62,7 +69,7 @@ export default function Stock() {
     actifs: actifsCount,
     historique: stock.historique.length,
     comptes: accounting.entries.length,
-    builds: 0,
+    builds: builds.builds.length,
   };
 
   const visibleActifs = useMemo(
@@ -78,6 +85,15 @@ export default function Stock() {
   const drawerItem = drawerId ? stock.getById(drawerId) : null;
   const drawerVisibleList =
     activeTab === "historique" ? visibleHistorique : visibleActifs;
+
+  const buildDrawerItem = buildDrawerId ? builds.getById(buildDrawerId) : null;
+  const availableStockItems = useMemo(
+    () =>
+      stock.items.filter(
+        (it) => it.status === "in_stock" && it.build_id === null,
+      ),
+    [stock.items],
+  );
 
   const openEdit = (item: StockItem, mode: EditStockItemMode) => {
     setEditItem(item);
@@ -126,14 +142,21 @@ export default function Stock() {
   const handleHeaderAdd = () => {
     if (activeTab === "comptes") {
       setAccModalOpen(true);
+    } else if (activeTab === "builds") {
+      const created = builds.createEmpty();
+      setBuildDrawerId(created.id);
     } else if (activeTab === "actifs" || activeTab === "historique") {
       setModalOpen(true);
     }
   };
 
   const headerAddLabel =
-    activeTab === "comptes" ? "+ AJOUTER UNE ENTRÉE" : "+ AJOUTER UN ITEM";
-  const headerAddDisabled = activeTab === "builds";
+    activeTab === "comptes"
+      ? "+ AJOUTER UNE ENTRÉE"
+      : activeTab === "builds"
+        ? "+ AJOUTER UN BUILD"
+        : "+ AJOUTER UN ITEM";
+  const headerAddDisabled = false;
 
   return (
     <div className="flex flex-col gap-8">
@@ -215,10 +238,26 @@ export default function Stock() {
 
       {activeTab === "builds" && (
         <FadeInSection>
-          <StockPlaceholderTab
-            title="Builds & assemblages"
-            description="Composition de configurations à partir des items en stock, marge théorique, BOM."
-            patchLabel="P1D"
+          <StockBuildsView
+            builds={builds.builds}
+            density={density}
+            onChangeDensity={setDensity}
+            onOpenDrawer={(b) => setBuildDrawerId(b.id)}
+            onCreate={() => {
+              const created = builds.createEmpty();
+              setBuildDrawerId(created.id);
+            }}
+            onDuplicate={(id) => {
+              const clone = builds.duplicate(id);
+              if (clone) setBuildDrawerId(clone.id);
+            }}
+            onDelete={builds.remove}
+            onMarkAsListed={builds.markAsListed}
+            onMarkAsDelisted={builds.markAsDelisted}
+            onMarkAsTested={builds.markAsTested}
+            onMarkAsUntested={builds.markAsUntested}
+            onOpenSold={(b) => setSoldBuild(b)}
+            onResume={(id) => builds.resumeFromFailed(id, "reinject")}
           />
         </FadeInSection>
       )}
@@ -285,6 +324,42 @@ export default function Stock() {
               note: entry.note,
             });
           }
+        }}
+      />
+
+      <BuildDrawer
+        open={buildDrawerItem !== null}
+        build={buildDrawerItem}
+        visibleBuilds={builds.builds}
+        availableStockItems={availableStockItems}
+        onClose={() => setBuildDrawerId(null)}
+        onSelectBuild={(id) => setBuildDrawerId(id)}
+        onUpdate={builds.update}
+        onAddComponent={builds.addComponent}
+        onRemoveComponent={builds.removeComponent}
+        onMarkAsTested={builds.markAsTested}
+        onMarkAsUntested={builds.markAsUntested}
+        onMarkAsListed={builds.markAsListed}
+        onMarkAsDelisted={builds.markAsDelisted}
+        onOpenSold={(b) => setSoldBuild(b)}
+        onCancelSale={builds.cancelSale}
+        onMarkAsFailed={builds.markAsFailed}
+        onResume={builds.resumeFromFailed}
+        onReSellFromReturned={builds.reSellFromReturned}
+        onDuplicate={(id) => {
+          const clone = builds.duplicate(id);
+          if (clone) setBuildDrawerId(clone.id);
+        }}
+        onDelete={builds.remove}
+      />
+
+      <MarkBuildAsSoldModal
+        open={soldBuild !== null}
+        build={soldBuild}
+        onClose={() => setSoldBuild(null)}
+        onConfirm={(sale) => {
+          if (soldBuild) builds.markAsSold(soldBuild.id, sale);
+          setSoldBuild(null);
         }}
       />
     </div>
