@@ -3,7 +3,7 @@ import RequireAuth from "../components/app/RequireAuth";
 import AppShell from "../components/app/AppShell";
 import SettingsData from "../pages/SettingsData";
 
-export const Route = createFileRoute("/settings/data")({
+export const Route = createFileRoute("/settings_/data")({
   component: () => (
     <RequireAuth>
       <AppShell pageLabel="PARAMÈTRES · DONNÉES" activePath="/settings/data">

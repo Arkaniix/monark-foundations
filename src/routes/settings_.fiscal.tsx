@@ -3,7 +3,7 @@ import RequireAuth from "../components/app/RequireAuth";
 import AppShell from "../components/app/AppShell";
 import SettingsFiscal from "../pages/SettingsFiscal";
 
-export const Route = createFileRoute("/settings/fiscal")({
+export const Route = createFileRoute("/settings_/fiscal")({
   component: () => (
     <RequireAuth>
       <AppShell pageLabel="PARAMÈTRES · FISCALITÉ" activePath="/settings/fiscal">

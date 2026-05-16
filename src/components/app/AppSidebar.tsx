@@ -100,7 +100,7 @@ export default function AppSidebar({
             to="/settings"
             label="Paramètres"
             Icon={SettingsIcon}
-            active={activePath === "/settings"}
+            active={activePath?.startsWith("/settings") ?? false}
           />
           <NavItem
             label="Déconnexion"
