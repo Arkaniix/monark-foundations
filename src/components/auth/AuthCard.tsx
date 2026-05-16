@@ -8,6 +8,7 @@ import Field from "./Field";
 import PasswordStrength from "./PasswordStrength";
 import SubmitSequence from "./SubmitSequence";
 import ForgotPasswordModal from "./ForgotPasswordModal";
+import { readStartScreenPath } from "@/lib/useUiSettings";
 
 const GithubIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
