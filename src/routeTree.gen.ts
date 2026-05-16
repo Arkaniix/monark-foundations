@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WatchlistRouteImport } from './routes/watchlist'
 import { Route as StockRouteImport } from './routes/stock'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as EstimatorRouteImport } from './routes/estimator'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
@@ -30,6 +31,11 @@ const WatchlistRoute = WatchlistRouteImport.update({
 const StockRoute = StockRouteImport.update({
   id: '/stock',
   path: '/stock',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EstimatorRoute = EstimatorRouteImport.update({
@@ -92,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
+  '/settings': typeof SettingsRoute
   '/stock': typeof StockRoute
   '/watchlist': typeof WatchlistRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
+  '/settings': typeof SettingsRoute
   '/stock': typeof StockRoute
   '/watchlist': typeof WatchlistRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
+  '/settings': typeof SettingsRoute
   '/stock': typeof StockRoute
   '/watchlist': typeof WatchlistRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/dashboard'
     | '/estimator'
+    | '/settings'
     | '/stock'
     | '/watchlist'
     | '/_dev/appshell'
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/dashboard'
     | '/estimator'
+    | '/settings'
     | '/stock'
     | '/watchlist'
     | '/_dev/appshell'
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/dashboard'
     | '/estimator'
+    | '/settings'
     | '/stock'
     | '/watchlist'
     | '/_dev/appshell'
@@ -180,6 +192,7 @@ export interface RootRouteChildren {
   CatalogueRoute: typeof CatalogueRoute
   DashboardRoute: typeof DashboardRoute
   EstimatorRoute: typeof EstimatorRoute
+  SettingsRoute: typeof SettingsRoute
   StockRoute: typeof StockRoute
   WatchlistRoute: typeof WatchlistRoute
   Char91_devChar93AppshellRoute: typeof Char91_devChar93AppshellRoute
@@ -203,6 +216,13 @@ declare module '@tanstack/react-router' {
       path: '/stock'
       fullPath: '/stock'
       preLoaderRoute: typeof StockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/estimator': {
@@ -284,6 +304,7 @@ const rootRouteChildren: RootRouteChildren = {
   CatalogueRoute: CatalogueRoute,
   DashboardRoute: DashboardRoute,
   EstimatorRoute: EstimatorRoute,
+  SettingsRoute: SettingsRoute,
   StockRoute: StockRoute,
   WatchlistRoute: WatchlistRoute,
   Char91_devChar93AppshellRoute: Char91_devChar93AppshellRoute,
@@ -295,3 +316,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
