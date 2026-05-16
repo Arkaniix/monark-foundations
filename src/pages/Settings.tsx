@@ -2,8 +2,16 @@ import { Download } from "lucide-react";
 import SettingsHeader from "../components/settings/SettingsHeader";
 import SettingsCategoryTile from "../components/settings/SettingsCategoryTile";
 import { SETTINGS_CATEGORIES } from "../components/settings/datasets";
+import { buildExportPayload, downloadPayloadAsFile } from "@/lib/dataExport";
+import { useState } from "react";
 
 export default function Settings() {
+  const [exported, setExported] = useState(false);
+  function handleExport() {
+    downloadPayloadAsFile(buildExportPayload());
+    setExported(true);
+    window.setTimeout(() => setExported(false), 3000);
+  }
   return (
     <div className="flex flex-col" style={{ gap: 8 }}>
       {/* Fil d'ariane non cliquable */}
@@ -65,8 +73,7 @@ export default function Settings() {
         </div>
         <button
           type="button"
-          disabled
-          title="Disponible en P1F"
+          onClick={handleExport}
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -78,14 +85,13 @@ export default function Settings() {
             fontSize: 11,
             letterSpacing: "0.08em",
             textTransform: "uppercase",
-            color: "#A1A1AA",
+            color: exported ? "#10B981" : "#D4D4D8",
             background: "transparent",
-            opacity: 0.45,
-            cursor: "not-allowed",
+            cursor: "pointer",
           }}
         >
           <Download size={12} strokeWidth={1.5} />
-          Exporter tout
+          {exported ? "Exporté" : "Exporter tout"}
         </button>
       </div>
     </div>
