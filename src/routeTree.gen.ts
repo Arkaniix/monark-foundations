@@ -11,11 +11,18 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WatchlistRouteImport } from './routes/watchlist'
 import { Route as StockRouteImport } from './routes/stock'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as EstimatorRouteImport } from './routes/estimator'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsPreferencesRouteImport } from './routes/settings_.preferences'
+import { Route as SettingsNotificationsRouteImport } from './routes/settings_.notifications'
+import { Route as SettingsFiscalRouteImport } from './routes/settings_.fiscal'
+import { Route as SettingsDataRouteImport } from './routes/settings_.data'
+import { Route as SettingsAccountRouteImport } from './routes/settings_.account'
+import { Route as SettingsAboutRouteImport } from './routes/settings_.about'
 import { Route as CatalogueModelIdRouteImport } from './routes/catalogue_.$modelId'
 import { Route as Char91_devChar93UiRouteImport } from './routes/[_dev].ui'
 import { Route as Char91_devChar93EstimatorStatesRouteImport } from './routes/[_dev].estimator-states'
@@ -30,6 +37,11 @@ const WatchlistRoute = WatchlistRouteImport.update({
 const StockRoute = StockRouteImport.update({
   id: '/stock',
   path: '/stock',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EstimatorRoute = EstimatorRouteImport.update({
@@ -55,6 +67,36 @@ const AuthRoute = AuthRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsPreferencesRoute = SettingsPreferencesRouteImport.update({
+  id: '/settings_/preferences',
+  path: '/settings/preferences',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsNotificationsRoute = SettingsNotificationsRouteImport.update({
+  id: '/settings_/notifications',
+  path: '/settings/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsFiscalRoute = SettingsFiscalRouteImport.update({
+  id: '/settings_/fiscal',
+  path: '/settings/fiscal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsDataRoute = SettingsDataRouteImport.update({
+  id: '/settings_/data',
+  path: '/settings/data',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsAccountRoute = SettingsAccountRouteImport.update({
+  id: '/settings_/account',
+  path: '/settings/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsAboutRoute = SettingsAboutRouteImport.update({
+  id: '/settings_/about',
+  path: '/settings/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CatalogueModelIdRoute = CatalogueModelIdRouteImport.update({
@@ -92,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
+  '/settings': typeof SettingsRoute
   '/stock': typeof StockRoute
   '/watchlist': typeof WatchlistRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
@@ -99,6 +142,12 @@ export interface FileRoutesByFullPath {
   '/_dev/estimator-states': typeof Char91_devChar93EstimatorStatesRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
   '/catalogue/$modelId': typeof CatalogueModelIdRoute
+  '/settings/about': typeof SettingsAboutRoute
+  '/settings/account': typeof SettingsAccountRoute
+  '/settings/data': typeof SettingsDataRoute
+  '/settings/fiscal': typeof SettingsFiscalRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
+  '/settings/preferences': typeof SettingsPreferencesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -106,6 +155,7 @@ export interface FileRoutesByTo {
   '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
+  '/settings': typeof SettingsRoute
   '/stock': typeof StockRoute
   '/watchlist': typeof WatchlistRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
@@ -113,6 +163,12 @@ export interface FileRoutesByTo {
   '/_dev/estimator-states': typeof Char91_devChar93EstimatorStatesRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
   '/catalogue/$modelId': typeof CatalogueModelIdRoute
+  '/settings/about': typeof SettingsAboutRoute
+  '/settings/account': typeof SettingsAccountRoute
+  '/settings/data': typeof SettingsDataRoute
+  '/settings/fiscal': typeof SettingsFiscalRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
+  '/settings/preferences': typeof SettingsPreferencesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -121,6 +177,7 @@ export interface FileRoutesById {
   '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
+  '/settings': typeof SettingsRoute
   '/stock': typeof StockRoute
   '/watchlist': typeof WatchlistRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
@@ -128,6 +185,12 @@ export interface FileRoutesById {
   '/_dev/estimator-states': typeof Char91_devChar93EstimatorStatesRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
   '/catalogue_/$modelId': typeof CatalogueModelIdRoute
+  '/settings_/about': typeof SettingsAboutRoute
+  '/settings_/account': typeof SettingsAccountRoute
+  '/settings_/data': typeof SettingsDataRoute
+  '/settings_/fiscal': typeof SettingsFiscalRoute
+  '/settings_/notifications': typeof SettingsNotificationsRoute
+  '/settings_/preferences': typeof SettingsPreferencesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -137,6 +200,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/dashboard'
     | '/estimator'
+    | '/settings'
     | '/stock'
     | '/watchlist'
     | '/_dev/appshell'
@@ -144,6 +208,12 @@ export interface FileRouteTypes {
     | '/_dev/estimator-states'
     | '/_dev/ui'
     | '/catalogue/$modelId'
+    | '/settings/about'
+    | '/settings/account'
+    | '/settings/data'
+    | '/settings/fiscal'
+    | '/settings/notifications'
+    | '/settings/preferences'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -151,6 +221,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/dashboard'
     | '/estimator'
+    | '/settings'
     | '/stock'
     | '/watchlist'
     | '/_dev/appshell'
@@ -158,6 +229,12 @@ export interface FileRouteTypes {
     | '/_dev/estimator-states'
     | '/_dev/ui'
     | '/catalogue/$modelId'
+    | '/settings/about'
+    | '/settings/account'
+    | '/settings/data'
+    | '/settings/fiscal'
+    | '/settings/notifications'
+    | '/settings/preferences'
   id:
     | '__root__'
     | '/'
@@ -165,6 +242,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/dashboard'
     | '/estimator'
+    | '/settings'
     | '/stock'
     | '/watchlist'
     | '/_dev/appshell'
@@ -172,6 +250,12 @@ export interface FileRouteTypes {
     | '/_dev/estimator-states'
     | '/_dev/ui'
     | '/catalogue_/$modelId'
+    | '/settings_/about'
+    | '/settings_/account'
+    | '/settings_/data'
+    | '/settings_/fiscal'
+    | '/settings_/notifications'
+    | '/settings_/preferences'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -180,6 +264,7 @@ export interface RootRouteChildren {
   CatalogueRoute: typeof CatalogueRoute
   DashboardRoute: typeof DashboardRoute
   EstimatorRoute: typeof EstimatorRoute
+  SettingsRoute: typeof SettingsRoute
   StockRoute: typeof StockRoute
   WatchlistRoute: typeof WatchlistRoute
   Char91_devChar93AppshellRoute: typeof Char91_devChar93AppshellRoute
@@ -187,6 +272,12 @@ export interface RootRouteChildren {
   Char91_devChar93EstimatorStatesRoute: typeof Char91_devChar93EstimatorStatesRoute
   Char91_devChar93UiRoute: typeof Char91_devChar93UiRoute
   CatalogueModelIdRoute: typeof CatalogueModelIdRoute
+  SettingsAboutRoute: typeof SettingsAboutRoute
+  SettingsAccountRoute: typeof SettingsAccountRoute
+  SettingsDataRoute: typeof SettingsDataRoute
+  SettingsFiscalRoute: typeof SettingsFiscalRoute
+  SettingsNotificationsRoute: typeof SettingsNotificationsRoute
+  SettingsPreferencesRoute: typeof SettingsPreferencesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -203,6 +294,13 @@ declare module '@tanstack/react-router' {
       path: '/stock'
       fullPath: '/stock'
       preLoaderRoute: typeof StockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/estimator': {
@@ -238,6 +336,48 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings_/preferences': {
+      id: '/settings_/preferences'
+      path: '/settings/preferences'
+      fullPath: '/settings/preferences'
+      preLoaderRoute: typeof SettingsPreferencesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings_/notifications': {
+      id: '/settings_/notifications'
+      path: '/settings/notifications'
+      fullPath: '/settings/notifications'
+      preLoaderRoute: typeof SettingsNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings_/fiscal': {
+      id: '/settings_/fiscal'
+      path: '/settings/fiscal'
+      fullPath: '/settings/fiscal'
+      preLoaderRoute: typeof SettingsFiscalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings_/data': {
+      id: '/settings_/data'
+      path: '/settings/data'
+      fullPath: '/settings/data'
+      preLoaderRoute: typeof SettingsDataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings_/account': {
+      id: '/settings_/account'
+      path: '/settings/account'
+      fullPath: '/settings/account'
+      preLoaderRoute: typeof SettingsAccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings_/about': {
+      id: '/settings_/about'
+      path: '/settings/about'
+      fullPath: '/settings/about'
+      preLoaderRoute: typeof SettingsAboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/catalogue_/$modelId': {
@@ -284,6 +424,7 @@ const rootRouteChildren: RootRouteChildren = {
   CatalogueRoute: CatalogueRoute,
   DashboardRoute: DashboardRoute,
   EstimatorRoute: EstimatorRoute,
+  SettingsRoute: SettingsRoute,
   StockRoute: StockRoute,
   WatchlistRoute: WatchlistRoute,
   Char91_devChar93AppshellRoute: Char91_devChar93AppshellRoute,
@@ -291,6 +432,12 @@ const rootRouteChildren: RootRouteChildren = {
   Char91_devChar93EstimatorStatesRoute: Char91_devChar93EstimatorStatesRoute,
   Char91_devChar93UiRoute: Char91_devChar93UiRoute,
   CatalogueModelIdRoute: CatalogueModelIdRoute,
+  SettingsAboutRoute: SettingsAboutRoute,
+  SettingsAccountRoute: SettingsAccountRoute,
+  SettingsDataRoute: SettingsDataRoute,
+  SettingsFiscalRoute: SettingsFiscalRoute,
+  SettingsNotificationsRoute: SettingsNotificationsRoute,
+  SettingsPreferencesRoute: SettingsPreferencesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
