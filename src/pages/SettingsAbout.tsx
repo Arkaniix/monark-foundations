@@ -1,7 +1,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, Mail, Info, X } from "lucide-react";
-import { GLOSSARY } from "@/lib/glossary";
+import { GLOSSARY, type GlossaryEntry } from "@/lib/glossary";
 import Logo from "@/components/ui/Logo";
 import SettingsBreadcrumb from "@/components/settings/SettingsBreadcrumb";
 import SettingsHeader from "@/components/settings/SettingsHeader";
@@ -260,7 +260,8 @@ function GlossaryAccordion() {
         overflow: "hidden",
       }}
     >
-      {entries.map(([key, entry], i) => {
+      {entries.map(([key, entryRaw], i) => {
+        const entry = entryRaw as GlossaryEntry;
         const isOpen = openKey === key;
         return (
           <div
