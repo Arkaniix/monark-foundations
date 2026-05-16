@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
 
 type Props = {
   label: string;
@@ -6,6 +7,8 @@ type Props = {
   children: ReactNode;
   status?: "deferred";
   isFirst?: boolean;
+  footerAction?: { label: string; href: string };
+  labelBadge?: ReactNode;
 };
 
 const containerBase: CSSProperties = {
@@ -35,43 +38,76 @@ export default function SettingsRow({
   children,
   status,
   isFirst,
+  footerAction,
+  labelBadge,
 }: Props) {
   const style: CSSProperties = {
     ...containerBase,
+    flexDirection: "column",
     borderTop: isFirst ? undefined : "1px solid rgba(255,255,255,0.04)",
   };
   return (
     <div style={style}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div>
-          <span
-            style={{
-              fontSize: 13,
-              color: "#FAFAFA",
-              fontWeight: 500,
-              lineHeight: 1.4,
-            }}
-          >
-            {label}
-          </span>
-          {status === "deferred" && (
-            <span style={badgeStyle}>ACTIVATION PROGRESSIVE</span>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          gap: 24,
+          width: "100%",
+        }}
+      >
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div>
+            <span
+              style={{
+                fontSize: 13,
+                color: "#FAFAFA",
+                fontWeight: 500,
+                lineHeight: 1.4,
+              }}
+            >
+              {label}
+            </span>
+            {labelBadge}
+            {status === "deferred" && (
+              <span style={badgeStyle}>ACTIVATION PROGRESSIVE</span>
+            )}
+          </div>
+          {sublabel && (
+            <div
+              style={{
+                fontSize: 11,
+                color: "#71717A",
+                marginTop: 2,
+                lineHeight: 1.5,
+              }}
+            >
+              {sublabel}
+            </div>
           )}
         </div>
-        {sublabel && (
-          <div
-            style={{
-              fontSize: 11,
-              color: "#71717A",
-              marginTop: 2,
-              lineHeight: 1.5,
-            }}
-          >
-            {sublabel}
-          </div>
-        )}
+        <div style={{ flexShrink: 0 }}>{children}</div>
       </div>
-      <div style={{ flexShrink: 0 }}>{children}</div>
+      {footerAction && (
+        <div style={{ width: "100%", display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+          <Link
+            to={footerAction.href}
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 11,
+              letterSpacing: "0.08em",
+              color: "#71717A",
+              textDecoration: "none",
+              transition: "color 200ms",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#FAFAFA")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#71717A")}
+          >
+            {footerAction.label}
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
