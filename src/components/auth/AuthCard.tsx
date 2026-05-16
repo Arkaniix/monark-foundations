@@ -110,7 +110,8 @@ export default function AuthCard() {
     setPhase("exiting");
     setTimeout(() => {
       setPhase("done");
-      navigate({ to: "/dashboard" });
+      const target = readStartScreenPath();
+      navigate({ to: target as "/dashboard" });
     }, 380);
   };
 
