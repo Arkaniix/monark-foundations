@@ -17,10 +17,12 @@ import * as realAuth from "./auth";
 import * as realDashboard from "./dashboard";
 import * as realEstimator from "./estimator";
 import * as realCatalog from "./catalog";
+import * as realRepair from "./repair";
 import * as mockAuth from "../mocks/auth";
 import * as mockDashboard from "../mocks/dashboard";
 import * as mockEstimator from "../mocks/estimator";
 import * as mockCatalog from "../mocks/catalog";
+import * as mockRepair from "../mocks/repair";
 import { USE_MOCK_API } from "../mocks";
 
 export * from "./client";
@@ -36,3 +38,6 @@ export const estimatorApi: typeof realEstimator = USE_MOCK_API
 export const catalogApi: typeof realCatalog = USE_MOCK_API
   ? mockCatalog
   : realCatalog;
+export const repairApi: typeof realRepair = USE_MOCK_API
+  ? mockRepair
+  : realRepair;

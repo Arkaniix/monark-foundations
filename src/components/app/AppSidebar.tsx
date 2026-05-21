@@ -81,15 +81,21 @@ export default function AppSidebar({
           OUTILS
         </div>
         <ul className="flex flex-col gap-0.5">
-          {TOOLS.map((it) => (
-            <NavItem
-              key={it.to}
-              to={it.to}
-              label={it.label}
-              Icon={it.Icon}
-              active={activePath === it.to}
-            />
-          ))}
+          {TOOLS.map((it) => {
+            const isActive =
+              it.to === "/repair"
+                ? (activePath?.startsWith("/repair") ?? false)
+                : activePath === it.to;
+            return (
+              <NavItem
+                key={it.to}
+                to={it.to}
+                label={it.label}
+                Icon={it.Icon}
+                active={isActive}
+              />
+            );
+          })}
         </ul>
 
         <div className="mb-2 mt-6 px-3 font-mono text-[10px] tracking-[0.2em] text-zinc-600">
