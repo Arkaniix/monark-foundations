@@ -177,7 +177,7 @@ export default function Repair() {
         <SymptomStep
           categoryLabel={activeCategoryDef?.label ?? ""}
           categoryColor={activeCategoryDef?.colorHex ?? "#A1A1AA"}
-          categoryBg={activeCategoryDef?.iconBgRgba ?? activeCategoryDef?.bgRgba ?? "rgba(255,255,255,0.04)"}
+          categoryBg={activeCategoryDef?.bgRgba ?? "rgba(255,255,255,0.04)"}
           categoryIconSlug={activeCategoryDef?.icon ?? ""}
           symptoms={categorySymptoms}
           onBack={() => setSelectedCategory(null)}
