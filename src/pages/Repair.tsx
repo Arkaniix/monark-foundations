@@ -312,13 +312,8 @@ function SymptomStep({
         >
           <CatIcon className="h-5 w-5" strokeWidth={1.5} style={{ color: categoryColor }} />
         </div>
-        <div>
-          <div className="font-mono text-[11px] tracking-wider" style={{ color: "#71717A" }}>
-            § 01.A — {categoryLabel.toUpperCase()}
-          </div>
-          <div className="text-[18px] font-medium" style={{ color: "#FAFAFA" }}>
-            Quel symptôme observez-vous ?
-          </div>
+        <div className="text-[18px] font-medium" style={{ color: "#FAFAFA" }}>
+          Quel symptôme observez-vous ?
         </div>
       </div>
 
