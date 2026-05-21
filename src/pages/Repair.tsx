@@ -132,7 +132,7 @@ export default function Repair() {
       </div>
 
       {/* Header */}
-      <div className="mb-8 flex items-end justify-between gap-6">
+      <div className="mb-6 flex items-end justify-between gap-6">
         <div>
           <div className="font-mono text-[11px] tracking-wider" style={{ color: "#71717A" }}>
             § 01 — REPAIR GUIDE
@@ -156,11 +156,11 @@ export default function Repair() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 gap-[10px] sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
-              className="h-[120px] animate-pulse rounded-lg"
+              className="h-[104px] animate-pulse rounded-lg"
               style={{
                 background: "rgba(255,255,255,0.02)",
                 border: "1px solid rgba(255,255,255,0.04)",
@@ -200,7 +200,7 @@ function CategoryStep({
       <div className="mb-3 font-mono text-[11px] tracking-wider" style={{ color: "#71717A" }}>
         § 01.1 — CHOISISSEZ UNE CATÉGORIE
       </div>
-      <div className="grid grid-cols-1 gap-[10px] sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {REPAIR_CATEGORIES.map((cat) => {
           const Icon = getIcon(cat.icon);
           const count = countByCategory[cat.slug] ?? 0;
@@ -209,25 +209,60 @@ function CategoryStep({
               key={cat.slug}
               type="button"
               onClick={() => onSelect(cat.slug)}
-              className="ease-expo group flex flex-col gap-[14px] rounded-lg p-[18px] text-left transition-colors hover:bg-white/[0.03]"
+              className="text-left"
               style={{
+                display: "block",
+                padding: 16,
+                borderRadius: 8,
                 background: "rgba(255,255,255,0.015)",
                 border: "1px solid rgba(255,255,255,0.06)",
+                cursor: "pointer",
+                transition:
+                  "background 200ms cubic-bezier(0.16,1,0.3,1), border-color 200ms cubic-bezier(0.16,1,0.3,1)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(255,255,255,0.030)";
+                e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(255,255,255,0.015)";
+                e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
               }}
             >
               <div
-                className="flex h-11 w-11 items-center justify-center rounded-md"
-                style={{ background: cat.bgRgba }}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 6,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 12,
+                  background: cat.bgRgba,
+                  color: cat.colorHex,
+                }}
               >
-                <Icon className="h-5 w-5" strokeWidth={1.5} style={{ color: cat.colorHex }} />
+                <Icon strokeWidth={1.5} style={{ width: 16, height: 16 }} />
               </div>
-              <div>
-                <div className="text-[14px] font-medium" style={{ color: "#FAFAFA" }}>
-                  {cat.label}
-                </div>
-                <div className="mt-1 font-mono text-[10px] tracking-wider" style={{ color: "#71717A" }}>
-                  {count} SYMPTÔMES
-                </div>
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: "#FAFAFA",
+                  marginBottom: 2,
+                }}
+              >
+                {cat.label}
+              </div>
+              <div
+                className="font-mono"
+                style={{
+                  fontSize: 11,
+                  color: "#71717A",
+                  letterSpacing: "0.08em",
+                }}
+              >
+                {count} SYMPTÔMES
               </div>
             </button>
           );
@@ -287,7 +322,7 @@ function SymptomStep({
         </div>
       </div>
 
-      <div className="flex flex-col gap-[6px]">
+      <div className="flex flex-col gap-2">
         {symptoms.map((sym) => {
           const Icon = getIcon(sym.icon);
           return (
@@ -295,8 +330,9 @@ function SymptomStep({
               key={sym.id}
               type="button"
               onClick={() => onPick(sym.slug)}
-              className="ease-expo group flex items-center gap-[14px] rounded-lg px-4 py-[14px] text-left transition-colors hover:bg-white/[0.025]"
+              className="ease-expo group flex items-center gap-[14px] rounded-lg text-left transition-colors hover:bg-white/[0.025]"
               style={{
+                padding: "14px 16px",
                 background: "rgba(255,255,255,0.015)",
                 border: "1px solid rgba(255,255,255,0.04)",
               }}
