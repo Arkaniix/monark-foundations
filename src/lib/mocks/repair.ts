@@ -111,6 +111,7 @@ const GUIDE_GPU_ARTIFACTS: GuideContent = {
         { condition: "Artefacts apparaissent à chaud, VRAM > 95 °C", points_to_cause: "Pâte thermique sèche / pads usés", severity: "medium" },
         { condition: "Artefacts présents dès le démarrage, à froid", points_to_cause: "VRAM défaillante (puce mémoire)", severity: "high" },
         { condition: "Température GPU normale mais throttling", points_to_cause: "Alimentation insuffisante / instable", severity: "medium" },
+        { condition: "Tout le GPU surchauffe (core > 83 °C), throttling thermique global", points_to_symptom: "gpu_high_temps", points_to_symptom_title: "Températures élevées", severity: "high" },
       ],
     },
     {

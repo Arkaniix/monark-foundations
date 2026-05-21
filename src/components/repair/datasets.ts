@@ -71,10 +71,25 @@ export type RepairDifficulty = "beginner" | "intermediate" | "advanced" | "exper
 export type DiagnosticOutcome = {
   /** Condition observée par l'utilisateur, ex: "VRAM > 95°C et artefacts persistent" */
   condition: string;
-  /** Cause vers laquelle ça pointe — DOIT matcher un common_causes[].cause pour le lien cliquable */
-  points_to_cause: string;
   /** Sévérité de cette piste, pour colorer l'indicateur */
   severity: RepairSeverity;
+  /**
+   * Cible LOCALE : cause/procédure du guide actuel.
+   * DOIT matcher un common_causes[].cause (et repair_procedures[].cause_ref)
+   * pour le scroll + surbrillance vers la procédure correspondante.
+   * Exclusif avec points_to_symptom.
+   */
+  points_to_cause?: string;
+  /**
+   * Cible EXTERNE : redirige vers un AUTRE diagnostic.
+   * Slug d'un autre symptôme (ex: "gpu_high_temps"). Quand ce que l'utilisateur
+   * observe révèle que le vrai problème relève d'un autre symptôme, on le renvoie
+   * vers le guide dédié. Le lien navigue vers /repair/{slug}.
+   * Exclusif avec points_to_cause.
+   */
+  points_to_symptom?: string;
+  /** Titre lisible du symptôme cible (affichage direct, requis si points_to_symptom). */
+  points_to_symptom_title?: string;
 };
 
 export type DiagnosticStep = {
