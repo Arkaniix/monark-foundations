@@ -146,7 +146,7 @@ export default function Repair() {
         </div>
         <button
           type="button"
-          onClick={() => navigate({ to: "/repair_/history" })}
+          onClick={() => navigate({ to: "/repair/history" })}
           className="ease-expo flex items-center gap-1.5 rounded-md border border-white/[0.06] bg-white/[0.015] px-3 py-2 font-mono text-[11px] tracking-wider transition-colors hover:border-white/[0.12] hover:bg-white/[0.03]"
           style={{ color: "#A1A1AA" }}
         >
@@ -181,7 +181,7 @@ export default function Repair() {
           categoryIconSlug={activeCategoryDef?.icon ?? ""}
           symptoms={categorySymptoms}
           onBack={() => setSelectedCategory(null)}
-          onPick={(slug) => navigate({ to: "/repair_/$slug", params: { slug } })}
+          onPick={(slug) => navigate({ to: "/repair/$slug", params: { slug } })}
         />
       )}
     </div>
