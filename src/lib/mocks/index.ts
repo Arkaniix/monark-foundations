@@ -13,6 +13,7 @@
 
 export * as authApi from "./auth";
 export * as dashboardApi from "./dashboard";
+export * as repairApi from "./repair";
 
 /**
  * Flag de routing real/mock. Lu une seule fois au boot.

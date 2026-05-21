@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WatchlistRouteImport } from './routes/watchlist'
 import { Route as StockRouteImport } from './routes/stock'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as RepairRouteImport } from './routes/repair'
 import { Route as EstimatorRouteImport } from './routes/estimator'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
@@ -23,6 +24,8 @@ import { Route as SettingsFiscalRouteImport } from './routes/settings_.fiscal'
 import { Route as SettingsDataRouteImport } from './routes/settings_.data'
 import { Route as SettingsAccountRouteImport } from './routes/settings_.account'
 import { Route as SettingsAboutRouteImport } from './routes/settings_.about'
+import { Route as RepairHistoryRouteImport } from './routes/repair_.history'
+import { Route as RepairSlugRouteImport } from './routes/repair_.$slug'
 import { Route as CatalogueModelIdRouteImport } from './routes/catalogue_.$modelId'
 import { Route as Char91_devChar93UiRouteImport } from './routes/[_dev].ui'
 import { Route as Char91_devChar93EstimatorStatesRouteImport } from './routes/[_dev].estimator-states'
@@ -42,6 +45,11 @@ const StockRoute = StockRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RepairRoute = RepairRouteImport.update({
+  id: '/repair',
+  path: '/repair',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EstimatorRoute = EstimatorRouteImport.update({
@@ -99,6 +107,16 @@ const SettingsAboutRoute = SettingsAboutRouteImport.update({
   path: '/settings/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RepairHistoryRoute = RepairHistoryRouteImport.update({
+  id: '/repair_/history',
+  path: '/repair/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RepairSlugRoute = RepairSlugRouteImport.update({
+  id: '/repair_/$slug',
+  path: '/repair/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CatalogueModelIdRoute = CatalogueModelIdRouteImport.update({
   id: '/catalogue_/$modelId',
   path: '/catalogue/$modelId',
@@ -134,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
+  '/repair': typeof RepairRoute
   '/settings': typeof SettingsRoute
   '/stock': typeof StockRoute
   '/watchlist': typeof WatchlistRoute
@@ -142,6 +161,8 @@ export interface FileRoutesByFullPath {
   '/_dev/estimator-states': typeof Char91_devChar93EstimatorStatesRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
   '/catalogue/$modelId': typeof CatalogueModelIdRoute
+  '/repair/$slug': typeof RepairSlugRoute
+  '/repair/history': typeof RepairHistoryRoute
   '/settings/about': typeof SettingsAboutRoute
   '/settings/account': typeof SettingsAccountRoute
   '/settings/data': typeof SettingsDataRoute
@@ -155,6 +176,7 @@ export interface FileRoutesByTo {
   '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
+  '/repair': typeof RepairRoute
   '/settings': typeof SettingsRoute
   '/stock': typeof StockRoute
   '/watchlist': typeof WatchlistRoute
@@ -163,6 +185,8 @@ export interface FileRoutesByTo {
   '/_dev/estimator-states': typeof Char91_devChar93EstimatorStatesRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
   '/catalogue/$modelId': typeof CatalogueModelIdRoute
+  '/repair/$slug': typeof RepairSlugRoute
+  '/repair/history': typeof RepairHistoryRoute
   '/settings/about': typeof SettingsAboutRoute
   '/settings/account': typeof SettingsAccountRoute
   '/settings/data': typeof SettingsDataRoute
@@ -177,6 +201,7 @@ export interface FileRoutesById {
   '/catalogue': typeof CatalogueRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
+  '/repair': typeof RepairRoute
   '/settings': typeof SettingsRoute
   '/stock': typeof StockRoute
   '/watchlist': typeof WatchlistRoute
@@ -185,6 +210,8 @@ export interface FileRoutesById {
   '/_dev/estimator-states': typeof Char91_devChar93EstimatorStatesRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
   '/catalogue_/$modelId': typeof CatalogueModelIdRoute
+  '/repair_/$slug': typeof RepairSlugRoute
+  '/repair_/history': typeof RepairHistoryRoute
   '/settings_/about': typeof SettingsAboutRoute
   '/settings_/account': typeof SettingsAccountRoute
   '/settings_/data': typeof SettingsDataRoute
@@ -200,6 +227,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/dashboard'
     | '/estimator'
+    | '/repair'
     | '/settings'
     | '/stock'
     | '/watchlist'
@@ -208,6 +236,8 @@ export interface FileRouteTypes {
     | '/_dev/estimator-states'
     | '/_dev/ui'
     | '/catalogue/$modelId'
+    | '/repair/$slug'
+    | '/repair/history'
     | '/settings/about'
     | '/settings/account'
     | '/settings/data'
@@ -221,6 +251,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/dashboard'
     | '/estimator'
+    | '/repair'
     | '/settings'
     | '/stock'
     | '/watchlist'
@@ -229,6 +260,8 @@ export interface FileRouteTypes {
     | '/_dev/estimator-states'
     | '/_dev/ui'
     | '/catalogue/$modelId'
+    | '/repair/$slug'
+    | '/repair/history'
     | '/settings/about'
     | '/settings/account'
     | '/settings/data'
@@ -242,6 +275,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/dashboard'
     | '/estimator'
+    | '/repair'
     | '/settings'
     | '/stock'
     | '/watchlist'
@@ -250,6 +284,8 @@ export interface FileRouteTypes {
     | '/_dev/estimator-states'
     | '/_dev/ui'
     | '/catalogue_/$modelId'
+    | '/repair_/$slug'
+    | '/repair_/history'
     | '/settings_/about'
     | '/settings_/account'
     | '/settings_/data'
@@ -264,6 +300,7 @@ export interface RootRouteChildren {
   CatalogueRoute: typeof CatalogueRoute
   DashboardRoute: typeof DashboardRoute
   EstimatorRoute: typeof EstimatorRoute
+  RepairRoute: typeof RepairRoute
   SettingsRoute: typeof SettingsRoute
   StockRoute: typeof StockRoute
   WatchlistRoute: typeof WatchlistRoute
@@ -272,6 +309,8 @@ export interface RootRouteChildren {
   Char91_devChar93EstimatorStatesRoute: typeof Char91_devChar93EstimatorStatesRoute
   Char91_devChar93UiRoute: typeof Char91_devChar93UiRoute
   CatalogueModelIdRoute: typeof CatalogueModelIdRoute
+  RepairSlugRoute: typeof RepairSlugRoute
+  RepairHistoryRoute: typeof RepairHistoryRoute
   SettingsAboutRoute: typeof SettingsAboutRoute
   SettingsAccountRoute: typeof SettingsAccountRoute
   SettingsDataRoute: typeof SettingsDataRoute
@@ -301,6 +340,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/repair': {
+      id: '/repair'
+      path: '/repair'
+      fullPath: '/repair'
+      preLoaderRoute: typeof RepairRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/estimator': {
@@ -380,6 +426,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsAboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/repair_/history': {
+      id: '/repair_/history'
+      path: '/repair/history'
+      fullPath: '/repair/history'
+      preLoaderRoute: typeof RepairHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/repair_/$slug': {
+      id: '/repair_/$slug'
+      path: '/repair/$slug'
+      fullPath: '/repair/$slug'
+      preLoaderRoute: typeof RepairSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/catalogue_/$modelId': {
       id: '/catalogue_/$modelId'
       path: '/catalogue/$modelId'
@@ -424,6 +484,7 @@ const rootRouteChildren: RootRouteChildren = {
   CatalogueRoute: CatalogueRoute,
   DashboardRoute: DashboardRoute,
   EstimatorRoute: EstimatorRoute,
+  RepairRoute: RepairRoute,
   SettingsRoute: SettingsRoute,
   StockRoute: StockRoute,
   WatchlistRoute: WatchlistRoute,
@@ -432,6 +493,8 @@ const rootRouteChildren: RootRouteChildren = {
   Char91_devChar93EstimatorStatesRoute: Char91_devChar93EstimatorStatesRoute,
   Char91_devChar93UiRoute: Char91_devChar93UiRoute,
   CatalogueModelIdRoute: CatalogueModelIdRoute,
+  RepairSlugRoute: RepairSlugRoute,
+  RepairHistoryRoute: RepairHistoryRoute,
   SettingsAboutRoute: SettingsAboutRoute,
   SettingsAccountRoute: SettingsAccountRoute,
   SettingsDataRoute: SettingsDataRoute,
