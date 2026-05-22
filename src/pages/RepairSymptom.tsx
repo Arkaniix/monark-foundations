@@ -37,6 +37,9 @@ import {
   Flame,
   CircleDot,
   AlarmClockOff,
+  Eye,
+  ShieldAlert,
+  UserCog,
 } from "lucide-react";
 import { repairApi } from "@/lib/api";
 import {
@@ -361,6 +364,63 @@ export default function RepairSymptom({ slug }: { slug: string }) {
                               style={{ color: "#52525B" }}
                             >
                               OUTILS : {step.tools_needed.join(", ")}
+                            </div>
+                          )}
+
+                          {step.detailed_instructions && step.detailed_instructions.length > 0 && (
+                            <div className="mt-3" style={{ paddingLeft: 4 }}>
+                              <div
+                                className="font-mono text-[10px] mb-1.5"
+                                style={{ color: "#52525B", letterSpacing: "0.10em" }}
+                              >
+                                COMMENT FAIRE
+                              </div>
+                              <ol className="flex flex-col" style={{ gap: 4, paddingLeft: 4 }}>
+                                {step.detailed_instructions.map((ins, i) => (
+                                  <li key={i} className="flex items-start gap-2">
+                                    <span
+                                      className="font-mono text-[11px] shrink-0"
+                                      style={{ color: "#52525B", lineHeight: 1.7, minWidth: 16 }}
+                                    >
+                                      {i + 1}.
+                                    </span>
+                                    <span
+                                      className="text-[12px]"
+                                      style={{ color: "#A1A1AA", lineHeight: 1.7 }}
+                                    >
+                                      {ins}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ol>
+                            </div>
+                          )}
+
+                          {step.what_to_observe && (
+                            <div
+                              className="mt-3"
+                              style={{
+                                background: "rgba(59,130,246,0.05)",
+                                borderLeft: "2px solid rgba(59,130,246,0.30)",
+                                padding: "8px 12px",
+                                borderRadius: "0 6px 6px 0",
+                              }}
+                            >
+                              <div className="flex items-center gap-1.5 mb-1">
+                                <Eye size={13} style={{ color: "#3B82F6" }} />
+                                <span
+                                  className="font-mono text-[9px]"
+                                  style={{ color: "#3B82F6", letterSpacing: "0.14em" }}
+                                >
+                                  CE QUE VOUS CHERCHEZ
+                                </span>
+                              </div>
+                              <div
+                                className="text-[12px]"
+                                style={{ color: "#D4D4D8", lineHeight: 1.6 }}
+                              >
+                                {step.what_to_observe}
+                              </div>
                             </div>
                           )}
 
@@ -707,6 +767,18 @@ function ProcedureCard({
               </span>
             )}
             {diffLabel && <Pill label={diffLabel} color={diffColor} />}
+            {proc.requires_pro && (
+              <span
+                className="font-mono text-[9px] tracking-wider px-1.5 py-0.5 rounded shrink-0"
+                style={{
+                  color: "#EF4444",
+                  background: "rgba(239,68,68,0.12)",
+                  border: "1px solid rgba(239,68,68,0.25)",
+                }}
+              >
+                PRO
+              </span>
+            )}
             <span className="font-mono text-[10px] tracking-wider" style={{ color: "#71717A" }}>
               · {proc.estimated_cost_eur === 0 ? "GRATUIT" : `~${proc.estimated_cost_eur} €`}
             </span>
@@ -719,6 +791,31 @@ function ProcedureCard({
 
       {isOpen && (
         <div className="px-4 pb-4" style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 14 }}>
+          {proc.requires_pro && (
+            <div
+              className="mb-3"
+              style={{
+                background: "rgba(239,68,68,0.06)",
+                border: "1px solid rgba(239,68,68,0.25)",
+                borderRadius: 8,
+                padding: "12px 14px",
+              }}
+            >
+              <div className="flex items-start gap-2">
+                <UserCog size={14} style={{ color: "#EF4444", flexShrink: 0, marginTop: 2 }} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[12px] font-medium" style={{ color: "#EF4444" }}>
+                    Réparation experte — à confier à un professionnel
+                  </div>
+                  <div className="mt-1 text-[11px]" style={{ color: "#A1A1AA", lineHeight: 1.6 }}>
+                    Les étapes ci-dessous décrivent la procédure, mais elle nécessite un outillage
+                    spécialisé et présente un risque de dommage irréversible. Sauf si vous êtes équipé
+                    et expérimenté, mieux vaut faire appel à un atelier.
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           <ol className="flex flex-col gap-2">
             {proc.steps.map((s, i) => (
               <li key={i} className="flex items-start gap-2.5">
@@ -741,6 +838,46 @@ function ProcedureCard({
               </li>
             ))}
           </ol>
+
+          {proc.safety_warnings && proc.safety_warnings.length > 0 && (
+            <div
+              className="mt-4"
+              style={{
+                background: "rgba(245,158,11,0.05)",
+                border: "1px solid rgba(245,158,11,0.20)",
+                borderRadius: 8,
+                padding: "12px 14px",
+              }}
+            >
+              <div className="flex items-center gap-1.5 mb-2">
+                <ShieldAlert size={13} style={{ color: "#F59E0B" }} />
+                <span
+                  className="font-mono text-[10px]"
+                  style={{ color: "#F59E0B", letterSpacing: "0.14em" }}
+                >
+                  PRÉCAUTIONS
+                </span>
+              </div>
+              <ul className="flex flex-col" style={{ gap: 6 }}>
+                {proc.safety_warnings.map((w, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span
+                      className="shrink-0"
+                      style={{ color: "#F59E0B", lineHeight: 1.6, fontSize: 12 }}
+                    >
+                      —
+                    </span>
+                    <span
+                      className="text-[12px]"
+                      style={{ color: "#D4D4D8", lineHeight: 1.6 }}
+                    >
+                      {w}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {proc.materials.length > 0 && (
             <div

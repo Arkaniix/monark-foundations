@@ -95,8 +95,20 @@ export type DiagnosticOutcome = {
 export type DiagnosticStep = {
   order: number;
   title: string;
+  /** Résumé court : le QUOI de l'étape. */
   description: string;
   tools_needed: string[];
+  /**
+   * AJOUT FRONT (pédagogie débutant) : la manipulation décomposée pas à pas.
+   * Chaque entrée est une sous-étape concrète et actionnable. Optionnel
+   * (les guides basiques non enrichis n'en ont pas).
+   */
+  detailed_instructions?: string[];
+  /**
+   * AJOUT FRONT (pédagogie débutant) : ce que l'utilisateur doit observer
+   * précisément, et comment interpréter ce qu'il voit. Optionnel.
+   */
+  what_to_observe?: string;
   /** AJOUT FRONT : lien causal. Optionnel pour rétrocompat avec guides non enrichis. */
   outcomes?: DiagnosticOutcome[];
 };
@@ -119,6 +131,17 @@ export type RepairProcedure = {
   materials: RepairMaterial[];
   estimated_cost_eur: number;
   estimated_time_min: number;
+  /**
+   * AJOUT FRONT (sécurité) : précautions à prendre avant/pendant la réparation.
+   * Affichées en encart d'avertissement. Optionnel.
+   */
+  safety_warnings?: string[];
+  /**
+   * AJOUT FRONT : true si la réparation dépasse le niveau d'un particulier
+   * (outillage spécialisé, risque de casse). L'UI affiche un encart honnête
+   * "à confier à un professionnel". Optionnel (défaut: false).
+   */
+  requires_pro?: boolean;
 };
 
 export type GuideContent = {
