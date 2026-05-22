@@ -586,7 +586,7 @@ export default function RepairSymptom({ slug }: { slug: string }) {
           deepErrorStatus={deepErrorStatus}
           models={models}
           brand={brand}
-          setBrand={(b) => { setBrand(b); setModelId(null); }}
+          setBrand={(b: string | null) => { setBrand(b); setModelId(null); }}
           modelId={modelId}
           setModelId={setModelId}
           useCustom={useCustom}
