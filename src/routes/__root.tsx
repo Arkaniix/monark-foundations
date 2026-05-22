@@ -30,14 +30,18 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Monark" },
+      { name: "description", content: "Monark Foundations provides a robust foundation for a PC hardware market intelligence SaaS for French professional resellers." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Monark" },
+      { property: "og:description", content: "Monark Foundations provides a robust foundation for a PC hardware market intelligence SaaS for French professional resellers." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Monark" },
+      { name: "twitter:description", content: "Monark Foundations provides a robust foundation for a PC hardware market intelligence SaaS for French professional resellers." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/mfags37bJDas7giyFHAwMtSR3vi1/social-images/social-1779462230297-Color_logo_with_background.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/mfags37bJDas7giyFHAwMtSR3vi1/social-images/social-1779462230297-Color_logo_with_background.webp" },
     ],
     links: [
       {
