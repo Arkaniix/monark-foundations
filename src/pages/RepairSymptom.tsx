@@ -40,6 +40,10 @@ import {
   Eye,
   ShieldAlert,
   UserCog,
+  Database,
+  Sparkles,
+  RotateCcw,
+  Loader2,
 } from "lucide-react";
 import { repairApi } from "@/lib/api";
 import {
@@ -48,11 +52,18 @@ import {
   SEVERITY_COLORS,
   DIFFICULTY_LABELS,
   DIFFICULTY_COLORS,
+  CONFIDENCE_LABELS,
+  CONFIDENCE_COLORS,
+  DEEP_DIAGNOSTIC_COST,
   type StaticGuideRead,
   type RepairSeverity,
   type DiagnosticOutcome,
   type RepairProcedure,
+  type DeepDiagnosticResponse,
+  type DeepAnalysis,
+  type RepairHardwareModel,
 } from "@/components/repair/datasets";
+import DropdownSelect, { type DropdownItem } from "@/components/stock/DropdownSelect";
 
 type IconCmp = ComponentType<{ size?: number; className?: string; strokeWidth?: number; style?: React.CSSProperties }>;
 
