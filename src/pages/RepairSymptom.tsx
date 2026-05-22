@@ -956,3 +956,699 @@ function ProcedureCard({
     </div>
   );
 }
+
+/* ============================================================
+   § 02.6 — DIAGNOSTIC PERSONNALISÉ IA
+   ============================================================ */
+
+type DeepSectionProps = {
+  deepState: DeepState;
+  deepResult: DeepDiagnosticResponse | null;
+  deepError: string | null;
+  deepErrorStatus: number | null;
+  models: RepairHardwareModel[];
+  brand: string | null;
+  setBrand: (b: string | null) => void;
+  modelId: number | null;
+  setModelId: (id: number | null) => void;
+  useCustom: boolean;
+  setUseCustom: (v: boolean) => void;
+  customName: string;
+  setCustomName: (s: string) => void;
+  context: string;
+  setContext: (s: string) => void;
+  canSubmit: boolean;
+  onOpenForm: () => void;
+  onCancel: () => void;
+  onSubmit: () => void;
+  onRetry: () => void;
+  onRerun: () => void;
+  symptomTitle: string;
+};
+
+function DeepDiagnosticSection(p: DeepSectionProps) {
+  if (p.deepState === "result" && p.deepResult) {
+    return (
+      <DeepResultPanel
+        result={p.deepResult}
+        symptomTitle={p.symptomTitle}
+        onRerun={p.onRerun}
+      />
+    );
+  }
+
+  // States idle / form / loading / error → bloc bleu commun
+  return (
+    <div
+      className="rounded-lg p-5"
+      style={{
+        background: "linear-gradient(135deg, rgba(59,130,246,0.08), rgba(168,85,247,0.06))",
+        border: "1px solid rgba(59,130,246,0.20)",
+      }}
+    >
+      <div className="flex items-start gap-3">
+        <div
+          className="flex shrink-0 items-center justify-center"
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 8,
+            background: "rgba(59,130,246,0.12)",
+            color: "#60A5FA",
+          }}
+        >
+          {p.deepState === "loading" ? (
+            <Brain size={20} strokeWidth={1.5} className="animate-pulse" />
+          ) : (
+            <Brain size={20} strokeWidth={1.5} />
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          {p.deepState === "idle" && <DeepIdle onOpenForm={p.onOpenForm} />}
+          {p.deepState === "form" && <DeepForm {...p} />}
+          {p.deepState === "loading" && <DeepLoading />}
+          {p.deepState === "error" && (
+            <DeepErrorBlock
+              error={p.deepError}
+              status={p.deepErrorStatus}
+              onRetry={p.onRetry}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeepIdle({ onOpenForm }: { onOpenForm: () => void }) {
+  return (
+    <>
+      <div className="text-[14px] font-medium" style={{ color: "#FAFAFA" }}>
+        Affiner avec un diagnostic IA personnalisé
+      </div>
+      <div className="mt-1 text-[12px]" style={{ color: "#A1A1AA" }}>
+        Indiquez votre matériel et votre contexte. L'IA produira une analyse spécifique avec
+        scénarios de réparation, matériaux, ROI et avertissements.
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={onOpenForm}
+          className="font-mono text-[11px] tracking-wider px-3 py-2 rounded-md inline-flex items-center gap-2"
+          style={{
+            background: "#3B82F6",
+            color: "#FAFAFA",
+            border: "1px solid rgba(59,130,246,0.6)",
+          }}
+        >
+          <Sparkles size={13} />
+          LANCER LE DIAGNOSTIC IA
+        </button>
+        <span className="font-mono text-[10px] tracking-wider" style={{ color: "#71717A" }}>
+          COÛT : {DEEP_DIAGNOSTIC_COST} CRÉDITS · CACHE 30 JOURS
+        </span>
+      </div>
+    </>
+  );
+}
+
+function DeepLoading() {
+  return (
+    <>
+      <div className="flex items-center gap-2 text-[14px] font-medium" style={{ color: "#FAFAFA" }}>
+        <Loader2 size={14} className="animate-spin" style={{ color: "#60A5FA" }} />
+        Analyse en cours…
+      </div>
+      <div className="mt-1 text-[12px]" style={{ color: "#A1A1AA" }}>
+        L'IA examine votre modèle et le contexte fourni. Cela prend quelques secondes.
+      </div>
+    </>
+  );
+}
+
+function DeepErrorBlock({
+  error,
+  status,
+  onRetry,
+}: {
+  error: string | null;
+  status: number | null;
+  onRetry: () => void;
+}) {
+  return (
+    <>
+      <div className="text-[14px] font-medium" style={{ color: "#FAFAFA" }}>
+        Analyse impossible
+      </div>
+      <div
+        className="mt-2 rounded-md p-3 text-[12px]"
+        style={{
+          background: "rgba(239,68,68,0.06)",
+          border: "1px solid rgba(239,68,68,0.25)",
+          color: "#FCA5A5",
+        }}
+      >
+        {error}
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={onRetry}
+          className="font-mono text-[11px] tracking-wider px-3 py-2 rounded-md"
+          style={{
+            background: "rgba(255,255,255,0.04)",
+            color: "#FAFAFA",
+            border: "1px solid rgba(255,255,255,0.10)",
+          }}
+        >
+          RÉESSAYER
+        </button>
+        {status === 402 && (
+          <button
+            type="button"
+            className="font-mono text-[11px] tracking-wider underline-offset-4 hover:underline"
+            style={{ color: "#60A5FA" }}
+          >
+            Recharger mes crédits
+          </button>
+        )}
+      </div>
+    </>
+  );
+}
+
+function DeepForm(p: DeepSectionProps) {
+  const brands = useMemo(
+    () => Array.from(new Set(p.models.map((m) => m.brand))).sort(),
+    [p.models],
+  );
+  const brandItems: DropdownItem<string>[] = [
+    { type: "option", value: "__none__", label: "— Choisir une marque —" },
+    ...brands.map((b) => ({ type: "option" as const, value: b, label: b })),
+  ];
+  const filteredModels = p.brand ? p.models.filter((m) => m.brand === p.brand) : [];
+  const modelItems: DropdownItem<string>[] = [
+    { type: "option", value: "__none__", label: p.brand ? "— Choisir un modèle —" : "— Choisir une marque d'abord —" },
+    ...filteredModels.map((m) => ({ type: "option" as const, value: String(m.id), label: m.name })),
+  ];
+  const currentBrandLabel = p.brand ?? "Marque";
+  const currentModelLabel =
+    p.modelId != null ? p.models.find((m) => m.id === p.modelId)?.name ?? "Modèle" : "Modèle";
+
+  return (
+    <div className="w-full">
+      <div className="text-[14px] font-medium" style={{ color: "#FAFAFA" }}>
+        Diagnostic IA personnalisé
+      </div>
+      <div className="mt-1 text-[12px]" style={{ color: "#A1A1AA" }}>
+        Sélectionnez votre matériel et décrivez votre contexte si utile.
+      </div>
+
+      <div className="mt-4 flex flex-col gap-3">
+        {!p.useCustom ? (
+          <>
+            <div className="flex flex-wrap items-center gap-2">
+              <DropdownSelect<string>
+                value={p.brand ?? "__none__"}
+                label={currentBrandLabel}
+                items={brandItems}
+                onChange={(v) => p.setBrand(v === "__none__" ? null : v)}
+                minWidth={180}
+              />
+              <div style={{ opacity: p.brand ? 1 : 0.5, pointerEvents: p.brand ? "auto" : "none" }}>
+                <DropdownSelect<string>
+                  value={p.modelId != null ? String(p.modelId) : "__none__"}
+                  label={currentModelLabel}
+                  items={modelItems}
+                  onChange={(v) => p.setModelId(v === "__none__" ? null : Number(v))}
+                  minWidth={260}
+                />
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                p.setUseCustom(true);
+                p.setBrand(null);
+                p.setModelId(null);
+              }}
+              className="font-mono text-[10.5px] tracking-wider self-start hover:underline underline-offset-4"
+              style={{ color: "#60A5FA" }}
+            >
+              Mon modèle n'est pas dans la liste
+            </button>
+          </>
+        ) : (
+          <>
+            <input
+              type="text"
+              value={p.customName}
+              onChange={(e) => p.setCustomName(e.target.value)}
+              placeholder="Ex : RTX 4070 Ti Super"
+              maxLength={120}
+              className="rounded-md px-3 py-2 text-[13px] outline-none"
+              style={{
+                background: "rgba(255,255,255,0.02)",
+                color: "#FAFAFA",
+                border: "1px solid rgba(255,255,255,0.08)",
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                p.setUseCustom(false);
+                p.setCustomName("");
+              }}
+              className="font-mono text-[10.5px] tracking-wider self-start hover:underline underline-offset-4"
+              style={{ color: "#60A5FA" }}
+            >
+              Choisir dans la liste
+            </button>
+          </>
+        )}
+
+        <div className="relative">
+          <label
+            className="font-mono text-[10px] tracking-wider block mb-1"
+            style={{ color: "#71717A" }}
+          >
+            CONTEXTE (OPTIONNEL)
+          </label>
+          <textarea
+            value={p.context}
+            onChange={(e) => p.setContext(e.target.value)}
+            placeholder="Décrivez ce que vous observez, depuis quand, dans quelles conditions…"
+            maxLength={1000}
+            rows={3}
+            className="w-full rounded-md px-3 py-2 text-[12px] outline-none resize-none"
+            style={{
+              background: "rgba(255,255,255,0.02)",
+              color: "#FAFAFA",
+              border: "1px solid rgba(255,255,255,0.08)",
+            }}
+          />
+          <div
+            className="absolute bottom-2 right-3 font-mono text-[10px]"
+            style={{ color: "#52525B" }}
+          >
+            {p.context.length}/1000
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={p.onSubmit}
+          aria-disabled={!p.canSubmit}
+          title={!p.canSubmit ? "Sélectionnez un modèle ou saisissez-en un" : undefined}
+          className="font-mono text-[11px] tracking-wider px-3 py-2 rounded-md inline-flex items-center gap-2"
+          style={{
+            background: p.canSubmit ? "#3B82F6" : "rgba(59,130,246,0.20)",
+            color: p.canSubmit ? "#FAFAFA" : "#71717A",
+            border: `1px solid ${p.canSubmit ? "rgba(59,130,246,0.6)" : "rgba(59,130,246,0.20)"}`,
+            cursor: p.canSubmit ? "pointer" : "not-allowed",
+          }}
+        >
+          <Sparkles size={13} />
+          LANCER L'ANALYSE
+        </button>
+        <button
+          type="button"
+          onClick={p.onCancel}
+          className="font-mono text-[11px] tracking-wider px-3 py-2 rounded-md"
+          style={{
+            background: "rgba(255,255,255,0.02)",
+            color: "#A1A1AA",
+            border: "1px solid rgba(255,255,255,0.08)",
+          }}
+        >
+          ANNULER
+        </button>
+        <span className="font-mono text-[10px] tracking-wider" style={{ color: "#71717A" }}>
+          {DEEP_DIAGNOSTIC_COST} CRÉDITS · GRATUIT SI CACHE
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function DeepResultPanel({
+  result,
+  symptomTitle,
+  onRerun,
+}: {
+  result: DeepDiagnosticResponse;
+  symptomTitle: string;
+  onRerun: () => void;
+}) {
+  const deep: DeepAnalysis = result.deep_analysis;
+  const confColor = CONFIDENCE_COLORS[deep.confidence];
+  const roiPositive = deep.roi_estimate.roi_pct >= 0;
+  const roiColor = roiPositive ? "#10B981" : "#EF4444";
+  const roiBg = roiPositive ? "rgba(16,185,129,0.04)" : "rgba(239,68,68,0.05)";
+  const roiBorder = roiPositive ? "rgba(16,185,129,0.22)" : "rgba(239,68,68,0.25)";
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-[15px] font-medium leading-tight" style={{ color: "#FAFAFA" }}>
+            {result.model_name ?? "Modèle non spécifié"}
+            <span style={{ color: "#52525B" }}> · </span>
+            <span style={{ color: "#D4D4D8" }}>{symptomTitle}</span>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span
+            className="font-mono text-[10px] tracking-wider px-2 py-1 rounded"
+            style={{
+              color: confColor,
+              background: severityBgFromHex(confColor),
+              border: `1px solid ${confColor}33`,
+            }}
+          >
+            {CONFIDENCE_LABELS[deep.confidence].toUpperCase()}
+          </span>
+          {result.cached ? (
+            <span
+              className="font-mono text-[10px] tracking-wider px-2 py-1 rounded inline-flex items-center gap-1"
+              style={{
+                color: "#09B1BA",
+                background: "rgba(9,177,186,0.10)",
+                border: "1px solid rgba(9,177,186,0.30)",
+              }}
+            >
+              <Database size={11} />
+              CACHE · 0 CRÉDIT
+            </span>
+          ) : (
+            <span
+              className="font-mono text-[10px] tracking-wider px-2 py-1 rounded"
+              style={{
+                color: "#A1A1AA",
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.08)",
+              }}
+            >
+              {result.credits_spent} CRÉDIT{result.credits_spent > 1 ? "S" : ""}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Notes spécifiques */}
+      <div
+        className="rounded-lg p-4 mb-4"
+        style={{
+          background: "rgba(9,177,186,0.04)",
+          border: "1px solid rgba(9,177,186,0.20)",
+        }}
+      >
+        <div
+          className="font-mono text-[10px] tracking-wider mb-2"
+          style={{ color: "#09B1BA" }}
+        >
+          NOTES SPÉCIFIQUES AU MODÈLE
+        </div>
+        <div className="text-[12px]" style={{ color: "#D4D4D8", lineHeight: 1.6 }}>
+          {deep.model_specific_notes}
+        </div>
+        {deep.known_issues.length > 0 && (
+          <div className="mt-3">
+            <div
+              className="font-mono text-[9.5px] tracking-wider mb-1.5"
+              style={{ color: "#71717A" }}
+            >
+              PROBLÈMES CONNUS SUR CE MODÈLE
+            </div>
+            <ul className="flex flex-col gap-1">
+              {deep.known_issues.map((iss, i) => (
+                <li key={i} className="flex items-start gap-2 text-[12px]" style={{ color: "#A1A1AA" }}>
+                  <span style={{ color: "#09B1BA", lineHeight: 1.6 }}>—</span>
+                  <span style={{ lineHeight: 1.6 }}>{iss}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {/* Diagnostic perso */}
+      {deep.personalized_diagnostic.length > 0 && (
+        <div className="mb-4">
+          <div
+            className="font-mono text-[10px] tracking-wider mb-2"
+            style={{ color: "#71717A" }}
+          >
+            DIAGNOSTIC PERSONNALISÉ
+          </div>
+          <div
+            className="rounded-lg p-4"
+            style={{
+              background: "rgba(255,255,255,0.015)",
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
+            <div className="flex flex-col">
+              {deep.personalized_diagnostic.map((step, idx) => (
+                <div
+                  key={step.order}
+                  style={{
+                    paddingTop: idx === 0 ? 0 : 12,
+                    paddingBottom: 12,
+                    borderTop: idx === 0 ? "none" : "1px solid rgba(255,255,255,0.04)",
+                  }}
+                >
+                  <div className="flex items-start gap-3">
+                    <div
+                      className="flex shrink-0 items-center justify-center font-mono text-[11px]"
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: 999,
+                        background: "rgba(9,177,186,0.12)",
+                        color: "#09B1BA",
+                      }}
+                    >
+                      {step.order}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] font-medium" style={{ color: "#FAFAFA" }}>
+                        {step.title}
+                      </div>
+                      <div className="mt-1 text-[12px]" style={{ color: "#A1A1AA", lineHeight: 1.6 }}>
+                        {step.description}
+                      </div>
+                      <div
+                        className="mt-1.5 text-[12px] italic flex items-start gap-1.5"
+                        style={{ color: "#10B981", lineHeight: 1.6 }}
+                      >
+                        <span style={{ flexShrink: 0 }}>↪</span>
+                        <span>{step.expected_result}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Scénarios de réparation */}
+      {deep.personalized_repair.length > 0 && (
+        <div className="mb-4">
+          <div
+            className="font-mono text-[10px] tracking-wider mb-2"
+            style={{ color: "#71717A" }}
+          >
+            SCÉNARIOS DE RÉPARATION
+          </div>
+          <div className="flex flex-col gap-2">
+            {deep.personalized_repair.map((sc, i) => (
+              <div
+                key={i}
+                className="rounded-lg p-4"
+                style={{
+                  background: "rgba(255,255,255,0.015)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div className="text-[14px] font-medium min-w-0" style={{ color: "#FAFAFA" }}>
+                    {sc.scenario}
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span
+                      className="font-mono text-[10px] tracking-wider px-2 py-0.5 rounded"
+                      style={{
+                        color: "#A1A1AA",
+                        background: "rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      {sc.probability_pct} %
+                    </span>
+                    <Pill
+                      label={DIFFICULTY_LABELS[sc.difficulty]}
+                      color={DIFFICULTY_COLORS[sc.difficulty]}
+                    />
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <KpiTile label="COÛT" value={`${sc.estimated_cost_eur} €`} color="#FAFAFA" />
+                  <KpiTile label="TEMPS" value={`${sc.estimated_time_min} min`} color="#FAFAFA" />
+                </div>
+                {sc.steps.length > 0 && (
+                  <ol className="mt-3 flex flex-col gap-2">
+                    {sc.steps.map((s, k) => (
+                      <li key={k} className="flex items-start gap-2.5">
+                        <span
+                          className="flex shrink-0 items-center justify-center font-mono text-[10px]"
+                          style={{
+                            width: 18,
+                            height: 18,
+                            borderRadius: 999,
+                            background: "rgba(255,255,255,0.04)",
+                            color: "#A1A1AA",
+                            marginTop: 1,
+                          }}
+                        >
+                          {k + 1}
+                        </span>
+                        <span className="text-[12px]" style={{ color: "#D4D4D8", lineHeight: 1.6 }}>
+                          {s}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+                {sc.materials.length > 0 && (
+                  <div
+                    className="mt-3 rounded-md p-3"
+                    style={{
+                      background: "rgba(255,255,255,0.02)",
+                      border: "1px solid rgba(255,255,255,0.04)",
+                    }}
+                  >
+                    <div
+                      className="font-mono text-[10px] tracking-wider mb-2"
+                      style={{ color: "#71717A" }}
+                    >
+                      MATÉRIEL
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      {sc.materials.map((m, k) => (
+                        <div key={k} className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <span className="text-[12px]" style={{ color: "#D4D4D8" }}>
+                              {m.name}
+                            </span>
+                            {m.spec && (
+                              <span className="text-[11px]" style={{ color: "#71717A" }}>
+                                {" "}— {m.spec}
+                              </span>
+                            )}
+                          </div>
+                          <span className="font-mono text-[11px] shrink-0" style={{ color: "#A1A1AA" }}>
+                            {m.est_price_eur} €
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ROI */}
+      <div className="mb-4">
+        <div
+          className="font-mono text-[10px] tracking-wider mb-2"
+          style={{ color: "#71717A" }}
+        >
+          ESTIMATION ROI
+        </div>
+        <div
+          className="rounded-lg p-4"
+          style={{ background: roiBg, border: `1px solid ${roiBorder}` }}
+        >
+          <div className="grid grid-cols-3 gap-2">
+            <KpiTile
+              label="COÛT RÉPARATION"
+              value={`${deep.roi_estimate.total_repair_cost_eur} €`}
+              color="#FAFAFA"
+            />
+            <KpiTile
+              label="VALEUR APRÈS RÉPA"
+              value={`${deep.roi_estimate.estimated_value_repaired_eur} €`}
+              color="#FAFAFA"
+            />
+            <KpiTile
+              label="ROI"
+              value={`${roiPositive ? "+" : ""}${deep.roi_estimate.roi_pct} %`}
+              color={roiColor}
+            />
+          </div>
+          <div className="mt-3 text-[12px]" style={{ color: "#D4D4D8", lineHeight: 1.6 }}>
+            <span style={{ color: roiColor, fontWeight: 500 }}>Recommandation : </span>
+            {deep.roi_estimate.recommendation}
+          </div>
+        </div>
+      </div>
+
+      {/* Warnings */}
+      {deep.warnings.length > 0 && (
+        <div className="mb-4">
+          <div
+            className="rounded-lg p-4"
+            style={{
+              background: "rgba(245,158,11,0.05)",
+              border: "1px solid rgba(245,158,11,0.20)",
+            }}
+          >
+            <div className="flex items-center gap-1.5 mb-2">
+              <AlertTriangle size={13} style={{ color: "#F59E0B" }} />
+              <span
+                className="font-mono text-[10px] tracking-wider"
+                style={{ color: "#F59E0B" }}
+              >
+                AVERTISSEMENTS
+              </span>
+            </div>
+            <ul className="flex flex-col gap-1.5">
+              {deep.warnings.map((w, i) => (
+                <li key={i} className="flex items-start gap-2 text-[12px]" style={{ color: "#D4D4D8" }}>
+                  <AlertTriangle size={12} style={{ color: "#F59E0B", flexShrink: 0, marginTop: 3 }} />
+                  <span style={{ lineHeight: 1.6 }}>{w}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* Pied */}
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={onRerun}
+          className="font-mono text-[11px] tracking-wider px-3 py-2 rounded-md inline-flex items-center gap-2"
+          style={{
+            background: "rgba(255,255,255,0.02)",
+            color: "#A1A1AA",
+            border: "1px solid rgba(255,255,255,0.08)",
+          }}
+        >
+          <RotateCcw size={12} />
+          RELANCER UNE ANALYSE
+        </button>
+      </div>
+    </div>
+  );
+}
