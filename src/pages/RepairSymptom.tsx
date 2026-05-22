@@ -579,56 +579,30 @@ export default function RepairSymptom({ slug }: { slug: string }) {
 
       {/* § 02.6 — DIAGNOSTIC PERSONNALISÉ (placeholder P2C) */}
       <Section label="§ 02.6 — DIAGNOSTIC PERSONNALISÉ">
-        <div
-          className="rounded-lg p-5"
-          style={{
-            background: "linear-gradient(135deg, rgba(59,130,246,0.08), rgba(168,85,247,0.06))",
-            border: "1px solid rgba(59,130,246,0.20)",
-          }}
-        >
-          <div className="flex items-start gap-3">
-            <div
-              className="flex shrink-0 items-center justify-center"
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 8,
-                background: "rgba(59,130,246,0.12)",
-                color: "#60A5FA",
-              }}
-            >
-              <Brain size={20} strokeWidth={1.5} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-[14px] font-medium" style={{ color: "#FAFAFA" }}>
-                Affiner avec un diagnostic IA personnalisé
-              </div>
-              <div className="mt-1 text-[12px]" style={{ color: "#A1A1AA" }}>
-                Indiquez votre matériel et votre contexte. L'IA produira une analyse spécifique avec
-                scénarios de réparation, matériaux, ROI et avertissements.
-              </div>
-              <div className="mt-3 flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    // P2C placeholder
-                  }}
-                  className="font-mono text-[11px] tracking-wider px-3 py-2 rounded-md"
-                  style={{
-                    background: "#3B82F6",
-                    color: "#FAFAFA",
-                    border: "1px solid rgba(59,130,246,0.6)",
-                  }}
-                >
-                  LANCER LE DIAGNOSTIC IA
-                </button>
-                <span className="font-mono text-[10px] tracking-wider" style={{ color: "#71717A" }}>
-                  COÛT : 5 CRÉDITS · CACHE 30 JOURS
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <DeepDiagnosticSection
+          deepState={deepState}
+          deepResult={deepResult}
+          deepError={deepError}
+          deepErrorStatus={deepErrorStatus}
+          models={models}
+          brand={brand}
+          setBrand={(b) => { setBrand(b); setModelId(null); }}
+          modelId={modelId}
+          setModelId={setModelId}
+          useCustom={useCustom}
+          setUseCustom={setUseCustom}
+          customName={customName}
+          setCustomName={setCustomName}
+          context={context}
+          setContext={setContext}
+          canSubmit={canSubmitDeep}
+          onOpenForm={openDeepForm}
+          onCancel={resetDeep}
+          onSubmit={runDeep}
+          onRetry={() => setDeepState("form")}
+          onRerun={() => setDeepState("form")}
+          symptomTitle={symptom.title}
+        />
       </Section>
     </div>
   );
