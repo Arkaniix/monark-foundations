@@ -142,6 +142,18 @@ export default function RepairSymptom({ slug }: { slug: string }) {
   const [expandedProcedure, setExpandedProcedure] = useState<string | null>(null);
   const [highlightedProcedure, setHighlightedProcedure] = useState<string | null>(null);
 
+  // § 02.6 — Deep diagnostic state
+  const [deepState, setDeepState] = useState<DeepState>("idle");
+  const [deepResult, setDeepResult] = useState<DeepDiagnosticResponse | null>(null);
+  const [deepError, setDeepError] = useState<string | null>(null);
+  const [deepErrorStatus, setDeepErrorStatus] = useState<number | null>(null);
+  const [models, setModels] = useState<RepairHardwareModel[]>([]);
+  const [brand, setBrand] = useState<string | null>(null);
+  const [modelId, setModelId] = useState<number | null>(null);
+  const [useCustom, setUseCustom] = useState(false);
+  const [customName, setCustomName] = useState("");
+  const [context, setContext] = useState("");
+
   useEffect(() => {
     let mounted = true;
     setLoading(true);
