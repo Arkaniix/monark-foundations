@@ -210,6 +210,57 @@ export default function RepairSymptom({ slug }: { slug: string }) {
     });
   }
 
+  function openDeepForm() {
+    setDeepState("form");
+    setDeepError(null);
+    setDeepErrorStatus(null);
+    if (symptom) {
+      repairApi
+        .getModels(symptom.category)
+        .then(setModels)
+        .catch(() => setModels([]));
+    }
+  }
+
+  function resetDeep() {
+    setDeepState("idle");
+    setDeepResult(null);
+    setDeepError(null);
+    setDeepErrorStatus(null);
+  }
+
+  const canSubmitDeep =
+    (!useCustom && modelId !== null) || (useCustom && customName.trim().length > 0);
+
+  async function runDeep() {
+    if (!symptom || !canSubmitDeep) return;
+    setDeepState("loading");
+    setDeepError(null);
+    setDeepErrorStatus(null);
+    try {
+      const res = await repairApi.postDeepDiagnostic({
+        symptom_id: symptom.id,
+        model_id: useCustom ? null : modelId,
+        custom_name: useCustom ? customName.trim() : null,
+        context: context.trim() || null,
+      });
+      setDeepResult(res);
+      setDeepState("result");
+    } catch (err) {
+      const ex = err as { status?: number; message?: string };
+      const status = ex?.status ?? null;
+      setDeepErrorStatus(status);
+      if (status === 402) {
+        setDeepError(ex.message || "Crédits insuffisants pour lancer l'analyse.");
+      } else if (status === 400) {
+        setDeepError("Veuillez sélectionner un modèle ou en saisir un.");
+      } else {
+        setDeepError("L'analyse a échoué. Réessayez dans un instant.");
+      }
+      setDeepState("error");
+    }
+  }
+
   if (loading) {
     return (
       <div>
