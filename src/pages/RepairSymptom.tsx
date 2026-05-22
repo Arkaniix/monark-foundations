@@ -37,6 +37,9 @@ import {
   Flame,
   CircleDot,
   AlarmClockOff,
+  Eye,
+  ShieldAlert,
+  UserCog,
 } from "lucide-react";
 import { repairApi } from "@/lib/api";
 import {
@@ -361,6 +364,63 @@ export default function RepairSymptom({ slug }: { slug: string }) {
                               style={{ color: "#52525B" }}
                             >
                               OUTILS : {step.tools_needed.join(", ")}
+                            </div>
+                          )}
+
+                          {step.detailed_instructions && step.detailed_instructions.length > 0 && (
+                            <div className="mt-3" style={{ paddingLeft: 4 }}>
+                              <div
+                                className="font-mono text-[10px] mb-1.5"
+                                style={{ color: "#52525B", letterSpacing: "0.10em" }}
+                              >
+                                COMMENT FAIRE
+                              </div>
+                              <ol className="flex flex-col" style={{ gap: 4, paddingLeft: 4 }}>
+                                {step.detailed_instructions.map((ins, i) => (
+                                  <li key={i} className="flex items-start gap-2">
+                                    <span
+                                      className="font-mono text-[11px] shrink-0"
+                                      style={{ color: "#52525B", lineHeight: 1.7, minWidth: 16 }}
+                                    >
+                                      {i + 1}.
+                                    </span>
+                                    <span
+                                      className="text-[12px]"
+                                      style={{ color: "#A1A1AA", lineHeight: 1.7 }}
+                                    >
+                                      {ins}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ol>
+                            </div>
+                          )}
+
+                          {step.what_to_observe && (
+                            <div
+                              className="mt-3"
+                              style={{
+                                background: "rgba(59,130,246,0.05)",
+                                borderLeft: "2px solid rgba(59,130,246,0.30)",
+                                padding: "8px 12px",
+                                borderRadius: "0 6px 6px 0",
+                              }}
+                            >
+                              <div className="flex items-center gap-1.5 mb-1">
+                                <Eye size={13} style={{ color: "#3B82F6" }} />
+                                <span
+                                  className="font-mono text-[9px]"
+                                  style={{ color: "#3B82F6", letterSpacing: "0.14em" }}
+                                >
+                                  CE QUE VOUS CHERCHEZ
+                                </span>
+                              </div>
+                              <div
+                                className="text-[12px]"
+                                style={{ color: "#D4D4D8", lineHeight: 1.6 }}
+                              >
+                                {step.what_to_observe}
+                              </div>
                             </div>
                           )}
 
