@@ -65,6 +65,8 @@ import {
 } from "@/components/repair/datasets";
 import DropdownSelect, { type DropdownItem } from "@/components/stock/DropdownSelect";
 
+type DeepState = "idle" | "form" | "loading" | "result" | "error";
+
 type IconCmp = ComponentType<{ size?: number; className?: string; strokeWidth?: number; style?: React.CSSProperties }>;
 
 const ICON_MAP: Record<string, IconCmp> = {
