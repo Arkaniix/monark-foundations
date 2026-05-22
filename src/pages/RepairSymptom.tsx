@@ -767,6 +767,18 @@ function ProcedureCard({
               </span>
             )}
             {diffLabel && <Pill label={diffLabel} color={diffColor} />}
+            {proc.requires_pro && (
+              <span
+                className="font-mono text-[9px] tracking-wider px-1.5 py-0.5 rounded shrink-0"
+                style={{
+                  color: "#EF4444",
+                  background: "rgba(239,68,68,0.12)",
+                  border: "1px solid rgba(239,68,68,0.25)",
+                }}
+              >
+                PRO
+              </span>
+            )}
             <span className="font-mono text-[10px] tracking-wider" style={{ color: "#71717A" }}>
               · {proc.estimated_cost_eur === 0 ? "GRATUIT" : `~${proc.estimated_cost_eur} €`}
             </span>
@@ -779,6 +791,31 @@ function ProcedureCard({
 
       {isOpen && (
         <div className="px-4 pb-4" style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 14 }}>
+          {proc.requires_pro && (
+            <div
+              className="mb-3"
+              style={{
+                background: "rgba(239,68,68,0.06)",
+                border: "1px solid rgba(239,68,68,0.25)",
+                borderRadius: 8,
+                padding: "12px 14px",
+              }}
+            >
+              <div className="flex items-start gap-2">
+                <UserCog size={14} style={{ color: "#EF4444", flexShrink: 0, marginTop: 2 }} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[12px] font-medium" style={{ color: "#EF4444" }}>
+                    Réparation experte — à confier à un professionnel
+                  </div>
+                  <div className="mt-1 text-[11px]" style={{ color: "#A1A1AA", lineHeight: 1.6 }}>
+                    Les étapes ci-dessous décrivent la procédure, mais elle nécessite un outillage
+                    spécialisé et présente un risque de dommage irréversible. Sauf si vous êtes équipé
+                    et expérimenté, mieux vaut faire appel à un atelier.
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           <ol className="flex flex-col gap-2">
             {proc.steps.map((s, i) => (
               <li key={i} className="flex items-start gap-2.5">
@@ -801,6 +838,46 @@ function ProcedureCard({
               </li>
             ))}
           </ol>
+
+          {proc.safety_warnings && proc.safety_warnings.length > 0 && (
+            <div
+              className="mt-4"
+              style={{
+                background: "rgba(245,158,11,0.05)",
+                border: "1px solid rgba(245,158,11,0.20)",
+                borderRadius: 8,
+                padding: "12px 14px",
+              }}
+            >
+              <div className="flex items-center gap-1.5 mb-2">
+                <ShieldAlert size={13} style={{ color: "#F59E0B" }} />
+                <span
+                  className="font-mono text-[10px]"
+                  style={{ color: "#F59E0B", letterSpacing: "0.14em" }}
+                >
+                  PRÉCAUTIONS
+                </span>
+              </div>
+              <ul className="flex flex-col" style={{ gap: 6 }}>
+                {proc.safety_warnings.map((w, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span
+                      className="shrink-0"
+                      style={{ color: "#F59E0B", lineHeight: 1.6, fontSize: 12 }}
+                    >
+                      —
+                    </span>
+                    <span
+                      className="text-[12px]"
+                      style={{ color: "#D4D4D8", lineHeight: 1.6 }}
+                    >
+                      {w}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {proc.materials.length > 0 && (
             <div
