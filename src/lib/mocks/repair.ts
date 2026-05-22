@@ -302,7 +302,20 @@ const ENRICHED_GUIDES: Record<string, GuideContent> = {
    RÉPONSE DEEP EXEMPLAIRE — gpu_artifacts sur RTX 4070 Ti SUPER
    ============================================================ */
 
-function buildDeepAnalysisForArtifacts(modelName: string) {
+function buildDeepAnalysisForArtifacts(modelName: string, lowValue = false) {
+  const roi_estimate = lowValue
+    ? {
+        total_repair_cost_eur: 90,
+        estimated_value_repaired_eur: 110,
+        roi_pct: -18,
+        recommendation: "Réparation peu rentable sur ce modèle. Le coût d'une intervention VRAM (~90 €) est proche de la valeur de revente une fois réparée (~110 €). Sauf valeur sentimentale ou pièces déjà en stock, mieux vaut revendre la carte en l'état (pour pièces) et orienter le budget vers un modèle plus récent.",
+      }
+    : {
+        total_repair_cost_eur: 25,
+        estimated_value_repaired_eur: 580,
+        roi_pct: 2220,
+        recommendation: "Réparation hautement rentable dans le scénario surchauffe. Le coût matériel (~25 €) est négligeable face à la valeur de revente. Privilégier l'achat groupé de pâte et pads pour amortir sur plusieurs cartes.",
+      };
   return {
     model_specific_notes: `La ${modelName} est connue pour des problèmes d'artefacts liés à la surchauffe de la VRAM GDDR6X, qui peut atteindre 100 °C en charge soutenue. La puce mémoire située sur la face arrière de la carte est particulièrement exposée. Les modèles Founders Edition et certains AIB sont plus touchés que d'autres.`,
     known_issues: [
@@ -347,12 +360,7 @@ function buildDeepAnalysisForArtifacts(modelName: string) {
         estimated_cost_eur: 90,
       },
     ],
-    roi_estimate: {
-      total_repair_cost_eur: 25,
-      estimated_value_repaired_eur: 580,
-      roi_pct: 2220,
-      recommendation: "Réparation hautement rentable dans le scénario surchauffe. Le coût matériel (~25 €) est négligeable face à la valeur de revente. Privilégier l'achat groupé de pâte et pads pour amortir sur plusieurs cartes.",
-    },
+    roi_estimate,
     warnings: [
       "La VRAM GDDR6X est très sensible à la pression du radiateur — trop serrer les vis peut fissurer la puce.",
       "Si les artefacts persistent après remplacement des pads, ne pas insister : la puce est probablement morte.",
@@ -446,7 +454,12 @@ export async function postDeepDiagnostic(req: DeepDiagnosticRequest): Promise<De
   // Cache simulé : 1 chance sur 4 d'être un cache hit pour démontrer le badge
   const cached = Math.random() < 0.25;
 
-  const deep_analysis = buildDeepAnalysisForArtifacts(modelName ?? "votre carte");
+  // Modèles de faible valeur de revente → ROI négatif (démontre le rendu rouge).
+  // RTX 3090 (105, ancienne génération haut de gamme mais dépréciée) sert d'exemple.
+  const LOW_VALUE_MODEL_IDS = new Set([105]);
+  const isLowValue = req.model_id ? LOW_VALUE_MODEL_IDS.has(req.model_id) : false;
+
+  const deep_analysis = buildDeepAnalysisForArtifacts(modelName ?? "votre carte", isLowValue);
 
   // Enregistre dans l'historique mock
   mockHistory = [
