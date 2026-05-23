@@ -1,8 +1,19 @@
 /**
- * Vraie implémentation Catalog API. Placeholder.
+ * Vraie implémentation Catalog API (mode réel, VITE_USE_MOCK_API=false).
+ *
+ * Signatures STRICTEMENT identiques au placeholder et au mock
+ * (src/lib/mocks/catalog.ts) pour que le routing typeof realCatalog dans
+ * api/index.ts reste valide. Toute la mécanique réelle (fetch paginé, mapping,
+ * cache, dérivations) est dans src/lib/catalogSource.ts.
+ *
+ * On réutilise queryCatalog() et buildModelDetail() du domaine catalog : une
+ * fois les modèles réels mappés en CatalogModel, le filtrage/tri/pagination et
+ * la dérivation de la fiche détail sont identiques au mock.
  */
 
-import { ApiException } from "./client";
+import { fetchAllCatalogModels } from "../catalogSource";
+import { queryCatalog } from "../../components/catalog/filters";
+import { buildModelDetail } from "../../components/catalog/modelDetail";
 import type {
   CatalogFilters,
   CatalogListResponse,
@@ -11,21 +22,17 @@ import type {
 import type { CatalogModelDetail } from "../../components/catalog/modelDetail";
 
 export async function listModels(
-  _filters: CatalogFilters,
-  _sort: CatalogSortKey,
-  _page: number,
+  filters: CatalogFilters,
+  sort: CatalogSortKey,
+  page: number,
 ): Promise<CatalogListResponse> {
-  throw new ApiException(
-    501,
-    "Catalog endpoint not yet implemented in backend. Use VITE_USE_MOCK_API=true.",
-    "NOT_IMPLEMENTED",
-  );
+  const all = await fetchAllCatalogModels();
+  return queryCatalog(all, filters, sort, page);
 }
 
-export async function getModelDetail(_id: string): Promise<CatalogModelDetail | null> {
-  throw new ApiException(
-    501,
-    "Catalog model detail endpoint not yet implemented. Use VITE_USE_MOCK_API=true.",
-    "NOT_IMPLEMENTED",
-  );
+export async function getModelDetail(id: string): Promise<CatalogModelDetail | null> {
+  const all = await fetchAllCatalogModels();
+  const model = all.find((m) => m.id === id);
+  if (!model) return null;
+  return buildModelDetail(model, all);
 }
