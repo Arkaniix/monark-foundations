@@ -1,26 +1,26 @@
 /**
- * Vraie implémentation Repair Guide API.
+ * Vraie implémentation Repair Guide API (mode réel).
  *
- * Placeholder — le frontend tourne actuellement en mode mock
- * (VITE_USE_MOCK_API=true). Ces fonctions throw 501 tant que le câblage vers
- * monark-api (/v1/repair/*) n'est pas fait.
- *
- * Signatures alignées sur src/lib/mocks/repair.ts. Quand l'API sera branchée,
- * remplacer chaque corps par un fetch vers l'endpoint correspondant :
- *   getSymptoms        → GET  /v1/repair/symptoms[?category=]
- *   getSymptomBySlug   → GET  /v1/repair/symptoms/{slug}
- *   getGuide           → GET  /v1/repair/guide/{symptom_slug}   (auth)
- *   getModels          → (catalogue hardware, endpoint à confirmer)
- *   postDeepDiagnostic → POST /v1/repair/deep-diagnostic        (auth, 5 crédits)
- *   getHistory         → GET  /v1/repair/history                (auth, paginé)
- *   getHistoryDetail   → GET  /v1/repair/history/{id}           (auth)
- *   updateOutcome      → POST /v1/repair/history/{id}/outcome   (auth)
+ * Signatures identiques au placeholder (src/lib/api/repair.ts d'origine) et au
+ * mock (src/lib/mocks/repair.ts). Mapping quasi 1:1 — le backend a été construit
+ * sur le même contrat (datasets.ts). Points d'attention :
+ *   - symptoms : PUBLIC. guide / history / deep-diagnostic : JWT (apiFetch ajoute
+ *     le token automatiquement). En mode réel, l'utilisateur doit être connecté
+ *     pour voir un guide.
+ *   - getModels n'a pas d'endpoint dédié → réutilise GET /v1/models (public).
+ *     Les catégories Repair sont en lowercase (gpu…) alors que /v1/models attend
+ *     UPPERCASE (GPU…) et les renvoie en UPPERCASE → conversion dans les deux sens.
+ *   - Les champs front enrichis (detailed_instructions, what_to_observe, outcomes,
+ *     safety_warnings, requires_pro) restent absents tant que le backend n'est pas
+ *     re-seedé : ils sont optionnels côté types, donc le passthrough est sûr.
  */
 
-import { ApiException } from "./client";
+import { apiFetch } from "./client";
+import { ENDPOINTS } from "./endpoints";
 import type {
   DeepDiagnosticRequest,
   DeepDiagnosticResponse,
+  RepairCategorySlug,
   RepairHardwareModel,
   RepairHistoryPage,
   RepairHistoryRead,
@@ -29,52 +29,105 @@ import type {
   SymptomRead,
 } from "../../components/repair/datasets";
 
-const NOT_WIRED = (endpoint: string): never => {
-  throw new ApiException(
-    501,
-    `Repair endpoint "${endpoint}" not yet wired to backend. Use VITE_USE_MOCK_API=true.`,
-    "NOT_IMPLEMENTED",
-  );
-};
+// ── Mapping catégories Repair (lowercase) ⇄ /v1/models (UPPERCASE) ──────────
 
-export async function getSymptoms(_category?: string): Promise<SymptomRead[]> {
-  return NOT_WIRED("GET /v1/repair/symptoms");
+function repairSlugToApiCategory(slug: string): string {
+  return slug === "motherboard" ? "MOTHERBOARD" : slug.toUpperCase();
 }
 
-export async function getSymptomBySlug(_slug: string): Promise<SymptomRead> {
-  return NOT_WIRED("GET /v1/repair/symptoms/{slug}");
+function apiCategoryToRepairSlug(cat: string): RepairCategorySlug {
+  const up = cat.toUpperCase();
+  if (up === "MOTHERBOARD") return "motherboard";
+  return up.toLowerCase() as RepairCategorySlug;
 }
 
-export async function getGuide(_symptomSlug: string): Promise<StaticGuideRead> {
-  return NOT_WIRED("GET /v1/repair/guide/{symptom_slug}");
+/** Item brut /v1/models utile pour le dropdown Repair. */
+interface ApiModelListItem {
+  id: number;
+  name: string;
+  manufacturer: string | null;
+  category: string;
 }
 
-export async function getModels(_category?: string): Promise<RepairHardwareModel[]> {
-  return NOT_WIRED("GET hardware models");
+// ── Endpoints ───────────────────────────────────────────────────────────────
+
+export async function getSymptoms(category?: string): Promise<SymptomRead[]> {
+  const qs = category ? `?category=${encodeURIComponent(category)}` : "";
+  return apiFetch<SymptomRead[]>(`${ENDPOINTS.REPAIR_SYMPTOMS}${qs}`, {
+    method: "GET",
+  });
+}
+
+export async function getSymptomBySlug(slug: string): Promise<SymptomRead> {
+  return apiFetch<SymptomRead>(ENDPOINTS.REPAIR_SYMPTOM(slug), { method: "GET" });
+}
+
+export async function getGuide(symptomSlug: string): Promise<StaticGuideRead> {
+  // JWT requis. Réponse { symptom, guide } — passthrough direct.
+  return apiFetch<StaticGuideRead>(ENDPOINTS.REPAIR_GUIDE(symptomSlug), {
+    method: "GET",
+  });
+}
+
+export async function getModels(category?: string): Promise<RepairHardwareModel[]> {
+  const apiCat = category ? repairSlugToApiCategory(category) : undefined;
+  const out: RepairHardwareModel[] = [];
+  let offset = 0;
+  const limit = 100; // plafond API
+  // Pagination interne : certaines catégories (ex. MOTHERBOARD ~203) dépassent 100.
+  for (let guard = 0; guard < 10; guard++) {
+    const qs = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+    if (apiCat) qs.set("category", apiCat);
+    const page = await apiFetch<{ items: ApiModelListItem[]; total: number }>(
+      `${ENDPOINTS.MODELS}?${qs.toString()}`,
+      { method: "GET" },
+    );
+    for (const it of page.items) {
+      out.push({
+        id: it.id,
+        name: it.name,
+        category: apiCategoryToRepairSlug(it.category),
+        // Pas de marque dédiée côté API → on dérive du manufacturer, sinon du 1er mot.
+        brand: it.manufacturer ?? it.name.split(" ")[0] ?? "",
+      });
+    }
+    if (page.items.length < limit || out.length >= (page.total ?? out.length)) break;
+    offset += limit;
+  }
+  return out;
 }
 
 export async function postDeepDiagnostic(
-  _req: DeepDiagnosticRequest,
+  req: DeepDiagnosticRequest,
 ): Promise<DeepDiagnosticResponse> {
-  return NOT_WIRED("POST /v1/repair/deep-diagnostic");
+  return apiFetch<DeepDiagnosticResponse>(ENDPOINTS.REPAIR_DEEP, {
+    method: "POST",
+    body: JSON.stringify(req),
+  });
 }
 
 export async function getHistory(
-  _limit?: number,
-  _offset?: number,
+  limit = 20,
+  offset = 0,
 ): Promise<RepairHistoryPage> {
-  return NOT_WIRED("GET /v1/repair/history");
+  const qs = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+  return apiFetch<RepairHistoryPage>(`${ENDPOINTS.REPAIR_HISTORY}?${qs.toString()}`, {
+    method: "GET",
+  });
 }
 
-export async function getHistoryDetail(
-  _historyId: number,
-): Promise<RepairHistoryRead> {
-  return NOT_WIRED("GET /v1/repair/history/{id}");
+export async function getHistoryDetail(historyId: number): Promise<RepairHistoryRead> {
+  return apiFetch<RepairHistoryRead>(ENDPOINTS.REPAIR_HISTORY_DETAIL(historyId), {
+    method: "GET",
+  });
 }
 
 export async function updateOutcome(
-  _historyId: number,
-  _update: RepairOutcomeUpdate,
+  historyId: number,
+  update: RepairOutcomeUpdate,
 ): Promise<RepairHistoryRead> {
-  return NOT_WIRED("POST /v1/repair/history/{id}/outcome");
+  return apiFetch<RepairHistoryRead>(ENDPOINTS.REPAIR_HISTORY_OUTCOME(historyId), {
+    method: "POST",
+    body: JSON.stringify(update),
+  });
 }
