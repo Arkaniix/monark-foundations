@@ -15,6 +15,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RepairRouteImport } from './routes/repair'
 import { Route as EstimatorRouteImport } from './routes/estimator'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CrashtestRouteImport } from './routes/crashtest'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
@@ -60,6 +61,11 @@ const EstimatorRoute = EstimatorRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrashtestRoute = CrashtestRouteImport.update({
+  id: '/crashtest',
+  path: '/crashtest',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CatalogueRoute = CatalogueRouteImport.update({
@@ -150,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/catalogue': typeof CatalogueRoute
+  '/crashtest': typeof CrashtestRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
   '/repair': typeof RepairRoute
@@ -174,6 +181,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/catalogue': typeof CatalogueRoute
+  '/crashtest': typeof CrashtestRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
   '/repair': typeof RepairRoute
@@ -199,6 +207,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/catalogue': typeof CatalogueRoute
+  '/crashtest': typeof CrashtestRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
   '/repair': typeof RepairRoute
@@ -225,6 +234,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/catalogue'
+    | '/crashtest'
     | '/dashboard'
     | '/estimator'
     | '/repair'
@@ -249,6 +259,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/catalogue'
+    | '/crashtest'
     | '/dashboard'
     | '/estimator'
     | '/repair'
@@ -273,6 +284,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/catalogue'
+    | '/crashtest'
     | '/dashboard'
     | '/estimator'
     | '/repair'
@@ -298,6 +310,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   CatalogueRoute: typeof CatalogueRoute
+  CrashtestRoute: typeof CrashtestRoute
   DashboardRoute: typeof DashboardRoute
   EstimatorRoute: typeof EstimatorRoute
   RepairRoute: typeof RepairRoute
@@ -361,6 +374,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crashtest': {
+      id: '/crashtest'
+      path: '/crashtest'
+      fullPath: '/crashtest'
+      preLoaderRoute: typeof CrashtestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/catalogue': {
@@ -482,6 +502,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   CatalogueRoute: CatalogueRoute,
+  CrashtestRoute: CrashtestRoute,
   DashboardRoute: DashboardRoute,
   EstimatorRoute: EstimatorRoute,
   RepairRoute: RepairRoute,
@@ -505,3 +526,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
