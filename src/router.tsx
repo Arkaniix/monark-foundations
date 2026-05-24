@@ -1,8 +1,46 @@
 import { createRouter, useRouter } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
 import { routeTree } from "./routeTree.gen";
+
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL || "https://api.monark-market.fr";
+
+/**
+ * Report fire-and-forget d'une erreur client vers l'API (relayée vers Discord
+ * côté serveur). N'expose RIEN au visiteur, n'échoue jamais bruyamment : si le
+ * report échoue, on ignore — on ne veut surtout pas aggraver un écran d'erreur.
+ */
+function reportClientError(error: Error): void {
+  try {
+    const payload = {
+      message: String(error?.message ?? "unknown").slice(0, 1000),
+      stack: String(error?.stack ?? "").slice(0, 4000),
+      url: typeof window !== "undefined" ? window.location.href : "",
+      user_agent: typeof navigator !== "undefined" ? navigator.userAgent : "",
+    };
+    // keepalive : la requête part même si la page se recharge juste après.
+    void fetch(`${API_BASE}/v1/client-errors`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    /* noop — un report ne doit jamais lever */
+  }
+}
 
 function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
+  const reported = useRef(false);
+
+  // Report une seule fois au montage de l'écran d'erreur.
+  useEffect(() => {
+    if (!reported.current) {
+      reported.current = true;
+      reportClientError(error);
+    }
+  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
