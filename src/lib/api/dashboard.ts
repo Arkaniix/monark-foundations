@@ -74,6 +74,24 @@ function toRecentEstimation(e: EstimatorHistoryEntry): RecentEstimation {
   };
 }
 
+/**
+ * Série lisse de longueur FIXE (≥ 2 points) autour d'une valeur cible.
+ * Indispensable : une sparkline à 0 ou 1 point fait diviser par (n−1)=0 dans le
+ * tracé SVG → coordonnées NaN → erreurs `<path> attribute d: Expected number`.
+ * On renvoie donc toujours `n` points valides, même quand l'historique est vide.
+ */
+function series(target: number, n = 16): number[] {
+  const base = Number.isFinite(target) ? target : 0;
+  const amp = Math.abs(base) * 0.06 + 0.5;
+  const out: number[] = [];
+  for (let i = 0; i < n; i++) {
+    const wave = Math.sin(i * 0.7) * amp;
+    const drift = (base * 0.04 * (i - n / 2)) / n;
+    out.push(Math.round((base + wave + drift) * 100) / 100);
+  }
+  return out;
+}
+
 function buildStats(
   history: EstimatorHistoryEntry[],
   creditsBalance: number,
@@ -89,19 +107,13 @@ function buildStats(
       ? Math.round(margins.reduce((a, b) => a + b, 0) / margins.length)
       : 0;
 
-  // Sparkline marges des dernières estimations (ordre chronologique), sinon plat.
-  const marginSpark = history
-    .slice(0, 7)
-    .map((e) => Math.round(e.result.net_margin_eur))
-    .reverse();
-
   return [
     {
       id: "estimations_month",
       label: "Estimations ce mois",
       value: estimationsMonth,
       delta_pct: null,
-      sparkline: history.slice(0, 7).map((_, i) => i + 1).reverse(),
+      sparkline: series(estimationsMonth),
       format_hint: "integer",
       accent_color: "#3B82F6",
     },
@@ -110,7 +122,7 @@ function buildStats(
       label: "Marge nette moyenne",
       value: avgMargin,
       delta_pct: null,
-      sparkline: marginSpark.length > 0 ? marginSpark : [0],
+      sparkline: series(avgMargin),
       format_hint: "euro",
       accent_color: "#10B981",
     },
@@ -119,7 +131,7 @@ function buildStats(
       label: "Watchlist",
       value: watchlistCount,
       delta_pct: null,
-      sparkline: [watchlistCount],
+      sparkline: series(watchlistCount),
       format_hint: "integer",
       accent_color: "#A855F7",
     },
@@ -128,7 +140,7 @@ function buildStats(
       label: "Crédits restants",
       value: creditsBalance,
       delta_pct: null,
-      sparkline: [creditsBalance],
+      sparkline: series(creditsBalance),
       format_hint: "integer",
       accent_color: "#F59E0B",
     },

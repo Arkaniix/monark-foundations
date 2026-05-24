@@ -8,6 +8,7 @@ import { buildModelDetail } from "../../components/catalog/modelDetail";
 import type {
   CatalogFilters,
   CatalogListResponse,
+  CatalogModel,
   CatalogSortKey,
 } from "../../components/catalog/datasets";
 import type { CatalogModelDetail } from "../../components/catalog/modelDetail";
@@ -33,4 +34,8 @@ export async function getModelDetail(id: string): Promise<CatalogModelDetail | n
   const model = CATALOG_MODELS.find((m) => m.id === id);
   if (!model) return null;
   return buildModelDetail(model, CATALOG_MODELS);
+}
+
+export async function getAllModels(): Promise<CatalogModel[]> {
+  return CATALOG_MODELS;
 }
