@@ -17,6 +17,7 @@ import { buildModelDetail } from "../../components/catalog/modelDetail";
 import type {
   CatalogFilters,
   CatalogListResponse,
+  CatalogModel,
   CatalogSortKey,
 } from "../../components/catalog/datasets";
 import type { CatalogModelDetail } from "../../components/catalog/modelDetail";
@@ -35,4 +36,13 @@ export async function getModelDetail(id: string): Promise<CatalogModelDetail | n
   const model = all.find((m) => m.id === id);
   if (!model) return null;
   return buildModelDetail(model, all);
+}
+
+/**
+ * Tous les modèles (réels), pour les compteurs d'onglets, les facettes de filtre
+ * et le total « modèles indexés » de la page Catalogue. Quasi gratuit : réutilise
+ * le cache rempli par listModels().
+ */
+export async function getAllModels(): Promise<CatalogModel[]> {
+  return fetchAllCatalogModels();
 }
