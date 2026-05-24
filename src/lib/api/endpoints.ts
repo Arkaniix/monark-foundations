@@ -6,7 +6,9 @@ export const ENDPOINTS = {
   LOGOUT: "/v1/auth/logout",
   FORGOT_PASSWORD: "/v1/auth/forgot_password",
   RESET_PASSWORD: "/v1/auth/reset_password",
-  ME: "/v1/auth/me",
+  // ⚠️ Route corrigée : l'utilisateur courant est sur /v1/users/me (et NON /v1/auth/me,
+  // qui renvoie 404 en prod). C'était la cause des échecs de login/bootstrap.
+  ME: "/v1/users/me",
 
   // ── Catalog / Hardware (public, sans JWT) ────────────────────────────────
   MODELS: "/v1/models",
