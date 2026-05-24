@@ -5,7 +5,6 @@ import { catalogApi } from "@/lib/api";
 import FadeInSection from "@/components/ui/FadeInSection";
 import CatalogPagination from "@/components/catalog/CatalogPagination";
 import { getAvailableFacets, getCategoryCounts } from "@/components/catalog/filters";
-import { CATALOG_MODELS } from "@/components/catalog/mockData";
 import CatalogCategoryTabs from "@/components/catalog/CatalogCategoryTabs";
 import CatalogFilterBar from "@/components/catalog/CatalogFilterBar";
 import CatalogGrid from "@/components/catalog/CatalogGrid";
@@ -30,13 +29,23 @@ export default function Catalog() {
   const [sort, setSort] = useState<CatalogSortKey>(DEFAULT_SORT);
   const [page, setPage] = useState(1);
   const [state, setState] = useState<CatalogState>({ status: "loading" });
+  const [allModels, setAllModels] = useState<CatalogModel[]>([]);
   const favorites = useCatalogFavorites();
 
+  useEffect(() => {
+    let cancelled = false;
+    catalogApi
+      .getAllModels()
+      .then((m) => { if (!cancelled) setAllModels(m); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
   const facets = useMemo(
-    () => getAvailableFacets(CATALOG_MODELS, filters.category),
-    [filters.category],
+    () => getAvailableFacets(allModels, filters.category),
+    [allModels, filters.category],
   );
-  const counts = useMemo(() => getCategoryCounts(CATALOG_MODELS), []);
+  const counts = useMemo(() => getCategoryCounts(allModels), [allModels]);
 
   const gridKey = useMemo(
     () => `${JSON.stringify(filters)}_${sort}_${page}`,
@@ -126,7 +135,7 @@ export default function Catalog() {
               MODÈLES INDEXÉS
             </div>
             <div className="font-mono text-lg tabular-nums text-zinc-100">
-              {CATALOG_MODELS.length}
+              {allModels.length}
             </div>
           </div>
         </div>
