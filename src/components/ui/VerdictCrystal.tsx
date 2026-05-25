@@ -1,19 +1,90 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
 type Props = { color?: string; size?: number };
 
+/**
+ * Teste si un contexte WebGL est réellement créable, sans jeter.
+ * Certains navigateurs/machines (pas de GPU, WebGL désactivé, mode éco, VM,
+ * configs d'entreprise) ne fournissent pas de contexte → THREE.WebGLRenderer
+ * jette "Error creating WebGL context" et ferait planter toute la page.
+ */
+function isWebGLAvailable(): boolean {
+  if (typeof window === "undefined") return false; // SSR : pas de 3D côté serveur
+  try {
+    const canvas = document.createElement("canvas");
+    const gl =
+      canvas.getContext("webgl") ||
+      canvas.getContext("experimental-webgl");
+    return !!gl;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Fallback statique : un octaèdre CSS de la bonne couleur. S'affiche quand le 3D
+ * n'est pas disponible, pour que la landing reste soignée (pas un trou vide) au
+ * lieu de crasher. Pas d'animation, mais cohérent visuellement.
+ */
+function CrystalFallback({ color, size }: { color: string; size: number }) {
+  const s = size * 0.62;
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+      aria-hidden="true"
+    >
+      <div
+        style={{
+          width: s,
+          height: s,
+          transform: "rotate(45deg)",
+          borderRadius: size * 0.08,
+          background: `linear-gradient(135deg, ${color} 0%, ${color}AA 55%, ${color}66 100%)`,
+          boxShadow: `0 0 ${size * 0.18}px ${color}55, inset 0 0 ${size * 0.12}px ${color}88`,
+          border: `1px solid ${color}AA`,
+        }}
+      />
+    </div>
+  );
+}
+
 export default function VerdictCrystal({ color = "#10B981", size = 80 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const stateRef = useRef<{ mat?: THREE.MeshStandardMaterial }>({});
+  // null = pas encore testé ; true/false = WebGL dispo ou non. Démarre en fallback
+  // côté SSR/initial pour éviter tout flash, le 3D prend le relais si dispo.
+  const [webgl, setWebgl] = useState<boolean | null>(null);
 
+  // Détection WebGL au montage (client uniquement).
   useEffect(() => {
-    if (!ref.current) return;
+    setWebgl(isWebGLAvailable());
+  }, []);
+
+  // Init Three.js — UNIQUEMENT si WebGL confirmé dispo.
+  useEffect(() => {
+    if (webgl !== true || !ref.current) return;
+
     const w = size, h = size;
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    } catch {
+      // Garde-fou ultime : si la création échoue malgré le test, on bascule en
+      // fallback proprement plutôt que de laisser l'exception remonter.
+      setWebgl(false);
+      return;
+    }
+
     const scene = new THREE.Scene();
     const cam = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
     cam.position.z = 3.2;
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio || 1);
     renderer.setSize(w, h);
     renderer.setClearColor(0x000000, 0);
@@ -66,9 +137,11 @@ export default function VerdictCrystal({ color = "#10B981", size = 80 }: Props) 
       renderer.dispose();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [size]);
+  }, [size, webgl]);
 
+  // Transition de couleur (seulement en mode 3D, quand le material existe).
   useEffect(() => {
+    if (webgl !== true) return;
     const mat = stateRef.current.mat;
     if (!mat) return;
     const target = new THREE.Color(color);
@@ -80,7 +153,12 @@ export default function VerdictCrystal({ color = "#10B981", size = 80 }: Props) 
     };
     raf = requestAnimationFrame(lerp);
     return () => cancelAnimationFrame(raf);
-  }, [color]);
+  }, [color, webgl]);
+
+  // Tant que le test n'a pas tranché, OU si WebGL indisponible → fallback CSS.
+  if (webgl !== true) {
+    return <CrystalFallback color={color} size={size} />;
+  }
 
   return <div ref={ref} style={{ width: size, height: size }} />;
 }
