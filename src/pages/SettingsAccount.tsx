@@ -13,9 +13,9 @@ const PLAN_INFO: Record<SubscriptionTier, {
   cap: number;
   capLabel: string;
 }> = {
-  free: { label: "Découverte", priceText: "Gratuit", cap: 10, capLabel: "10 estimations" },
-  standard: { label: "Standard", priceText: "49 €/mois", cap: 180, capLabel: "180 estimations" },
-  pro: { label: "Pro", priceText: "149 €/mois", cap: 600, capLabel: "600 estimations" },
+  free: { label: "Free", priceText: "Gratuit", cap: 10, capLabel: "10 crédits / mois" },
+  standard: { label: "Standard", priceText: "11,99 €/mois", cap: 180, capLabel: "180 crédits / mois" },
+  pro: { label: "Pro", priceText: "24,99 €/mois", cap: 600, capLabel: "600 crédits / mois" },
 };
 
 const DISABLED_TOOLTIP = "Synchronisation backend en cours d'intégration · P2";
