@@ -11,7 +11,7 @@ import type {
 import type { HardwareCategory } from "@/components/catalog/datasets";
 
 // ── Maps d'enum front↔API ────────────────────────────────────────────────
-const PLAT_FRONT_TO_API: Record<PlatformKey, string> = {
+export const PLAT_FRONT_TO_API: Record<PlatformKey, string> = {
   LBC: "leboncoin",
   VINTED: "vinted",
   EBAY: "ebay",
@@ -40,7 +40,7 @@ const COND_API_TO_FRONT: Record<string, ConditionKey> = {
   occasion: "ACCEPTABLE",
   for_parts: "POUR_PIECES",
 };
-const CAT_FRONT_TO_API: Record<string, string> = {
+export const CAT_FRONT_TO_API: Record<string, string> = {
   GPU: "gpu",
   CPU: "cpu",
   RAM: "ram",
@@ -57,13 +57,13 @@ const CAT_API_TO_FRONT: Record<string, HardwareCategory | "OTHER"> = {
   motherboard: "MOBO",
   other: "OTHER",
 };
-function platToFront(v?: string | null): PlatformKey {
+export function platToFront(v?: string | null): PlatformKey {
   return (v && PLAT_API_TO_FRONT[v]) || "AUTRE";
 }
 function condToFront(v?: string | null): ConditionKey {
   return (v && COND_API_TO_FRONT[v]) || "BON";
 }
-function catToFront(v?: string | null): HardwareCategory | "OTHER" {
+export function catToFront(v?: string | null): HardwareCategory | "OTHER" {
   return (v && CAT_API_TO_FRONT[v.toLowerCase()]) || "OTHER";
 }
 
