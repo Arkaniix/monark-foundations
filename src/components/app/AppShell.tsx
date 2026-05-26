@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useAuth } from "../../context/AuthContext";
 import AppSidebar from "./AppSidebar";
 import AppTopbar from "./AppTopbar";
+import PendingDeletionBanner from "../PendingDeletionBanner";
 
 type AppShellProps = {
   children: ReactNode;
@@ -49,6 +50,7 @@ export default function AppShell({ children, pageLabel, activePath }: AppShellPr
           }}
           onLogout={handleLogout}
         />
+        <PendingDeletionBanner />
         <main className="flex-1 px-6 py-8 md:px-8">
           <div className="mx-auto" style={{ maxWidth: 1320 }}>
             {children}
