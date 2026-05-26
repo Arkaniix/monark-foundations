@@ -271,12 +271,14 @@ export default function AuthCard() {
       )}
 
       <div className={"mk-auth-card p-8 sm:p-9 relative " + (exiting ? "card-exit" : "")}>
+        <PlanDetailsModal open={showPlanDetails} onClose={() => setShowPlanDetails(false)} value={plan} onChange={setPlan} />
         {submitting && (
           <SubmitSequence
             mode={mode}
             errorAt={errorAt}
             onSettled={onSequenceSettled}
             onError={onSequenceError}
+            plan={plan}
           />
         )}
 
