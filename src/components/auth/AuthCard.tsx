@@ -212,7 +212,7 @@ export default function AuthCard() {
         if (mode === "login") {
           await auth.login(email, pwd);
         } else {
-          await auth.register({ email, password: pwd });
+          await auth.register({ email, password: pwd, signup_plan: plan });
         }
       } catch (err) {
         errored = true;
