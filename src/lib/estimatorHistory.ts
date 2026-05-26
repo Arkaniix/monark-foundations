@@ -3,10 +3,14 @@ import type {
   EstimatorInputs,
   EstimatorResult,
 } from "@/components/estimator/datasets";
+import {
+  fetchEstimatorHistory,
+  deleteEstimatorRun,
+  clearEstimatorHistory,
+} from "./api/estimator";
 
 /**
- * Store localStorage typé pour l'historique des évaluations Estimator.
- * V1 : client-only, snapshot complet, cap fixe 50.
+ * Historique Estimator backé par le serveur (GET/DELETE /v1/estimator/history).
  */
 
 export const HISTORY_STORAGE_KEY = "monark.estimator.history.v1";
@@ -20,99 +24,66 @@ export type EstimatorHistoryEntry = {
   result: EstimatorResult;
 };
 
-function isClient(): boolean {
-  return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
-}
-
-function generateId(): string {
-  return `h_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function loadRaw(): EstimatorHistoryEntry[] {
-  if (!isClient()) return [];
-  try {
-    const raw = window.localStorage.getItem(HISTORY_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (e): e is EstimatorHistoryEntry =>
-        typeof e === "object" &&
-        e !== null &&
-        typeof (e as EstimatorHistoryEntry).id === "string" &&
-        typeof (e as EstimatorHistoryEntry).ts === "number" &&
-        typeof (e as EstimatorHistoryEntry).inputs === "object" &&
-        typeof (e as EstimatorHistoryEntry).result === "object",
-    );
-  } catch {
-    return [];
-  }
-}
-
-function saveRaw(entries: EstimatorHistoryEntry[]): void {
-  if (!isClient()) return;
-  try {
-    window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(entries));
-  } catch {
-    // silent fail
-  }
-}
-
 export function useEstimatorHistory() {
-  const [entries, setEntries] = useState<EstimatorHistoryEntry[]>(() => loadRaw());
+  const [entries, setEntries] = useState<EstimatorHistoryEntry[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    if (!isClient()) return;
-    const handler = (e: StorageEvent) => {
-      if (e.key === HISTORY_STORAGE_KEY) {
-        setEntries(loadRaw());
-      }
-    };
-    window.addEventListener("storage", handler);
-    return () => window.removeEventListener("storage", handler);
+  const refresh = useCallback(async () => {
+    try {
+      const items = await fetchEstimatorHistory(HISTORY_CAP_V1);
+      setEntries(items);
+    } catch {
+      // on garde l'état courant en cas d'échec réseau
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
   const add = useCallback(
-    (inputs: EstimatorInputs, result: EstimatorResult): boolean => {
-      if (entries.length >= HISTORY_CAP_V1) return false;
-      const newEntry: EstimatorHistoryEntry = {
-        id: generateId(),
-        ts: Date.now(),
-        inputs,
-        result,
-      };
-      const next = [newEntry, ...entries];
-      setEntries(next);
-      saveRaw(next);
+    async (_inputs: EstimatorInputs, _result: EstimatorResult): Promise<boolean> => {
+      void _inputs;
+      void _result;
+      await refresh();
       return true;
     },
-    [entries],
+    [refresh],
   );
 
   const remove = useCallback(
-    (id: string) => {
-      const next = entries.filter((e) => e.id !== id);
-      setEntries(next);
-      saveRaw(next);
+    async (id: string) => {
+      setEntries((prev) => prev.filter((e) => e.id !== id));
+      try {
+        await deleteEstimatorRun(id);
+      } catch {
+        await refresh();
+      }
     },
-    [entries],
+    [refresh],
   );
 
-  const clear = useCallback(() => {
+  const clear = useCallback(async () => {
     setEntries([]);
-    saveRaw([]);
-  }, []);
-
-  const isAtCap = entries.length >= HISTORY_CAP_V1;
+    try {
+      await clearEstimatorHistory();
+    } catch {
+      await refresh();
+    }
+  }, [refresh]);
 
   return {
     entries,
     count: entries.length,
     cap: HISTORY_CAP_V1,
-    isAtCap,
+    isAtCap: entries.length >= HISTORY_CAP_V1,
+    loading,
     add,
     remove,
     clear,
+    refresh,
   };
 }
 
