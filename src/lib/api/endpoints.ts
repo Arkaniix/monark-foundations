@@ -67,4 +67,8 @@ export const ENDPOINTS = {
   REPAIR_HISTORY: "/v1/repair/history",
   REPAIR_HISTORY_DETAIL: (id: number) => `/v1/repair/history/${id}`,
   REPAIR_HISTORY_OUTCOME: (id: number) => `/v1/repair/history/${id}/outcome`,
+
+  // ── Watchlist (JWT) ──────────────────────────────────────────────────────
+  WATCHLIST: "/v1/watchlist",
+  WATCHLIST_ITEM: (id: string) => `/v1/watchlist/${id}`,
 } as const;
