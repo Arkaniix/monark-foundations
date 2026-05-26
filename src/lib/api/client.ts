@@ -102,13 +102,13 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   }
 
   if (!res.ok) {
-    let body: { message?: string; code?: string; details?: unknown } = {};
+    let body: { message?: string; detail?: string; code?: string; details?: unknown } = {};
     try {
       body = await res.json();
     } catch {
       // not json
     }
-    throw new ApiException(res.status, body.message || res.statusText, body.code, body.details);
+    throw new ApiException(res.status, body.detail || body.message || res.statusText, body.code, body.details);
   }
 
   if (res.status === 204) return undefined as T;
