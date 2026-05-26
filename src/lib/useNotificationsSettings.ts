@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { fetchNotificationsSettings, patchNotificationsSettings } from "./api/settings";
 
 export type NotificationFrequency = "instant" | "daily" | "weekly";
 
@@ -31,51 +32,35 @@ export const DEFAULT_NOTIFICATIONS_SETTINGS: NotificationsSettings = {
   frequency: "daily",
 };
 
-const KEY = "monark.settings.notifications.v1";
-
-function isFrequency(v: unknown): v is NotificationFrequency {
-  return v === "instant" || v === "daily" || v === "weekly";
-}
-
-function load(): NotificationsSettings {
-  if (typeof window === "undefined") return DEFAULT_NOTIFICATIONS_SETTINGS;
-  try {
-    const raw = window.localStorage.getItem(KEY);
-    if (!raw) return DEFAULT_NOTIFICATIONS_SETTINGS;
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object") return DEFAULT_NOTIFICATIONS_SETTINGS;
-    return {
-      channels: {
-        ...DEFAULT_NOTIFICATIONS_SETTINGS.channels,
-        ...(parsed.channels ?? {}),
-      },
-      events: {
-        ...DEFAULT_NOTIFICATIONS_SETTINGS.events,
-        ...(parsed.events ?? {}),
-      },
-      frequency: isFrequency(parsed.frequency)
-        ? parsed.frequency
-        : DEFAULT_NOTIFICATIONS_SETTINGS.frequency,
-    };
-  } catch {
-    return DEFAULT_NOTIFICATIONS_SETTINGS;
-  }
-}
-
-function save(s: NotificationsSettings): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(KEY, JSON.stringify(s));
-  } catch {
-    /* noop */
-  }
-}
-
 export function useNotificationsSettings() {
-  const [settings, setSettings] = useState<NotificationsSettings>(() => load());
+  const [settings, setSettings] = useState<NotificationsSettings>(DEFAULT_NOTIFICATIONS_SETTINGS);
+  const [loading, setLoading] = useState(true);
+  const hydrated = useRef(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    save(settings);
+    let alive = true;
+    fetchNotificationsSettings()
+      .then((s) => {
+        if (!alive) return;
+        setSettings({
+          channels: { ...DEFAULT_NOTIFICATIONS_SETTINGS.channels, ...(s?.channels ?? {}) },
+          events: { ...DEFAULT_NOTIFICATIONS_SETTINGS.events, ...(s?.events ?? {}) },
+          frequency: s?.frequency ?? DEFAULT_NOTIFICATIONS_SETTINGS.frequency,
+        });
+      })
+      .catch(() => { /* on garde les defaults en cas d'échec */ })
+      .finally(() => { if (alive) { setLoading(false); hydrated.current = true; } });
+    return () => { alive = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated.current) return;
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      void patchNotificationsSettings(settings).catch(() => { /* silencieux */ });
+    }, 600);
+    return () => { if (timer.current) clearTimeout(timer.current); };
   }, [settings]);
 
   const updateChannel = useCallback(
@@ -101,5 +86,5 @@ export function useNotificationsSettings() {
     [],
   );
 
-  return { settings, updateChannel, updateEvent, setFrequency };
+  return { settings, loading, updateChannel, updateEvent, setFrequency };
 }

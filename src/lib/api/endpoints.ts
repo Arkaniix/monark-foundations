@@ -9,6 +9,7 @@ export const ENDPOINTS = {
   // ⚠️ Route corrigée : l'utilisateur courant est sur /v1/users/me (et NON /v1/auth/me,
   // qui renvoie 404 en prod). C'était la cause des échecs de login/bootstrap.
   ME: "/v1/users/me",
+  USER_SETTINGS: "/v1/users/me/settings",
 
   // ── Catalog / Hardware (public, sans JWT) ────────────────────────────────
   MODELS: "/v1/models",
