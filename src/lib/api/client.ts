@@ -35,7 +35,12 @@ export function clearTokens(): void {
 }
 
 export type LoginRequest = { email: string; password: string };
-export type RegisterRequest = { email: string; password: string; full_name?: string };
+export type RegisterRequest = {
+  email: string;
+  password: string;
+  full_name?: string;
+  signup_plan?: "free" | "standard" | "pro";
+};
 export type User = {
   id: string;
   email: string;
