@@ -292,7 +292,9 @@ export default function AuthCard() {
               {mode === "login" ? "Bon retour." : "Créer un accès Monark."}
             </h1>
             <p className="fade-up mt-1.5 text-[13.5px] text-zinc-500" style={{ animationDelay: `${D.sub}ms` }}>
-              {mode === "login" ? "Reprenez là où vous vous êtes arrêté." : "10 crédits offerts pour commencer."}
+              {mode === "login"
+                ? "Reprenez là où vous vous êtes arrêté."
+                : (plan === "free" ? "10 crédits offerts pour commencer." : `Plan ${PLAN_META[plan].name} · ${PLAN_META[plan].credits}.`)}
             </p>
           </div>
 
@@ -373,7 +375,21 @@ export default function AuthCard() {
             )}
 
             {mode === "signup" && (
-              <div className="fade-up pt-1" style={{ animationDelay: `${D.fields + 180}ms` }}>
+              <div className="fade-up" style={{ animationDelay: `${D.fields + 180}ms` }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11.5px] font-medium text-zinc-300">Choisir un plan</span>
+                  <span className="text-[11px] text-zinc-500 flex items-center gap-1.5">
+                    <span>modifiable plus tard</span>
+                    <span className="text-zinc-700">·</span>
+                    <button type="button" onClick={() => setShowPlanDetails(true)} className="text-blue-400 hover:text-blue-300 transition-colors underline-offset-2 hover:underline">Détails</button>
+                  </span>
+                </div>
+                <PlanPicker value={plan} onChange={setPlan} />
+              </div>
+            )}
+
+            {mode === "signup" && (
+              <div className="fade-up pt-1" style={{ animationDelay: `${D.fields + 220}ms` }}>
                 <label className="flex items-start gap-2.5 cursor-pointer group select-none">
                   <span className="relative mt-0.5 shrink-0">
                     <input type="checkbox" checked={accepted} onChange={(e) => { setAccepted(e.target.checked); if (e.target.checked) setErrAccept(null); }} className="peer sr-only" />
@@ -407,7 +423,9 @@ export default function AuthCard() {
                   </>
                 ) : (
                   <>
-                    {mode === "login" ? "Se connecter" : "Créer mon compte"}
+                    {mode === "login"
+                      ? "Se connecter"
+                      : (plan === "free" ? "Créer mon compte" : `Continuer avec ${PLAN_META[plan].name} · ${PLAN_META[plan].price}/mois`)}
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -422,12 +440,14 @@ export default function AuthCard() {
           </div>
 
           <div className="fade-up grid grid-cols-1 sm:grid-cols-2 gap-2.5" style={{ animationDelay: `${D.oauth}ms` }}>
-            <button type="button" onClick={oauthClick} className="h-10 rounded-lg bg-white/[0.02] hover:bg-white/[0.04] text-zinc-300 text-[13px] flex items-center justify-center gap-2 transition-colors">
-              <Mail className="w-4 h-4 text-zinc-400" /> Google
-            </button>
-            <button type="button" onClick={oauthClick} className="h-10 rounded-lg bg-white/[0.02] hover:bg-white/[0.04] text-zinc-300 text-[13px] flex items-center justify-center gap-2 transition-colors">
-              <GithubIcon className="w-4 h-4 text-zinc-400" /> GitHub
-            </button>
+            <div className="oauth-soon relative h-10 rounded-lg bg-white/[0.015] border border-white/[0.05] text-zinc-500 text-[13px] flex items-center justify-center gap-2 opacity-70 cursor-not-allowed select-none" aria-disabled="true">
+              <Mail className="w-4 h-4 text-zinc-500" /> Google
+              <span className="soon-ribbon">Prochainement</span>
+            </div>
+            <div className="oauth-soon relative h-10 rounded-lg bg-white/[0.015] border border-white/[0.05] text-zinc-500 text-[13px] flex items-center justify-center gap-2 opacity-70 cursor-not-allowed select-none" aria-disabled="true">
+              <GithubIcon className="w-4 h-4 text-zinc-500" /> GitHub
+              <span className="soon-ribbon">Prochainement</span>
+            </div>
           </div>
 
           <div className="fade-up text-center mt-7 text-[12.5px] text-zinc-500" style={{ animationDelay: `${D.footer}ms` }}>
