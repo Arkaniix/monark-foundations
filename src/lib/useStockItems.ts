@@ -131,6 +131,7 @@ export function useStockItems() {
     items,
     historique,
     loading,
+    refresh,
     add,
     remove,
     getById,
