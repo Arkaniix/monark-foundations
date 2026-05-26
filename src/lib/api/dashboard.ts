@@ -18,8 +18,7 @@
 import { apiFetch } from "./client";
 import { ENDPOINTS } from "./endpoints";
 import { getCatalogModelsByIds } from "../catalogSource";
-import { HISTORY_STORAGE_KEY } from "../estimatorHistory";
-import type { EstimatorHistoryEntry } from "../estimatorHistory";
+import { VERDICT_EN_TO_FR, API_CAT_TO_FRONT } from "./estimator";
 import type {
   DashboardOverview,
   RecentEstimation,
@@ -31,6 +30,18 @@ const RECENT_LIMIT = 8;
 const WATCHLIST_PREVIEW_LIMIT = 4;
 
 // ── Forme (partielle) de GET /v1/dashboard/overview réellement consommée ────
+interface ApiOverviewItem {
+  id: number;
+  model_id: number | null;
+  model_name: string;
+  category: string | null;
+  verdict: string | null;
+  score: number | null;
+  listing_price: number | null;
+  net_margin_eur: number | null;
+  created_at: string;
+}
+
 interface ApiOverview {
   credits: { balance: number };
   watchlist: Array<{
@@ -39,38 +50,20 @@ interface ApiOverview {
     target_id: number;
     created_at: string;
   }>;
+  recent_estimates: ApiOverviewItem[];
+  estimations_month: number;
+  avg_margin_month: number;
 }
 
-// ── Accès localStorage (SSR-safe) ───────────────────────────────────────────
-function loadLocalHistory(): EstimatorHistoryEntry[] {
-  if (typeof window === "undefined" || typeof window.localStorage === "undefined") {
-    return [];
-  }
-  try {
-    const raw = window.localStorage.getItem(HISTORY_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as EstimatorHistoryEntry[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function isThisMonth(ts: number): boolean {
-  const d = new Date(ts);
-  const now = new Date();
-  return d.getUTCFullYear() === now.getUTCFullYear() && d.getUTCMonth() === now.getUTCMonth();
-}
-
-function toRecentEstimation(e: EstimatorHistoryEntry): RecentEstimation {
+function toRecentEstimation(it: ApiOverviewItem): RecentEstimation {
   return {
-    id: e.id,
-    model_name: e.result.model_name,
-    category: e.result.category,
-    verdict: e.result.verdict,
-    listing_price_eur: e.inputs.ask_price_eur,
-    net_margin_eur: e.result.net_margin_eur,
-    created_at: new Date(e.ts).toISOString(),
+    id: String(it.id),
+    model_name: it.model_name,
+    category: API_CAT_TO_FRONT[it.category ?? ""] ?? "GPU",
+    verdict: VERDICT_EN_TO_FR[it.verdict ?? ""] ?? "NÉGOCIER",
+    listing_price_eur: it.listing_price ?? 0,
+    net_margin_eur: it.net_margin_eur ?? 0,
+    created_at: it.created_at,
   };
 }
 
@@ -93,20 +86,11 @@ function series(target: number, n = 16): number[] {
 }
 
 function buildStats(
-  history: EstimatorHistoryEntry[],
+  estimationsMonth: number,
+  avgMargin: number,
   creditsBalance: number,
   watchlistCount: number,
 ): StatTileData[] {
-  const monthEntries = history.filter((e) => isThisMonth(e.ts));
-  const estimationsMonth = monthEntries.length;
-  const margins = monthEntries
-    .map((e) => e.result.net_margin_eur)
-    .filter((m) => Number.isFinite(m));
-  const avgMargin =
-    margins.length > 0
-      ? Math.round(margins.reduce((a, b) => a + b, 0) / margins.length)
-      : 0;
-
   return [
     {
       id: "estimations_month",
@@ -177,14 +161,20 @@ export async function getOverview(): Promise<DashboardOverview> {
     method: "GET",
   });
 
-  const history = loadLocalHistory();
   const watchlistCount = overview.watchlist.length;
 
-  const [watchlist_preview] = await Promise.all([buildWatchlistPreview(overview)]);
+  const watchlist_preview = await buildWatchlistPreview(overview);
 
   return {
-    stats: buildStats(history, overview.credits.balance, watchlistCount),
-    recent_estimations: history.slice(0, RECENT_LIMIT).map(toRecentEstimation),
+    stats: buildStats(
+      overview.estimations_month ?? 0,
+      overview.avg_margin_month ?? 0,
+      overview.credits.balance,
+      watchlistCount,
+    ),
+    recent_estimations: (overview.recent_estimates ?? [])
+      .slice(0, RECENT_LIMIT)
+      .map(toRecentEstimation),
     watchlist_preview,
     generated_at: new Date().toISOString(),
   };

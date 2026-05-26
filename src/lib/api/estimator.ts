@@ -31,6 +31,7 @@ import {
   NEGOTIATION_KEYWORDS,
   RESALE_TIMINGS,
 } from "../../components/estimator/datasets";
+import type { EstimatorHistoryEntry } from "../estimatorHistory";
 import type {
   EstimatorInputs,
   EstimatorResult,
@@ -69,14 +70,28 @@ const PLATFORM_TO_API: Record<Platform, string> = {
   eBay: "ebay",
 };
 
-const VERDICT_EN_TO_FR: Record<string, Verdict> = {
+const CONDITION_TO_STATE: Record<string, ItemState> = {
+  new: "Neuf",
+  like_new: "Comme neuf",
+  good: "Bon",
+  occasion: "Acceptable",
+  for_parts: "Pour pièces",
+};
+
+const API_PLATFORM_TO_FRONT: Record<string, Platform> = {
+  leboncoin: "LBC",
+  vinted: "Vinted",
+  ebay: "eBay",
+};
+
+export const VERDICT_EN_TO_FR: Record<string, Verdict> = {
   BUY: "FONCER",
   NEGOTIATE: "NÉGOCIER",
   LOWBALL: "TENTER",
   AVOID: "PASSER",
 };
 
-const API_CAT_TO_FRONT: Record<string, HardwareCategory> = {
+export const API_CAT_TO_FRONT: Record<string, HardwareCategory> = {
   GPU: "GPU",
   CPU: "CPU",
   RAM: "RAM",
@@ -441,4 +456,46 @@ export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult
     body: JSON.stringify(body),
   });
   return mapResponse(inputs, resp);
+}
+
+// ── Historique serveur ───────────────────────────────────────────────────────
+
+interface ApiHistoryItem {
+  id: number;
+  created_at: string;
+  result_snapshot: ApiEvaluateResponse;
+  input_snapshot?: { price?: number; condition?: string; platform?: string; region?: string } | null;
+}
+
+function reconstructInputs(item: ApiHistoryItem): EstimatorInputs {
+  const r = item.result_snapshot;
+  const inp = item.input_snapshot ?? (r as { input?: ApiHistoryItem["input_snapshot"] }).input ?? {};
+  return {
+    model: r.model?.name ?? "",
+    state: CONDITION_TO_STATE[inp?.condition ?? ""] ?? "Bon",
+    ask_price_eur: typeof inp?.price === "number" ? inp.price : 0,
+    platform: API_PLATFORM_TO_FRONT[inp?.platform ?? ""] ?? "LBC",
+    region_fr: inp?.region ?? undefined,
+  };
+}
+
+export function mapHistoryItem(item: ApiHistoryItem): EstimatorHistoryEntry {
+  const inputs = reconstructInputs(item);
+  const result = mapResponse(inputs, item.result_snapshot);
+  return { id: String(item.id), ts: Date.parse(item.created_at), inputs, result };
+}
+
+export async function fetchEstimatorHistory(limit = 50): Promise<EstimatorHistoryEntry[]> {
+  const data = await apiFetch<unknown>(`${ENDPOINTS.ESTIMATOR_HISTORY}?limit=${limit}&offset=0`, { method: "GET" });
+  const d = data as Record<string, unknown>;
+  const items = (Array.isArray(data) ? data : (d.items ?? d.runs ?? d.results ?? d.data ?? [])) as ApiHistoryItem[];
+  return items.map(mapHistoryItem);
+}
+
+export async function deleteEstimatorRun(runId: string): Promise<void> {
+  await apiFetch<void>(ENDPOINTS.ESTIMATOR_RUN(runId), { method: "DELETE" });
+}
+
+export async function clearEstimatorHistory(): Promise<void> {
+  await apiFetch<void>(ENDPOINTS.ESTIMATOR_HISTORY, { method: "DELETE" });
 }

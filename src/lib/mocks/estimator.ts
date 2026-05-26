@@ -421,3 +421,14 @@ export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult
     resale_when: resaleWhen,
   };
 }
+
+// Re-exports pour compat avec typeof realEstimator (utilisé par src/lib/api/index.ts).
+export { VERDICT_EN_TO_FR, API_CAT_TO_FRONT, mapHistoryItem } from "../api/estimator";
+
+export async function fetchEstimatorHistory(): Promise<import("../estimatorHistory").EstimatorHistoryEntry[]> {
+  return [];
+}
+export async function deleteEstimatorRun(_runId: string): Promise<void> {
+  void _runId;
+}
+export async function clearEstimatorHistory(): Promise<void> {}
