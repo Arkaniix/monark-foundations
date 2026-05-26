@@ -9,6 +9,7 @@ import {
 type Props = {
   filters: CatalogFilters;
   sort: CatalogSortKey;
+  view: "grid" | "list";
   facets: {
     manufacturers: string[];
     brands: string[];
@@ -16,6 +17,7 @@ type Props = {
   };
   onChangeFilters: (next: CatalogFilters) => void;
   onChangeSort: (next: CatalogSortKey) => void;
+  onChangeView: (next: "grid" | "list") => void;
   onReset: () => void;
 };
 
@@ -27,9 +29,11 @@ type Props = {
 export default function CatalogFilterBar({
   filters,
   sort,
+  view,
   facets,
   onChangeFilters,
   onChangeSort,
+  onChangeView,
   onReset,
 }: Props) {
   const updateField = <K extends keyof CatalogFilters>(
@@ -57,17 +61,23 @@ export default function CatalogFilterBar({
         <div className="flex items-center rounded-md border border-white/10 bg-white/[0.02]">
           <button
             type="button"
-            className="px-2.5 py-2 text-zinc-200"
+            onClick={() => onChangeView("grid")}
+            className={`px-2.5 py-2 transition-colors ${
+              view === "grid" ? "text-zinc-100" : "text-zinc-600 hover:text-zinc-300"
+            }`}
             aria-label="Vue grille"
-            aria-pressed
+            aria-pressed={view === "grid"}
           >
             <LayoutGrid className="h-3.5 w-3.5" strokeWidth={1.5} />
           </button>
           <button
             type="button"
-            className="cursor-not-allowed px-2.5 py-2 text-zinc-700"
-            aria-label="Vue liste (bientôt)"
-            disabled
+            onClick={() => onChangeView("list")}
+            className={`px-2.5 py-2 transition-colors ${
+              view === "list" ? "text-zinc-100" : "text-zinc-600 hover:text-zinc-300"
+            }`}
+            aria-label="Vue liste"
+            aria-pressed={view === "list"}
           >
             <List className="h-3.5 w-3.5" strokeWidth={1.5} />
           </button>
@@ -163,6 +173,7 @@ function FilterPill({
         onChange={(e) => onChange(e.target.value)}
         aria-label={label}
         className="absolute inset-0 cursor-pointer opacity-0"
+        style={{ colorScheme: "dark" }}
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
