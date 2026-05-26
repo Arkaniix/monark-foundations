@@ -39,6 +39,10 @@ export const ENDPOINTS = {
   INVENTORY_SELL: (id: string) => `/v1/inventory/${id}/sell`,
   INVENTORY_CANCEL_SALE: (id: string) => `/v1/inventory/${id}/cancel-sale`,
 
+  // ── Transactions (compta — JWT) ──────────────────────────────────────────
+  TRANSACTIONS: "/v1/inventory/transactions",
+  TRANSACTION_ITEM: (id: string) => `/v1/inventory/transactions/${id}`,
+
   // ── Builds (JWT) ─────────────────────────────────────────────────────────
   BUILDS: "/v1/builds",
   BUILD_ITEM: (id: string) => `/v1/builds/${id}`,
