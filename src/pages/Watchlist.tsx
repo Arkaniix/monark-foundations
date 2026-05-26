@@ -208,6 +208,12 @@ export default function Watchlist() {
             </button>
           </div>
         </FadeInSection>
+      ) : !modelsLoaded ? (
+        <FadeInSection delay={120}>
+          <div className="mk-card-flat-soft p-8 text-center text-sm text-zinc-500">
+            Chargement des modèles suivis…
+          </div>
+        </FadeInSection>
       ) : visibleModels.length === 0 ? (
         <FadeInSection delay={120}>
           <div className="mk-card-flat-soft p-8 text-center text-sm text-zinc-500">
