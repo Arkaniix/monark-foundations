@@ -43,7 +43,7 @@ import StockBilanView from "@/components/stock/StockBilanView";
 export default function Stock() {
   const stock = useStockItems();
   const accounting = useAccountingEntries();
-  const builds = useBuilds({ refreshStock: stock.refresh });
+  const builds = useBuilds({ refresh: stock.refresh });
   const [activeTab, setActiveTab] = useState<StockTab>("actifs");
   const [filters, setFilters] = useState<StockFilters>(DEFAULT_STOCK_FILTERS);
   const [density, setDensity] = useState<StockDensity>(() => loadStockDensity());
