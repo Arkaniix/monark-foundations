@@ -1,112 +1,102 @@
-import { useCallback, useEffect, useState } from "react";
-import {
-  isHistorique,
-  newStockEvent,
-  type PlatformKey,
-  type StockItem,
-} from "@/components/stock/datasets";
-
-const KEY_V1 = "monark.stock.items.v1";
-
-function load(): StockItem[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(KEY_V1);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .filter(
-        (x): x is StockItem =>
-          x != null &&
-          typeof x === "object" &&
-          typeof x.id === "string" &&
-          (x.source === "catalog" || x.source === "custom") &&
-          typeof x.purchase_price_eur === "number" &&
-          typeof x.purchase_date === "string" &&
-          typeof x.status === "string",
-      )
-      .map((x) => {
-        const events = Array.isArray(x.events) ? x.events : [];
-        if (events.length === 0) {
-          events.push(newStockEvent("added", undefined));
-          // backfill timestamp from created_at if available
-          if (typeof x.created_at === "string") {
-            events[0] = { ...events[0], at: x.created_at };
-          }
-        }
-        return { ...x, events };
-      });
-  } catch {
-    return [];
-  }
-}
-
-function save(items: StockItem[]) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(KEY_V1, JSON.stringify(items));
-  } catch {
-    /* noop */
-  }
-}
+import { useCallback, useEffect, useRef, useState } from "react";
+import { isHistorique, type PlatformKey, type StockItem } from "@/components/stock/datasets";
+import * as inventoryApi from "./api/inventory";
 
 export function useStockItems() {
-  const [items, setItems] = useState<StockItem[]>(() => load());
-
+  const [items, setItems] = useState<StockItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const itemsRef = useRef<StockItem[]>([]);
   useEffect(() => {
-    save(items);
+    itemsRef.current = items;
   }, [items]);
 
-  const add = useCallback((item: StockItem) => {
-    setItems((prev) => [item, ...prev]);
+  const refresh = useCallback(async () => {
+    try {
+      setItems(await inventoryApi.fetchInventory());
+    } catch {
+      /* garde l'état courant */
+    } finally {
+      setLoading(false);
+    }
   }, []);
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
-  const remove = useCallback((id: string) => {
-    setItems((prev) => prev.filter((x) => x.id !== id));
-  }, []);
+  const upsert = (it: StockItem) =>
+    setItems((prev) => {
+      const i = prev.findIndex((x) => x.id === it.id);
+      if (i === -1) return [it, ...prev];
+      const next = [...prev];
+      next[i] = it;
+      return next;
+    });
+
+  const add = useCallback(
+    async (item: StockItem) => {
+      try {
+        upsert(await inventoryApi.createInventoryItem(item));
+      } catch {
+        await refresh();
+      }
+    },
+    [refresh],
+  );
+
+  const remove = useCallback(
+    async (id: string) => {
+      setItems((prev) => prev.filter((x) => x.id !== id));
+      try {
+        await inventoryApi.deleteInventoryItem(id);
+      } catch {
+        await refresh();
+      }
+    },
+    [refresh],
+  );
 
   const getById = useCallback(
     (id: string): StockItem | null => items.find((x) => x.id === id) ?? null,
     [items],
   );
 
-  const update = useCallback((id: string, patch: Partial<StockItem>) => {
-    setItems((prev) =>
-      prev.map((x) => (x.id === id ? { ...x, ...patch } : x)),
-    );
-  }, []);
+  const update = useCallback(
+    async (id: string, patch: Partial<StockItem>) => {
+      try {
+        upsert(await inventoryApi.updateInventoryItem(id, patch));
+      } catch {
+        await refresh();
+      }
+    },
+    [refresh],
+  );
 
-  const markAsListed = useCallback((id: string) => {
-    setItems((prev) =>
-      prev.map((x) =>
-        x.id === id
-          ? {
-              ...x,
-              status: "listed",
-              events: [...(x.events ?? []), newStockEvent("listed")],
-            }
-          : x,
-      ),
-    );
-  }, []);
+  const markAsListed = useCallback(
+    async (id: string) => {
+      const it = itemsRef.current.find((x) => x.id === id);
+      if (!it) return;
+      try {
+        upsert(await inventoryApi.listInventoryItem(it));
+      } catch {
+        await refresh();
+      }
+    },
+    [refresh],
+  );
 
-  const markAsUnlisted = useCallback((id: string) => {
-    setItems((prev) =>
-      prev.map((x) =>
-        x.id === id
-          ? {
-              ...x,
-              status: "in_stock",
-              events: [...(x.events ?? []), newStockEvent("delisted")],
-            }
-          : x,
-      ),
-    );
-  }, []);
+  const markAsUnlisted = useCallback(
+    async (id: string) => {
+      try {
+        upsert(await inventoryApi.unlistInventoryItem(id));
+      } catch {
+        await refresh();
+      }
+    },
+    [refresh],
+  );
 
   const markAsSold = useCallback(
-    (
+    async (
       id: string,
       sale: {
         sale_price_eur: number;
@@ -115,56 +105,24 @@ export function useStockItems() {
         fees_eur: number;
       },
     ) => {
-      setItems((prev) =>
-        prev.map((x) =>
-          x.id === id
-            ? {
-                ...x,
-                status: "sold",
-                sale_price_eur: sale.sale_price_eur,
-                sale_date: sale.sale_date,
-                sale_platform: sale.sale_platform,
-                fees_eur: sale.fees_eur,
-                events: [
-                  ...(x.events ?? []),
-                  newStockEvent("sold", {
-                    price_eur: sale.sale_price_eur,
-                    platform: sale.sale_platform,
-                    fees_eur: sale.fees_eur,
-                  }),
-                ],
-              }
-            : x,
-        ),
-      );
+      try {
+        upsert(await inventoryApi.sellInventoryItem(id, sale));
+      } catch {
+        await refresh();
+      }
     },
-    [],
+    [refresh],
   );
 
   const cancelSale = useCallback(
-    (id: string, newStatus: "in_stock" | "returned") => {
-      setItems((prev) =>
-        prev.map((x) =>
-          x.id === id
-            ? {
-                ...x,
-                status: newStatus,
-                sale_price_eur: null,
-                sale_date: null,
-                sale_platform: null,
-                fees_eur: null,
-                events: [
-                  ...(x.events ?? []),
-                  newStockEvent(
-                    newStatus === "returned" ? "returned" : "sale_cancelled",
-                  ),
-                ],
-              }
-            : x,
-        ),
-      );
+    async (id: string, newStatus: "in_stock" | "returned") => {
+      try {
+        upsert(await inventoryApi.cancelSaleInventoryItem(id, newStatus));
+      } catch {
+        await refresh();
+      }
     },
-    [],
+    [refresh],
   );
 
   const historique = items.filter(isHistorique);
@@ -172,6 +130,7 @@ export function useStockItems() {
   return {
     items,
     historique,
+    loading,
     add,
     remove,
     getById,
