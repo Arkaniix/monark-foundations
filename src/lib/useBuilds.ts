@@ -8,12 +8,9 @@ import {
 import type { PlatformKey } from "@/components/stock/datasets";
 import * as buildsApi from "./api/builds";
 
-export type UseBuildsOptions = {
-  refreshStock?: () => void | Promise<void>;
-};
+export type StockCascadeApi = { refresh: () => Promise<void> };
 
-export function useBuilds(opts: UseBuildsOptions = {}) {
-  const { refreshStock } = opts;
+export function useBuilds(stockApi: StockCascadeApi) {
   const [builds, setBuilds] = useState<Build[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,17 +35,20 @@ export function useBuilds(opts: UseBuildsOptions = {}) {
       next[i] = b;
       return next;
     });
-  const cascadeStock = () => {
-    if (refreshStock) void refreshStock();
-  };
+  const syncStock = useCallback(async () => {
+    try {
+      await stockApi.refresh();
+    } catch {
+      /* noop */
+    }
+  }, [stockApi]);
   const wrap = async (fn: () => Promise<Build>, cascade = false) => {
     try {
       upsert(await fn());
-      if (cascade) cascadeStock();
     } catch {
       await refresh();
-      if (cascade) cascadeStock();
     }
+    if (cascade) await syncStock();
   };
 
   const getById = useCallback(
@@ -86,37 +86,34 @@ export function useBuilds(opts: UseBuildsOptions = {}) {
       } catch {
         await refresh();
       }
-      cascadeStock();
+      await syncStock();
     },
-    [refresh, refreshStock],
+    [refresh, syncStock],
   );
 
   const addComponent = useCallback(
     async (buildId: string, component: BuildComponent): Promise<boolean> => {
       try {
         upsert(await buildsApi.addBuildComponent(buildId, component));
-        if (component.kind === "stock_item") cascadeStock();
+        await syncStock();
         return true;
       } catch {
-        await refresh();
         return false;
       }
     },
-    [refresh, refreshStock],
+    [syncStock],
   );
 
   const removeComponent = useCallback(
     async (buildId: string, componentId: string) => {
-      const before = builds.find((b) => b.id === buildId);
-      const wasStock = before?.components.find((c) => c.id === componentId)?.kind === "stock_item";
       try {
         upsert(await buildsApi.removeBuildComponent(buildId, componentId));
+        await syncStock();
       } catch {
         await refresh();
       }
-      if (wasStock) cascadeStock();
     },
-    [builds, refresh, refreshStock],
+    [refresh, syncStock],
   );
 
   const updateComponent = useCallback(
@@ -132,19 +129,19 @@ export function useBuilds(opts: UseBuildsOptions = {}) {
 
   const markAsTested = useCallback(
     (id: string) => wrap(() => buildsApi.testBuild(id)),
-    [refresh, refreshStock],
+    [refresh, syncStock],
   );
   const markAsUntested = useCallback(
     (id: string) => wrap(() => buildsApi.untestBuild(id)),
-    [refresh, refreshStock],
+    [refresh, syncStock],
   );
   const markAsListed = useCallback(
     (id: string) => wrap(() => buildsApi.listBuild(id)),
-    [refresh, refreshStock],
+    [refresh, syncStock],
   );
   const markAsDelisted = useCallback(
     (id: string) => wrap(() => buildsApi.unlistBuild(id)),
-    [refresh, refreshStock],
+    [refresh, syncStock],
   );
   const markAsSold = useCallback(
     (
@@ -156,25 +153,25 @@ export function useBuilds(opts: UseBuildsOptions = {}) {
         fees_eur: number;
       },
     ) => wrap(() => buildsApi.sellBuild(id, sale), true),
-    [refresh, refreshStock],
+    [refresh, syncStock],
   );
   const cancelSale = useCallback(
     (id: string, mode: "listed" | "returned") =>
       wrap(() => buildsApi.cancelBuildSale(id, mode), true),
-    [refresh, refreshStock],
+    [refresh, syncStock],
   );
   const markAsFailed = useCallback(
     (id: string) => wrap(() => buildsApi.failBuild(id), true),
-    [refresh, refreshStock],
+    [refresh, syncStock],
   );
   const resumeFromFailed = useCallback(
     (id: string, mode: "reinject" | "keep_pieces") =>
       wrap(() => buildsApi.resumeBuild(id, mode), true),
-    [refresh, refreshStock],
+    [refresh, syncStock],
   );
   const reSellFromReturned = useCallback(
     (id: string) => wrap(() => buildsApi.resellBuild(id)),
-    [refresh, refreshStock],
+    [refresh, syncStock],
   );
 
   const duplicate = useCallback(async (id: string): Promise<Build | null> => {
