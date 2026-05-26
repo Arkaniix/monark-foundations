@@ -20,15 +20,6 @@ export default function FooterSection() {
           </ul>
         </div>
         <div className="md:col-span-2">
-          <div className="font-mono text-[10px] tracking-wider text-zinc-600 mb-3">RESSOURCES</div>
-          <ul className="space-y-2 text-[12.5px] text-zinc-400">
-            <li><a className="hover:text-zinc-100" href="#">Documentation</a></li>
-            <li><a className="hover:text-zinc-100" href="#">Méthodologie</a></li>
-            <li><a className="hover:text-zinc-100" href="#">Changelog</a></li>
-            <li><a className="hover:text-zinc-100" href="#">Status</a></li>
-          </ul>
-        </div>
-        <div className="md:col-span-2">
           <div className="font-mono text-[10px] tracking-wider text-zinc-600 mb-3">LÉGAL</div>
           <ul className="space-y-2 text-[12.5px] text-zinc-400">
             <li><a className="hover:text-zinc-100" href="#">Mentions légales</a></li>
