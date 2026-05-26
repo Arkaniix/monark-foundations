@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { dashboardApi } from "@/lib/api";
 import { Skeleton } from "@/components/ui";
 import { DashboardStatTile } from "@/components/dashboard/DashboardStatTile";
@@ -41,6 +42,7 @@ export default function Dashboard({ __devForceState }: DashboardProps = {}) {
   const [state, setState] = useState<FetchState>(
     __devForceState ?? { status: "loading" },
   );
+  const navigate = useNavigate();
 
   const load = useCallback(async () => {
     setState({ status: "loading" });
@@ -167,7 +169,7 @@ export default function Dashboard({ __devForceState }: DashboardProps = {}) {
           (state.data.recent_estimations.length > 0 ? (
             <RecentEstimations data={state.data.recent_estimations} />
           ) : (
-            <EmptyEstimations />
+            <EmptyEstimations onStartEstimator={() => navigate({ to: "/estimator" })} />
           ))}
       </section>
 
@@ -200,7 +202,7 @@ export default function Dashboard({ __devForceState }: DashboardProps = {}) {
           (state.data.watchlist_preview.length > 0 ? (
             <WatchlistPreview data={state.data.watchlist_preview} />
           ) : (
-            <EmptyWatchlist />
+            <EmptyWatchlist onBrowseCatalogue={() => navigate({ to: "/catalogue" })} />
           ))}
       </section>
     </div>
