@@ -1,6 +1,7 @@
 import { useState, type CSSProperties } from "react";
 import SettingsBreadcrumb from "../components/settings/SettingsBreadcrumb";
 import SettingsHeader from "../components/settings/SettingsHeader";
+import DeleteAccountModal from "../components/settings/DeleteAccountModal";
 import { useAuth } from "@/context/AuthContext";
 import { authApi } from "@/lib/api";
 
@@ -142,7 +143,7 @@ function DisabledBtn({ label, variant = "ghost" }: DisabledBtnProps) {
 type RecoveryStatus = "idle" | "sending" | "sent";
 
 export default function SettingsAccount() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   if (!user) return null;
 
   const initialFullName = user.full_name ?? "";
@@ -151,6 +152,7 @@ export default function SettingsAccount() {
   const [fullName, setFullName] = useState(initialFullName);
   const [email, setEmail] = useState(initialEmail);
   const [recoveryStatus, setRecoveryStatus] = useState<RecoveryStatus>("idle");
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const tier = (user.subscription_tier ?? "free") as SubscriptionTier;
   const plan = PLAN_INFO[tier];
@@ -499,13 +501,26 @@ export default function SettingsAccount() {
             <div>
               <div style={titleStyle}>Supprimer mon compte</div>
               <div style={subTitleStyle}>
-                Action irréversible. Toutes les données locales et serveur seront effacées.
+                Désactive le compte avec un délai de grâce de 30 jours avant suppression définitive. Restaurable pendant ce délai.
               </div>
             </div>
-            <DisabledBtn label="SUPPRIMER LE COMPTE" variant="danger" />
+            <button
+              type="button"
+              onClick={() => setDeleteOpen(true)}
+              style={dangerBtnStyle}
+            >
+              SUPPRIMER LE COMPTE
+            </button>
           </div>
         </div>
       </section>
+      <DeleteAccountModal
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onConfirmed={() => {
+          void refreshUser();
+        }}
+      />
     </div>
   );
 }
