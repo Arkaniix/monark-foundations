@@ -31,6 +31,7 @@ import {
   NEGOTIATION_KEYWORDS,
   RESALE_TIMINGS,
 } from "../../components/estimator/datasets";
+import type { EstimatorHistoryEntry } from "../estimatorHistory";
 import type {
   EstimatorInputs,
   EstimatorResult,
@@ -69,14 +70,28 @@ const PLATFORM_TO_API: Record<Platform, string> = {
   eBay: "ebay",
 };
 
-const VERDICT_EN_TO_FR: Record<string, Verdict> = {
+const CONDITION_TO_STATE: Record<string, ItemState> = {
+  new: "Neuf",
+  like_new: "Comme neuf",
+  good: "Bon",
+  occasion: "Acceptable",
+  for_parts: "Pour pièces",
+};
+
+const API_PLATFORM_TO_FRONT: Record<string, Platform> = {
+  leboncoin: "LBC",
+  vinted: "Vinted",
+  ebay: "eBay",
+};
+
+export const VERDICT_EN_TO_FR: Record<string, Verdict> = {
   BUY: "FONCER",
   NEGOTIATE: "NÉGOCIER",
   LOWBALL: "TENTER",
   AVOID: "PASSER",
 };
 
-const API_CAT_TO_FRONT: Record<string, HardwareCategory> = {
+export const API_CAT_TO_FRONT: Record<string, HardwareCategory> = {
   GPU: "GPU",
   CPU: "CPU",
   RAM: "RAM",
