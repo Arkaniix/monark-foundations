@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { AlertCircle, Check, Eye, EyeOff, ArrowRight, Mail, Loader2 } from "lucide-react";
+import { AlertCircle, Check, Eye, EyeOff, ArrowRight, Mail, Loader2, X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { ApiException } from "@/lib/api/client";
 import Logo from "@/components/ui/Logo";
@@ -18,6 +18,123 @@ const GithubIcon = ({ className }: { className?: string }) => (
 
 type AuthMode = "login" | "signup";
 type AuthPhase = "idle" | "submitting" | "exiting" | "done";
+
+type PlanId = "free" | "standard" | "pro";
+const PLAN_META: Record<PlanId, { name: string; amount: string; price: string; credits: string; highlight: string; features: string[] }> = {
+  free:     { name: "Free",     amount: "0",     price: "0 €",     credits: "10 cr/mois",  highlight: "Pour découvrir",
+              features: ["Lens basique", "Estimator basic (1 cr)", "Verdict reseller", "Stock manager (5 lignes)"] },
+  standard: { name: "Standard", amount: "11,99", price: "11,99 €", credits: "180 cr/mois", highlight: "Pour revendre sérieusement",
+              features: ["Lens complet · 4 plateformes", "Estimator complete (3 cr)", "Stock manager illimité", "Modifiers + confiance bayésienne"] },
+  pro:      { name: "Pro",      amount: "24,99", price: "24,99 €", credits: "600 cr/mois", highlight: "Pour les pros",
+              features: ["Tout Standard", "Estimator pro tier (5 cr)", "Repair Guide deep diagnostic", "Historique price_observations 24 mois"] },
+};
+
+function PlanPicker({ value, onChange }: { value: PlanId; onChange: (p: PlanId) => void }) {
+  const tiers: { id: PlanId; reco: boolean }[] = [
+    { id: "free", reco: false }, { id: "standard", reco: true }, { id: "pro", reco: false },
+  ];
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {tiers.map((t) => {
+        const m = PLAN_META[t.id];
+        const selected = value === t.id;
+        return (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => onChange(t.id)}
+            className={"plan-card " + (selected ? "selected" : "")}
+            aria-pressed={selected}
+          >
+            {t.reco && <span className="plan-reco">RECO</span>}
+            <span className="plan-radio" />
+            <div className="text-[12.5px] font-medium text-zinc-100">{m.name}</div>
+            <div className="mt-1 flex items-baseline gap-0.5">
+              <span className="text-[15px] font-semibold text-zinc-50 tabular-nums">{m.amount}</span>
+              <span className="text-[11px] text-zinc-400">€</span>
+              <span className="text-[10px] text-zinc-500 ml-0.5">/ mois</span>
+            </div>
+            <div className="mt-0.5 text-[10.5px] text-zinc-500">{m.credits}</div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function PlanDetailsModal({ open, onClose, value, onChange }: { open: boolean; onClose: () => void; value: PlanId; onChange: (p: PlanId) => void }) {
+  if (!open) return null;
+  const order: PlanId[] = ["free", "standard", "pro"];
+  return (
+    <div
+      className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
+      onClick={onClose}
+    >
+      <div
+        className="modal-card relative w-full max-w-[920px] my-auto p-6 sm:p-8"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-4 mb-6">
+          <div>
+            <div className="font-mono text-[10px] tracking-wider text-zinc-500 mb-1">DÉTAIL DES PLANS</div>
+            <h2 className="text-[20px] font-medium text-zinc-50">Trois plans. Pas de palier caché.</h2>
+            <p className="mt-1 text-[12.5px] text-zinc-500">Crédit = unité de calcul. Reset mensuel. Pas d'engagement.</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="shrink-0 w-8 h-8 rounded-md text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.05] flex items-center justify-center transition-colors"
+            aria-label="Fermer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {order.map((id) => {
+            const m = PLAN_META[id];
+            const selected = value === id;
+            const reco = id === "standard";
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => { onChange(id); onClose(); }}
+                className={"modal-col " + (selected ? "selected" : "")}
+              >
+                {reco && <div className="font-mono text-[9px] tracking-wider text-blue-400 mb-1">RECOMMANDÉ</div>}
+                <div className="text-[15px] font-medium text-zinc-50">{m.name}</div>
+                <div className="mt-2 flex items-baseline gap-0.5">
+                  <span className="text-[22px] font-semibold text-zinc-50 tabular-nums">{m.amount}</span>
+                  <span className="text-[13px] text-zinc-400">€</span>
+                  <span className="text-[11px] text-zinc-500 ml-1">/ mois</span>
+                </div>
+                <div className="mt-0.5 text-[11.5px] text-zinc-400">{m.credits}</div>
+                <div className="mt-1 text-[11.5px] text-zinc-500">{m.highlight}</div>
+                <div className="my-3 h-px bg-white/[0.06]" />
+                <ul className="space-y-1.5">
+                  {m.features.map((f) => (
+                    <li key={f} className="flex items-start gap-1.5 text-[12px] text-zinc-300">
+                      <Check className="w-3 h-3 text-emerald-400/70 mt-[3px] shrink-0" />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-4">
+                  <div className={"h-9 rounded-md flex items-center justify-center text-[12px] font-medium transition-colors " + (selected ? "bg-blue-500/15 text-blue-300 border border-blue-500/40" : "bg-white/[0.03] text-zinc-300 border border-white/[0.06]")}>
+                    {selected ? "Plan sélectionné" : "Choisir ce plan"}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        <p className="mt-5 text-center text-[11.5px] text-zinc-500">
+          1 estimation Pro coûte ~ 0,04 €. Une seule annonce mal cotée vous coûte plus que ça.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export default function AuthCard() {
   const auth = useAuth();
@@ -43,6 +160,8 @@ export default function AuthCard() {
   const [forceFail, setForceFail] = useState<boolean>(false);
   const [forgotOpen, setForgotOpen] = useState<boolean>(false);
   const [apiLoading, setApiLoading] = useState<boolean>(false);
+  const [plan, setPlan] = useState<PlanId>("standard");
+  const [showPlanDetails, setShowPlanDetails] = useState<boolean>(false);
 
   const switchMode = (m: AuthMode) => {
     if (m === mode) return;
@@ -128,8 +247,6 @@ export default function AuthCard() {
     }, 600);
   };
 
-  const oauthClick = () => alert("OAuth pas encore disponible — utilise email/password.");
-
   const submitting = phase === "submitting";
   const exiting = phase === "exiting";
 
@@ -154,12 +271,14 @@ export default function AuthCard() {
       )}
 
       <div className={"mk-auth-card p-8 sm:p-9 relative " + (exiting ? "card-exit" : "")}>
+        <PlanDetailsModal open={showPlanDetails} onClose={() => setShowPlanDetails(false)} value={plan} onChange={setPlan} />
         {submitting && (
           <SubmitSequence
             mode={mode}
             errorAt={errorAt}
             onSettled={onSequenceSettled}
             onError={onSequenceError}
+            plan={plan}
           />
         )}
 
@@ -175,7 +294,9 @@ export default function AuthCard() {
               {mode === "login" ? "Bon retour." : "Créer un accès Monark."}
             </h1>
             <p className="fade-up mt-1.5 text-[13.5px] text-zinc-500" style={{ animationDelay: `${D.sub}ms` }}>
-              {mode === "login" ? "Reprenez là où vous vous êtes arrêté." : "10 crédits offerts pour commencer."}
+              {mode === "login"
+                ? "Reprenez là où vous vous êtes arrêté."
+                : (plan === "free" ? "10 crédits offerts pour commencer." : `Plan ${PLAN_META[plan].name} · ${PLAN_META[plan].credits}.`)}
             </p>
           </div>
 
@@ -256,7 +377,21 @@ export default function AuthCard() {
             )}
 
             {mode === "signup" && (
-              <div className="fade-up pt-1" style={{ animationDelay: `${D.fields + 180}ms` }}>
+              <div className="fade-up" style={{ animationDelay: `${D.fields + 180}ms` }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11.5px] font-medium text-zinc-300">Choisir un plan</span>
+                  <span className="text-[11px] text-zinc-500 flex items-center gap-1.5">
+                    <span>modifiable plus tard</span>
+                    <span className="text-zinc-700">·</span>
+                    <button type="button" onClick={() => setShowPlanDetails(true)} className="text-blue-400 hover:text-blue-300 transition-colors underline-offset-2 hover:underline">Détails</button>
+                  </span>
+                </div>
+                <PlanPicker value={plan} onChange={setPlan} />
+              </div>
+            )}
+
+            {mode === "signup" && (
+              <div className="fade-up pt-1" style={{ animationDelay: `${D.fields + 220}ms` }}>
                 <label className="flex items-start gap-2.5 cursor-pointer group select-none">
                   <span className="relative mt-0.5 shrink-0">
                     <input type="checkbox" checked={accepted} onChange={(e) => { setAccepted(e.target.checked); if (e.target.checked) setErrAccept(null); }} className="peer sr-only" />
@@ -290,7 +425,9 @@ export default function AuthCard() {
                   </>
                 ) : (
                   <>
-                    {mode === "login" ? "Se connecter" : "Créer mon compte"}
+                    {mode === "login"
+                      ? "Se connecter"
+                      : (plan === "free" ? "Créer mon compte" : `Continuer avec ${PLAN_META[plan].name} · ${PLAN_META[plan].price}/mois`)}
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -305,12 +442,14 @@ export default function AuthCard() {
           </div>
 
           <div className="fade-up grid grid-cols-1 sm:grid-cols-2 gap-2.5" style={{ animationDelay: `${D.oauth}ms` }}>
-            <button type="button" onClick={oauthClick} className="h-10 rounded-lg bg-white/[0.02] hover:bg-white/[0.04] text-zinc-300 text-[13px] flex items-center justify-center gap-2 transition-colors">
-              <Mail className="w-4 h-4 text-zinc-400" /> Google
-            </button>
-            <button type="button" onClick={oauthClick} className="h-10 rounded-lg bg-white/[0.02] hover:bg-white/[0.04] text-zinc-300 text-[13px] flex items-center justify-center gap-2 transition-colors">
-              <GithubIcon className="w-4 h-4 text-zinc-400" /> GitHub
-            </button>
+            <div className="oauth-soon relative h-10 rounded-lg bg-white/[0.015] border border-white/[0.05] text-zinc-500 text-[13px] flex items-center justify-center gap-2 opacity-70 cursor-not-allowed select-none" aria-disabled="true">
+              <Mail className="w-4 h-4 text-zinc-500" /> Google
+              <span className="soon-ribbon">Prochainement</span>
+            </div>
+            <div className="oauth-soon relative h-10 rounded-lg bg-white/[0.015] border border-white/[0.05] text-zinc-500 text-[13px] flex items-center justify-center gap-2 opacity-70 cursor-not-allowed select-none" aria-disabled="true">
+              <GithubIcon className="w-4 h-4 text-zinc-500" /> GitHub
+              <span className="soon-ribbon">Prochainement</span>
+            </div>
           </div>
 
           <div className="fade-up text-center mt-7 text-[12.5px] text-zinc-500" style={{ animationDelay: `${D.footer}ms` }}>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { STEPS_LOGIN, STEPS_SIGNUP } from "./STEPS";
+import { STEPS_LOGIN, STEPS_SIGNUP_BY_PLAN } from "./STEPS";
 import TypingLine from "./TypingLine";
 
 type SubmitSequenceProps = {
@@ -7,10 +7,11 @@ type SubmitSequenceProps = {
   errorAt: number | null;
   onSettled?: () => void;
   onError?: () => void;
+  plan?: "free" | "standard" | "pro";
 };
 
-export default function SubmitSequence({ mode, errorAt, onSettled, onError }: SubmitSequenceProps) {
-  const baseSteps = mode === "login" ? STEPS_LOGIN : STEPS_SIGNUP;
+export default function SubmitSequence({ mode, errorAt, onSettled, onError, plan }: SubmitSequenceProps) {
+  const baseSteps = mode === "login" ? STEPS_LOGIN : (STEPS_SIGNUP_BY_PLAN[plan ?? "free"]);
   const [idx, setIdx] = useState<number>(0);
   const [steps] = useState<string[]>(baseSteps);
 
