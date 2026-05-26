@@ -48,6 +48,8 @@ export type User = {
   created_at: string;
   subscription_tier: "free" | "standard" | "pro";
   credits_remaining: number;
+  pending_deletion?: boolean;
+  deletion_scheduled_at?: string | null;
 };
 export type LoginResponse = {
   access_token: string;

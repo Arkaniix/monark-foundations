@@ -61,6 +61,7 @@ function MockAuthProvider({
         register: noop,
         logout: noop,
         forgotPassword: noop,
+        refreshUser: noop,
       };
     }
     return {
@@ -70,6 +71,7 @@ function MockAuthProvider({
       register: noop,
       logout: noop,
       forgotPassword: noop,
+      refreshUser: noop,
     };
   }, [state]);
 

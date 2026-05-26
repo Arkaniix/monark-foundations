@@ -28,6 +28,8 @@ interface ApiUser {
   marketing_opt_in: boolean;
   created_at: string;
   last_login: string | null;
+  pending_deletion?: boolean;
+  deletion_scheduled_at?: string | null;
 }
 
 /** Mappe `role` API → `subscription_tier` front (union stricte free/standard/pro). */
@@ -57,6 +59,8 @@ function mapUser(u: ApiUser, creditsRemaining: number): User {
     created_at: u.created_at,
     subscription_tier: roleToTier(u.role),
     credits_remaining: creditsRemaining,
+    pending_deletion: u.pending_deletion ?? false,
+    deletion_scheduled_at: u.deletion_scheduled_at ?? null,
   };
 }
 
@@ -115,4 +119,12 @@ export async function getMe(): Promise<User> {
     // si le dashboard échoue, on connecte quand même l'utilisateur avec 0 crédit affiché
   }
   return mapUser(raw, credits);
+}
+
+export async function deleteAccount(): Promise<void> {
+  await apiFetch<void>(ENDPOINTS.DELETE_ME, { method: "DELETE" });
+}
+
+export async function restoreAccount(): Promise<void> {
+  await apiFetch<void>(ENDPOINTS.RESTORE_ME, { method: "POST" });
 }

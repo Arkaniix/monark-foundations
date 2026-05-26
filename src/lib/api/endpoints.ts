@@ -10,6 +10,8 @@ export const ENDPOINTS = {
   // qui renvoie 404 en prod). C'était la cause des échecs de login/bootstrap.
   ME: "/v1/users/me",
   USER_SETTINGS: "/v1/users/me/settings",
+  DELETE_ME: "/v1/users/me",
+  RESTORE_ME: "/v1/users/me/restore",
 
   // ── Catalog / Hardware (public, sans JWT) ────────────────────────────────
   MODELS: "/v1/models",

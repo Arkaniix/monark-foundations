@@ -78,3 +78,11 @@ export async function getMe(): Promise<User> {
   }
   return MOCK_USER;
 }
+
+export async function deleteAccount(): Promise<void> {
+  await mockDelay(200);
+}
+
+export async function restoreAccount(): Promise<void> {
+  await mockDelay(200);
+}
