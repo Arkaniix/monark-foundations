@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { fetchAccountingSettings, patchAccountingSettings } from "./api/settings";
 
 export type AccountingRegime = "particulier" | "micro_bic" | "reel";
 
@@ -24,8 +25,6 @@ export type AccountingSettings = {
   composition: CaCompositionToggle;
   micro_bic: MicroBicSettings;
 };
-
-const KEY = "monark.settings.accounting.v1";
 
 function todayIso(): string {
   const d = new Date();
@@ -53,71 +52,73 @@ export const DEFAULT_ACCOUNTING_SETTINGS: AccountingSettings = {
   },
 };
 
-function load(): AccountingSettings {
-  if (typeof window === "undefined") return DEFAULT_ACCOUNTING_SETTINGS;
-  try {
-    const raw = window.localStorage.getItem(KEY);
-    if (!raw) return DEFAULT_ACCOUNTING_SETTINGS;
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object") return DEFAULT_ACCOUNTING_SETTINGS;
-    const regime: AccountingRegime =
-      parsed.regime === "particulier" ||
-      parsed.regime === "micro_bic" ||
-      parsed.regime === "reel"
-        ? parsed.regime
-        : DEFAULT_ACCOUNTING_SETTINGS.regime;
-    return {
-      regime,
-      composition: {
-        ...DEFAULT_ACCOUNTING_SETTINGS.composition,
-        ...(parsed.composition ?? {}),
-      },
-      micro_bic: {
-        ...DEFAULT_ACCOUNTING_SETTINGS.micro_bic,
-        ...(parsed.micro_bic ?? {}),
-      },
-    };
-  } catch {
-    return DEFAULT_ACCOUNTING_SETTINGS;
-  }
-}
-
-function save(s: AccountingSettings) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(KEY, JSON.stringify(s));
-  } catch {
-    /* noop */
-  }
-}
-
 export function useAccountingSettings() {
-  const [settings, setSettings] = useState<AccountingSettings>(() => load());
+  const [settings, setSettings] = useState<AccountingSettings>(
+    DEFAULT_ACCOUNTING_SETTINGS,
+  );
+  const [loading, setLoading] = useState(true);
+  const hydrated = useRef(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    save(settings);
-  }, [settings]);
-
-  const updateRegime = useCallback((regime: AccountingRegime) => {
-    setSettings((prev) => ({ ...prev, regime }));
+    let alive = true;
+    fetchAccountingSettings()
+      .then((s) => {
+        if (!alive) return;
+        setSettings({
+          regime: s?.regime ?? DEFAULT_ACCOUNTING_SETTINGS.regime,
+          composition: {
+            ...DEFAULT_ACCOUNTING_SETTINGS.composition,
+            ...(s?.composition ?? {}),
+          },
+          micro_bic: {
+            ...DEFAULT_ACCOUNTING_SETTINGS.micro_bic,
+            ...(s?.micro_bic ?? {}),
+          },
+        });
+      })
+      .catch(() => {
+        /* defaults */
+      })
+      .finally(() => {
+        if (alive) {
+          setLoading(false);
+          hydrated.current = true;
+        }
+      });
+    return () => {
+      alive = false;
+    };
   }, []);
 
+  useEffect(() => {
+    if (!hydrated.current) return;
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      void patchAccountingSettings(settings).catch(() => {});
+    }, 600);
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, [settings]);
+
+  const updateRegime = useCallback(
+    (regime: AccountingRegime) => setSettings((p) => ({ ...p, regime })),
+    [],
+  );
   const updateComposition = useCallback(
-    (patch: Partial<CaCompositionToggle>) => {
-      setSettings((prev) => ({
-        ...prev,
-        composition: { ...prev.composition, ...patch },
-      }));
-    },
+    (patch: Partial<CaCompositionToggle>) =>
+      setSettings((p) => ({
+        ...p,
+        composition: { ...p.composition, ...patch },
+      })),
+    [],
+  );
+  const updateMicroBic = useCallback(
+    (patch: Partial<MicroBicSettings>) =>
+      setSettings((p) => ({ ...p, micro_bic: { ...p.micro_bic, ...patch } })),
     [],
   );
 
-  const updateMicroBic = useCallback((patch: Partial<MicroBicSettings>) => {
-    setSettings((prev) => ({
-      ...prev,
-      micro_bic: { ...prev.micro_bic, ...patch },
-    }));
-  }, []);
-
-  return { settings, updateRegime, updateComposition, updateMicroBic };
+  return { settings, loading, updateRegime, updateComposition, updateMicroBic };
 }
