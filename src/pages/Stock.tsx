@@ -43,7 +43,7 @@ import StockBilanView from "@/components/stock/StockBilanView";
 export default function Stock() {
   const stock = useStockItems();
   const accounting = useAccountingEntries();
-  const builds = useBuilds({ getById: stock.getById, update: stock.update });
+  const builds = useBuilds({ refreshStock: stock.refresh });
   const [activeTab, setActiveTab] = useState<StockTab>("actifs");
   const [filters, setFilters] = useState<StockFilters>(DEFAULT_STOCK_FILTERS);
   const [density, setDensity] = useState<StockDensity>(() => loadStockDensity());
@@ -148,8 +148,7 @@ export default function Stock() {
     if (activeTab === "comptes") {
       setAccModalOpen(true);
     } else if (activeTab === "builds") {
-      const created = builds.createEmpty();
-      setBuildDrawerId(created.id);
+      void builds.createEmpty().then((created) => setBuildDrawerId(created.id));
     } else if (activeTab === "actifs" || activeTab === "historique") {
       setModalOpen(true);
     }
@@ -251,12 +250,12 @@ export default function Stock() {
             onChangeDensity={setDensity}
             onOpenDrawer={(b) => setBuildDrawerId(b.id)}
             onCreate={() => {
-              const created = builds.createEmpty();
-              setBuildDrawerId(created.id);
+              void builds.createEmpty().then((created) => setBuildDrawerId(created.id));
             }}
             onDuplicate={(id) => {
-              const clone = builds.duplicate(id);
-              if (clone) setBuildDrawerId(clone.id);
+              void builds.duplicate(id).then((clone) => {
+                if (clone) setBuildDrawerId(clone.id);
+              });
             }}
             onDelete={builds.remove}
             onMarkAsListed={builds.markAsListed}
@@ -353,7 +352,10 @@ export default function Stock() {
         onClose={() => setBuildDrawerId(null)}
         onSelectBuild={(id) => setBuildDrawerId(id)}
         onUpdate={builds.update}
-        onAddComponent={builds.addComponent}
+        onAddComponent={(id, c) => {
+          void builds.addComponent(id, c);
+          return true;
+        }}
         onRemoveComponent={builds.removeComponent}
         onMarkAsTested={builds.markAsTested}
         onMarkAsUntested={builds.markAsUntested}
@@ -365,8 +367,9 @@ export default function Stock() {
         onResume={builds.resumeFromFailed}
         onReSellFromReturned={builds.reSellFromReturned}
         onDuplicate={(id) => {
-          const clone = builds.duplicate(id);
-          if (clone) setBuildDrawerId(clone.id);
+          void builds.duplicate(id).then((clone) => {
+            if (clone) setBuildDrawerId(clone.id);
+          });
         }}
         onDelete={builds.remove}
       />
