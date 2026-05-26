@@ -1,63 +1,66 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { AccountingEntry } from "@/components/stock/accountingDatasets";
-
-const KEY_V1 = "monark.accounting.entries.v1";
-
-function load(): AccountingEntry[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(KEY_V1);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (x): x is AccountingEntry =>
-        x != null &&
-        typeof x === "object" &&
-        typeof x.id === "string" &&
-        (x.kind === "expense" || x.kind === "income") &&
-        typeof x.category === "string" &&
-        typeof x.amount_eur === "number" &&
-        typeof x.date === "string" &&
-        typeof x.note === "string" &&
-        typeof x.created_at === "string",
-    );
-  } catch {
-    return [];
-  }
-}
-
-function save(items: AccountingEntry[]) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(KEY_V1, JSON.stringify(items));
-  } catch {
-    /* noop */
-  }
-}
+import * as txApi from "./api/transactions";
 
 export function useAccountingEntries() {
-  const [entries, setEntries] = useState<AccountingEntry[]>(() => load());
+  const [entries, setEntries] = useState<AccountingEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refresh = useCallback(async () => {
+    try {
+      setEntries(await txApi.fetchTransactions());
+    } catch {
+      /* garde l'état */
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    save(entries);
-  }, [entries]);
+    void refresh();
+  }, [refresh]);
 
-  const add = useCallback((entry: AccountingEntry) => {
-    setEntries((prev) => [entry, ...prev]);
-  }, []);
+  const upsert = (e: AccountingEntry) =>
+    setEntries((prev) => {
+      const i = prev.findIndex((x) => x.id === e.id);
+      if (i === -1) return [e, ...prev];
+      const next = [...prev];
+      next[i] = e;
+      return next;
+    });
 
-  const remove = useCallback((id: string) => {
-    setEntries((prev) => prev.filter((x) => x.id !== id));
-  }, []);
+  const add = useCallback(
+    async (entry: AccountingEntry) => {
+      try {
+        upsert(await txApi.createTransaction(entry));
+      } catch {
+        await refresh();
+      }
+    },
+    [refresh],
+  );
 
   const update = useCallback(
-    (id: string, patch: Partial<AccountingEntry>) => {
-      setEntries((prev) =>
-        prev.map((x) => (x.id === id ? { ...x, ...patch } : x)),
-      );
+    async (id: string, patch: Partial<AccountingEntry>) => {
+      try {
+        upsert(await txApi.updateTransaction(id, patch));
+      } catch {
+        await refresh();
+      }
     },
-    [],
+    [refresh],
+  );
+
+  const remove = useCallback(
+    async (id: string) => {
+      setEntries((prev) => prev.filter((x) => x.id !== id));
+      try {
+        await txApi.deleteTransaction(id);
+      } catch {
+        await refresh();
+      }
+    },
+    [refresh],
   );
 
   const getById = useCallback(
@@ -75,5 +78,5 @@ export function useAccountingEntries() {
     [entries],
   );
 
-  return { entries, expenses, incomes, add, update, remove, getById };
+  return { entries, expenses, incomes, loading, add, update, remove, getById };
 }
