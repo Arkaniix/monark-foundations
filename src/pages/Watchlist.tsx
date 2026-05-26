@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Star } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import FadeInSection from "@/components/ui/FadeInSection";
-import { CATALOG_MODELS } from "@/components/catalog/mockData";
+import { catalogApi } from "@/lib/api";
 import {
   useCatalogFavorites,
   computeMovementDelta,
@@ -33,25 +33,45 @@ export default function Watchlist() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [density, setDensity] = useState<WatchlistDensity>(() => loadDensity());
 
+  const [allModels, setAllModels] = useState<CatalogModel[]>([]);
+  const [modelsLoaded, setModelsLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    catalogApi
+      .getAllModels()
+      .then((m) => {
+        if (!cancelled) setAllModels(m);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setModelsLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   useEffect(() => {
     saveDensity(density);
   }, [density]);
 
   useEffect(() => {
+    if (allModels.length === 0) return;
     favorites.entries.forEach((entry) => {
       if (entry.snapshot_eur === null) {
-        const model = CATALOG_MODELS.find((m) => m.id === entry.id);
+        const model = allModels.find((m) => m.id === entry.id);
         if (model) {
           favorites.backfillSnapshot(entry.id, model.median_eur);
         }
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [allModels]);
 
   const pinnedModels = useMemo<CatalogModel[]>(
-    () => CATALOG_MODELS.filter((m) => favorites.ids.includes(m.id)),
-    [favorites.ids],
+    () => allModels.filter((m) => favorites.ids.includes(m.id)),
+    [allModels, favorites.ids],
   );
 
   const significantMovesCount = useMemo(() => {
@@ -186,6 +206,12 @@ export default function Watchlist() {
                 PARCOURIR LE CATALOGUE
               </span>
             </button>
+          </div>
+        </FadeInSection>
+      ) : !modelsLoaded ? (
+        <FadeInSection delay={120}>
+          <div className="mk-card-flat-soft p-8 text-center text-sm text-zinc-500">
+            Chargement des modèles suivis…
           </div>
         </FadeInSection>
       ) : visibleModels.length === 0 ? (
