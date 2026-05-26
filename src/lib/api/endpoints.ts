@@ -31,6 +31,14 @@ export const ENDPOINTS = {
   ESTIMATOR_STATS: "/v1/estimator/stats",
   ESTIMATOR_RUN: (id: string | number) => `/v1/estimator/${id}`,
 
+  // ── Inventory (JWT) ──────────────────────────────────────────────────────
+  INVENTORY: "/v1/inventory",
+  INVENTORY_ITEM: (id: string) => `/v1/inventory/${id}`,
+  INVENTORY_LIST: (id: string) => `/v1/inventory/${id}/list`,
+  INVENTORY_UNLIST: (id: string) => `/v1/inventory/${id}/unlist`,
+  INVENTORY_SELL: (id: string) => `/v1/inventory/${id}/sell`,
+  INVENTORY_CANCEL_SALE: (id: string) => `/v1/inventory/${id}/cancel-sale`,
+
   // ── Repair (symptoms public ; guide/history/deep sous JWT) ───────────────
   REPAIR_SYMPTOMS: "/v1/repair/symptoms",
   REPAIR_SYMPTOM: (slug: string) => `/v1/repair/symptoms/${slug}`,
