@@ -8,6 +8,7 @@ import { getAvailableFacets, getCategoryCounts } from "@/components/catalog/filt
 import CatalogCategoryTabs from "@/components/catalog/CatalogCategoryTabs";
 import CatalogFilterBar from "@/components/catalog/CatalogFilterBar";
 import CatalogGrid from "@/components/catalog/CatalogGrid";
+import CatalogList from "@/components/catalog/CatalogList";
 import { useCatalogFavorites } from "@/lib/catalogFavorites";
 import {
   DEFAULT_FILTERS,
@@ -27,6 +28,7 @@ export default function Catalog() {
   const navigate = useNavigate();
   const [filters, setFilters] = useState<CatalogFilters>(DEFAULT_FILTERS);
   const [sort, setSort] = useState<CatalogSortKey>(DEFAULT_SORT);
+  const [view, setView] = useState<"grid" | "list">("grid");
   const [page, setPage] = useState(1);
   const [state, setState] = useState<CatalogState>({ status: "loading" });
   const [allModels, setAllModels] = useState<CatalogModel[]>([]);
@@ -153,9 +155,11 @@ export default function Catalog() {
         <CatalogFilterBar
           filters={filters}
           sort={sort}
+          view={view}
           facets={facets}
           onChangeFilters={handleChangeFilters}
           onChangeSort={handleChangeSort}
+          onChangeView={setView}
           onReset={handleReset}
         />
       </FadeInSection>
@@ -189,6 +193,17 @@ export default function Catalog() {
             <div className="mk-card-flat-soft p-8 text-center text-sm text-zinc-500">
               Aucun modèle ne correspond aux filtres actifs.
             </div>
+          ) : view === "list" ? (
+            <CatalogList
+              gridKey={gridKey}
+              models={state.data.models}
+              favoriteIds={favorites.ids}
+              onToggleFavorite={(id) => {
+                const model = state.data.models.find((m) => m.id === id);
+                favorites.toggle(id, model?.median_eur);
+              }}
+              onOpenDetails={handleOpenDetails}
+            />
           ) : (
             <CatalogGrid
               gridKey={gridKey}
