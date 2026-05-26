@@ -2,13 +2,20 @@ import { AlertCircle, RefreshCw } from "lucide-react";
 
 type EstimatorErrorProps = {
   message: string;
+  code?: number;
   onRetry?: () => void;
 };
 
 export default function EstimatorError({
   message,
+  code,
   onRetry,
 }: EstimatorErrorProps) {
+  const is402 = code === 402;
+  const title = is402 ? "Crédits insuffisants" : "Évaluation impossible";
+  const displayMessage = is402
+    ? "Ton solde de crédits ne permet pas de lancer cette estimation."
+    : message;
   return (
     <div className="mk-card flex flex-col items-center gap-5 px-6 py-10 text-center">
       <div
@@ -23,10 +30,10 @@ export default function EstimatorError({
 
       <div className="flex flex-col gap-1.5">
         <div className="text-[15px] font-medium text-zinc-100">
-          Évaluation impossible
+          {title}
         </div>
         <div className="mt-1 font-mono text-[11px] text-zinc-500 max-w-md">
-          {message}
+          {displayMessage}
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { estimatorApi } from "@/lib/api";
+import { ApiException } from "@/lib/api/client";
 import { EstimatorForm } from "@/components/estimator/EstimatorForm";
 import { EstimatorVerdict } from "@/components/estimator/EstimatorVerdict";
 import { EstimatorIdle } from "@/components/estimator/EstimatorIdle";
@@ -24,7 +25,7 @@ export type EstimatorState =
   | { status: "idle" }
   | { status: "evaluating"; inputs: EstimatorInputs }
   | { status: "success"; result: EstimatorResult }
-  | { status: "error"; message: string; lastInputs?: EstimatorInputs };
+  | { status: "error"; message: string; code?: number; lastInputs?: EstimatorInputs };
 
 type EstimatorPageProps = {
   __devForceState?: EstimatorState;
@@ -67,9 +68,10 @@ export default function Estimator({
         setState({ status: "success", result });
         history.add(inputs, result);
       } catch (err) {
+        const code = err instanceof ApiException ? err.status : undefined;
         const message =
           err instanceof Error ? err.message : "Erreur d'évaluation";
-        setState({ status: "error", message, lastInputs: inputs });
+        setState({ status: "error", message, code, lastInputs: inputs });
       }
     },
     [__devForceState, history],
@@ -154,7 +156,7 @@ export default function Estimator({
             <EstimatorVerdict result={state.result} />
           )}
           {state.status === "error" && (
-            <EstimatorError message={state.message} onRetry={handleRetry} />
+            <EstimatorError message={state.message} code={state.code} onRetry={handleRetry} />
           )}
         </div>
       </section>
