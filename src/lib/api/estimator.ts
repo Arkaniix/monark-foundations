@@ -457,3 +457,45 @@ export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult
   });
   return mapResponse(inputs, resp);
 }
+
+// ── Historique serveur ───────────────────────────────────────────────────────
+
+interface ApiHistoryItem {
+  id: number;
+  created_at: string;
+  result_snapshot: ApiEvaluateResponse;
+  input_snapshot?: { price?: number; condition?: string; platform?: string; region?: string } | null;
+}
+
+function reconstructInputs(item: ApiHistoryItem): EstimatorInputs {
+  const r = item.result_snapshot;
+  const inp = item.input_snapshot ?? (r as { input?: ApiHistoryItem["input_snapshot"] }).input ?? {};
+  return {
+    model: r.model?.name ?? "",
+    state: CONDITION_TO_STATE[inp?.condition ?? ""] ?? "Bon",
+    ask_price_eur: typeof inp?.price === "number" ? inp.price : 0,
+    platform: API_PLATFORM_TO_FRONT[inp?.platform ?? ""] ?? "LBC",
+    region_fr: inp?.region ?? undefined,
+  };
+}
+
+export function mapHistoryItem(item: ApiHistoryItem): EstimatorHistoryEntry {
+  const inputs = reconstructInputs(item);
+  const result = mapResponse(inputs, item.result_snapshot);
+  return { id: String(item.id), ts: Date.parse(item.created_at), inputs, result };
+}
+
+export async function fetchEstimatorHistory(limit = 50): Promise<EstimatorHistoryEntry[]> {
+  const data = await apiFetch<unknown>(`${ENDPOINTS.ESTIMATOR_HISTORY}?limit=${limit}&offset=0`, { method: "GET" });
+  const d = data as Record<string, unknown>;
+  const items = (Array.isArray(data) ? data : (d.items ?? d.runs ?? d.results ?? d.data ?? [])) as ApiHistoryItem[];
+  return items.map(mapHistoryItem);
+}
+
+export async function deleteEstimatorRun(runId: string): Promise<void> {
+  await apiFetch<void>(ENDPOINTS.ESTIMATOR_RUN(runId), { method: "DELETE" });
+}
+
+export async function clearEstimatorHistory(): Promise<void> {
+  await apiFetch<void>(ENDPOINTS.ESTIMATOR_HISTORY, { method: "DELETE" });
+}
