@@ -1,4 +1,5 @@
 import { ArrowDown, ArrowUp, ChevronRight } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { Sparkline } from "@/components/ui";
 import type { WatchlistItem } from "./datasets";
 
@@ -38,13 +39,13 @@ type CardProps = {
 };
 
 function Card({ item, index }: CardProps) {
+  const navigate = useNavigate();
   const isPositive = item.delta_pct_vs_14d >= 0;
   const deltaColor = isPositive ? "#10B981" : "#EF4444";
   const DeltaIcon = isPositive ? ArrowUp : ArrowDown;
 
   const handleClick = () => {
-    // TODO : naviguer vers /watchlist/<item.id> quand la route existera
-    console.log("Voir le détail watchlist", item.id);
+    navigate({ to: "/watchlist" });
   };
 
   return (
