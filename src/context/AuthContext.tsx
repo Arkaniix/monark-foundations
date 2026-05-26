@@ -10,6 +10,7 @@ type AuthContextValue = AuthState & {
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
+  refreshUser: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
@@ -67,7 +68,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await authApi.forgotPassword(email);
   }, []);
 
-  const value: AuthContextValue = { user, status, login, register, logout, forgotPassword };
+  const refreshUser = useCallback(async () => {
+    try {
+      const me = await authApi.getMe();
+      setUser(me);
+    } catch {
+      /* noop */
+    }
+  }, []);
+
+  const value: AuthContextValue = { user, status, login, register, logout, forgotPassword, refreshUser };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
