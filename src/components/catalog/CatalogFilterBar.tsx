@@ -1,4 +1,6 @@
 import { Search, LayoutGrid, List, RotateCcw, ChevronDown } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   SORT_OPTIONS,
   type CatalogFilters,
