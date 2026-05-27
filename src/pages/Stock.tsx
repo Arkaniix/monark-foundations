@@ -339,6 +339,7 @@ export default function Stock() {
               amount_eur: entry.amount_eur,
               date: entry.date,
               note: entry.note,
+              is_professional: entry.is_professional,
             });
           }
         }}
