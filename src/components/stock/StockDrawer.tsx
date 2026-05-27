@@ -171,7 +171,7 @@ export default function StockDrawer({
   const goToFiche = () => {
     if (!item.model_id) return;
     navigate({
-      to: "/catalogue_/$modelId",
+      to: "/catalogue/$modelId",
       params: { modelId: item.model_id },
     });
   };
