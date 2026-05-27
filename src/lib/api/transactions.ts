@@ -15,6 +15,7 @@ interface ApiTransaction {
   platform: string | null;
   transaction_date: string;
   notes: string | null;
+  is_professional: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -27,6 +28,7 @@ export function mapToEntry(t: ApiTransaction): AccountingEntry {
     amount_eur: t.amount,
     date: t.transaction_date,
     note: t.description ?? "",
+    is_professional: t.is_professional ?? false,
     created_at: t.created_at,
   };
 }
@@ -38,6 +40,7 @@ function createPayload(e: AccountingEntry) {
     description: (e.note || "").trim() || "—",
     category: e.category,
     transaction_date: e.date,
+    is_professional: e.is_professional,
   };
 }
 
@@ -48,6 +51,7 @@ function updatePayload(patch: Partial<AccountingEntry>) {
   if ("note" in patch) out.description = (patch.note || "").trim() || "—";
   if ("category" in patch) out.category = patch.category;
   if ("date" in patch) out.transaction_date = patch.date;
+  if ("is_professional" in patch) out.is_professional = patch.is_professional;
   return out;
 }
 
