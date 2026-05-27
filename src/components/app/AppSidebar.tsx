@@ -5,8 +5,6 @@ import {
   Eye,
   Boxes,
   Wrench,
-  LogOut,
-  Settings as SettingsIcon,
 } from "lucide-react";
 import Logo from "../ui/Logo";
 
@@ -18,7 +16,6 @@ type AppSidebarUser = {
 type AppSidebarProps = {
   activePath?: string;
   user: AppSidebarUser;
-  onLogout?: () => void;
 };
 
 const PLAN_CAPS: Record<AppSidebarUser["subscription_tier"], number> = {
@@ -50,7 +47,6 @@ const TOOLS: ToolItem[] = [
 export default function AppSidebar({
   activePath,
   user,
-  onLogout,
 }: AppSidebarProps) {
   const cap = PLAN_CAPS[user.subscription_tier];
   const remaining = user.credits_remaining;
@@ -96,24 +92,6 @@ export default function AppSidebar({
               />
             );
           })}
-        </ul>
-
-        <div className="mb-2 mt-6 px-3 font-mono text-[10px] tracking-[0.2em] text-zinc-600">
-          COMPTE
-        </div>
-        <ul className="flex flex-col gap-0.5">
-          <NavItem
-            to="/settings"
-            label="Paramètres"
-            Icon={SettingsIcon}
-            active={activePath?.startsWith("/settings") ?? false}
-          />
-          <NavItem
-            label="Déconnexion"
-            Icon={LogOut}
-            onClick={onLogout}
-            active={false}
-          />
         </ul>
       </nav>
 
