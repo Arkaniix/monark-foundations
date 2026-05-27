@@ -42,6 +42,7 @@ export type AccountingEntry = {
   amount_eur: number;
   date: string;
   note: string;
+  is_professional: boolean;
   created_at: string;
 };
 

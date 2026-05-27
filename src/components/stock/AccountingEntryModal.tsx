@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { X, Lock } from "lucide-react";
+import { X, Lock, Info } from "lucide-react";
+import { useAccountingSettings } from "@/lib/useAccountingSettings";
 import {
   ACCOUNTING_CATEGORIES_META,
   EXPENSE_CATEGORIES,
@@ -36,6 +37,10 @@ export default function AccountingEntryModal({
   const [amountStr, setAmountStr] = useState("");
   const [date, setDate] = useState<string>(todayIso());
   const [note, setNote] = useState("");
+  const [isProfessional, setIsProfessional] = useState(false);
+
+  const { settings } = useAccountingSettings();
+  const regime = settings.regime;
 
   useEffect(() => {
     if (!open) return;
@@ -45,12 +50,14 @@ export default function AccountingEntryModal({
       setAmountStr(String(initial.amount_eur));
       setDate(initial.date);
       setNote(initial.note);
+      setIsProfessional(initial.is_professional);
     } else {
       setKind("expense");
       setCategory("shipping_out");
       setAmountStr("");
       setDate(todayIso());
       setNote("");
+      setIsProfessional(false);
     }
   }, [open, mode, initial]);
 
@@ -112,6 +119,7 @@ export default function AccountingEntryModal({
         amount_eur: Math.round(Math.abs(amount) * 100) / 100,
         date,
         note: note.trim(),
+        is_professional: kind === "expense" ? isProfessional : false,
       };
       onSubmit(patched);
     } else {
@@ -122,6 +130,7 @@ export default function AccountingEntryModal({
         amount_eur: Math.round(Math.abs(amount) * 100) / 100,
         date,
         note: note.trim(),
+        is_professional: kind === "expense" ? isProfessional : false,
         created_at: new Date().toISOString(),
       };
       onSubmit(entry);
@@ -247,6 +256,14 @@ export default function AccountingEntryModal({
               }}
             />
           </Field>
+
+          {kind === "expense" && regime !== "particulier" && (
+            <ProfessionalToggle
+              value={isProfessional}
+              onChange={setIsProfessional}
+              regime={regime}
+            />
+          )}
         </div>
 
         <div
@@ -389,6 +406,63 @@ function CategoryDropdown({
           );
         })}
       </select>
+    </div>
+  );
+}
+function ProfessionalToggle({
+  value,
+  onChange,
+  regime,
+}: {
+  value: boolean;
+  onChange: (next: boolean) => void;
+  regime: "particulier" | "micro_bic" | "reel";
+}) {
+  const isReel = regime === "reel";
+  return (
+    <div className="flex flex-col gap-2">
+      <button
+        type="button"
+        onClick={() => onChange(!value)}
+        className="ease-expo flex items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-white/[0.03]"
+        style={{
+          background: "rgba(255,255,255,0.02)",
+          boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
+        }}
+        aria-pressed={value}
+      >
+        <span
+          className="ease-expo relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors"
+          style={{
+            background: value
+              ? "rgba(16,185,129,0.4)"
+              : "rgba(255,255,255,0.08)",
+          }}
+        >
+          <span
+            className="ease-expo absolute h-4 w-4 rounded-full bg-white transition-transform"
+            style={{ transform: value ? "translateX(18px)" : "translateX(2px)" }}
+          />
+        </span>
+        <div className="flex flex-col">
+          <span className="text-[13px] font-medium text-zinc-100">
+            Dépense professionnelle
+          </span>
+          <span className="text-[11px] text-zinc-500">
+            {isReel
+              ? value
+                ? "Sera déduite du bénéfice imposable au régime réel."
+                : "Coche si cette dépense est liée à ton activité."
+              : "En micro-BIC, l'abattement forfaitaire de 71 % remplace toute déduction. Le marquage reste utile pour ton suivi."}
+          </span>
+        </div>
+      </button>
+      {!isReel && (
+        <div className="flex items-start gap-1.5 px-1 text-[10.5px] leading-relaxed text-zinc-600">
+          <Info className="mt-0.5 h-3 w-3 shrink-0" strokeWidth={1.5} />
+          <span>Champ informatif tant que tu restes en micro-BIC.</span>
+        </div>
+      )}
     </div>
   );
 }
