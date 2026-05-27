@@ -62,7 +62,12 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
       {open && (
         <div
           className="mk-card-flat fade-up !absolute right-0 top-full mt-2 w-64 overflow-hidden"
-          style={{ animationDuration: "220ms" }}
+          style={{
+            animationDuration: "220ms",
+            background: "#0F0F11",
+            boxShadow:
+              "0 16px 40px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(255,255,255,0.08)",
+          }}
           role="menu"
         >
           <div className="p-3">
