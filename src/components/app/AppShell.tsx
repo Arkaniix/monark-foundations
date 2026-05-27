@@ -38,7 +38,6 @@ export default function AppShell({ children, pageLabel, activePath }: AppShellPr
           subscription_tier: user.subscription_tier,
           credits_remaining: user.credits_remaining,
         }}
-        onLogout={handleLogout}
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <AppTopbar
