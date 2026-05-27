@@ -591,21 +591,7 @@ export default function StockBilanView({
       </div>
 
       {/* Footer export */}
-      <div className="flex items-center justify-between">
-        <button
-          type="button"
-          onClick={() => setExplainerOpen(true)}
-          className="ease-expo flex h-[34px] items-center gap-2 rounded-md px-4 transition-colors"
-          style={{
-            background: "rgba(255,255,255,0.02)",
-            boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
-          }}
-        >
-          <HelpCircle className="h-3.5 w-3.5 text-zinc-300" />
-          <span className="font-mono text-[11px] tracking-[0.08em] text-zinc-300">
-            COMPRENDRE LES RÉGIMES
-          </span>
-        </button>
+      <div className="flex justify-end">
         <button
           type="button"
           onClick={handleExport}
