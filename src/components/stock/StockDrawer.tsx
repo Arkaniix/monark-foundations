@@ -38,7 +38,7 @@ import {
   getMargeNettePct,
   getDureeVente,
 } from "./datasets";
-import { CATALOG_MODELS } from "@/components/catalog/mockData";
+import { useCatalogModelMap } from "@/lib/useCatalogModelMap";
 import type { HardwareCategory } from "@/components/catalog/datasets";
 import ModelImage from "@/components/catalog/ModelImage";
 import Sparkline from "@/components/ui/Sparkline";
@@ -110,6 +110,7 @@ export default function StockDrawer({
   onDelete,
 }: Props) {
   const navigate = useNavigate();
+  const { byId } = useCatalogModelMap();
   const [showMarket, setShowMarket] = useState<boolean>(() => loadShowMarket());
   const [confirmCancel, setConfirmCancel] = useState(false);
 
@@ -157,7 +158,7 @@ export default function StockDrawer({
   };
 
   const catalogModel = item.model_id
-    ? CATALOG_MODELS.find((m) => m.id === item.model_id) ?? null
+    ? (byId.get(item.model_id) ?? null)
     : null;
 
   const isHwCat = item.category_snapshot !== "OTHER";

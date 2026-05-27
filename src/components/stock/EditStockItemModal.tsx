@@ -13,7 +13,7 @@ import {
   formatEur,
   formatDateShortFR,
 } from "./datasets";
-import { CATALOG_MODELS } from "@/components/catalog/mockData";
+import { useCatalogModelMap } from "@/lib/useCatalogModelMap";
 import type { HardwareCategory } from "@/components/catalog/datasets";
 import ModelImage from "@/components/catalog/ModelImage";
 
@@ -36,6 +36,7 @@ export default function EditStockItemModal({
   onClose,
   onSave,
 }: Props) {
+  const { byId } = useCatalogModelMap();
   // Achat
   const [priceStr, setPriceStr] = useState("");
   const [customName, setCustomName] = useState("");
@@ -106,7 +107,7 @@ export default function EditStockItemModal({
       : baseValid && customValid;
   const isHwCat = item.category_snapshot !== "OTHER";
   const catalogModel = item.model_id
-    ? CATALOG_MODELS.find((m) => m.id === item.model_id)
+    ? (byId.get(item.model_id) ?? null)
     : null;
 
   const handleSave = () => {
