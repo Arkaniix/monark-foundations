@@ -1,4 +1,4 @@
-import { Search, ChevronDown } from "lucide-react";
+import { Search } from "lucide-react";
 import { HARDWARE_CATEGORIES, CATEGORY_LABELS } from "../catalog/datasets";
 import {
   WATCHLIST_SORT_OPTIONS,
@@ -9,6 +9,7 @@ import {
   type WatchlistDensity,
 } from "./datasets";
 import WatchlistDensityToggle from "./WatchlistDensityToggle";
+import FilterPill from "../ui/FilterPill";
 
 type Props = {
   filters: WatchlistFilters;
@@ -70,26 +71,12 @@ export default function WatchlistFilterBar({
 
       {density === "cards" && (
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[10px] tracking-[0.14em] text-zinc-600">
-            TRI
-          </span>
-          <div className="relative">
-            <select
-              value={selectedKey}
-              onChange={(e) => handleSortDropdownChange(e.target.value)}
-              className="ease-expo appearance-none rounded-md border border-white/10 bg-white/[0.02] py-1.5 pl-3 pr-8 font-mono text-[11.5px] text-zinc-200 outline-none transition-colors hover:bg-white/[0.04]"
-            >
-              {WATCHLIST_SORT_OPTIONS.map((opt) => (
-                <option key={opt.key} value={opt.key} className="bg-zinc-900">
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-zinc-500"
-              strokeWidth={1.5}
-            />
-          </div>
+          <FilterPill
+            label="TRI"
+            value={selectedKey}
+            options={WATCHLIST_SORT_OPTIONS.map((o) => ({ value: o.key, label: o.label }))}
+            onChange={handleSortDropdownChange}
+          />
         </div>
       )}
 
