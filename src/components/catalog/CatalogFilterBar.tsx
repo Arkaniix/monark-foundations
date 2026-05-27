@@ -1,6 +1,5 @@
-import { Search, LayoutGrid, List, RotateCcw, ChevronDown } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { Search, LayoutGrid, List, RotateCcw } from "lucide-react";
+import FilterPill from "../ui/FilterPill";
 import {
   SORT_OPTIONS,
   type CatalogFilters,
