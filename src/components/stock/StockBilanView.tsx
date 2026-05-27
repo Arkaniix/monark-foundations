@@ -364,6 +364,30 @@ export default function StockBilanView({
           <div className="flex flex-col gap-6">
             {/* Régime */}
             <SubSection label="Régime fiscal">
+              <button
+                type="button"
+                onClick={() => setExplainerOpen(true)}
+                className="ease-expo mb-3 flex w-full items-center gap-2.5 rounded-lg px-4 py-2.5 text-left transition-colors hover:brightness-110"
+                style={{
+                  background: "rgba(9,177,186,0.08)",
+                  boxShadow: "inset 0 0 0 1px rgba(9,177,186,0.4)",
+                }}
+              >
+                <HelpCircle
+                  className="h-4 w-4 shrink-0"
+                  style={{ color: "#09B1BA" }}
+                  strokeWidth={1.75}
+                />
+                <span
+                  className="text-[13px] font-medium"
+                  style={{ color: "#09B1BA" }}
+                >
+                  Pas sûr de ton régime ? Comprendre les options
+                </span>
+                <span className="ml-auto font-mono text-[16px] leading-none" style={{ color: "#09B1BA" }}>
+                  →
+                </span>
+              </button>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                 {(["particulier", "micro_bic", "reel"] as AccountingRegime[]).map(
                   (r, idx) => {
@@ -591,21 +615,7 @@ export default function StockBilanView({
       </div>
 
       {/* Footer export */}
-      <div className="flex items-center justify-between">
-        <button
-          type="button"
-          onClick={() => setExplainerOpen(true)}
-          className="ease-expo flex h-[34px] items-center gap-2 rounded-md px-4 transition-colors"
-          style={{
-            background: "rgba(255,255,255,0.02)",
-            boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
-          }}
-        >
-          <HelpCircle className="h-3.5 w-3.5 text-zinc-300" />
-          <span className="font-mono text-[11px] tracking-[0.08em] text-zinc-300">
-            COMPRENDRE LES RÉGIMES
-          </span>
-        </button>
+      <div className="flex justify-end">
         <button
           type="button"
           onClick={handleExport}
