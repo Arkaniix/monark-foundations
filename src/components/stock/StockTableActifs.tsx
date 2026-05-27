@@ -14,7 +14,7 @@ import {
   formatEur,
 } from "./datasets";
 import type { HardwareCategory } from "@/components/catalog/datasets";
-import { CATALOG_MODELS } from "@/components/catalog/mockData";
+import { useCatalogModelMap } from "@/lib/useCatalogModelMap";
 import ModelImage from "@/components/catalog/ModelImage";
 import StockKebabMenu from "./StockKebabMenu";
 import type { KebabAction } from "./StockKebabMenu";
@@ -43,6 +43,7 @@ export default function StockTableActifs({
   onRowClick,
   buildActions,
 }: Props) {
+  const { byId } = useCatalogModelMap();
   const rowPadY = density === "compact" ? "py-2.5" : "py-3.5";
 
   return (
@@ -72,9 +73,7 @@ export default function StockTableActifs({
         const ageCol = agingColor(age);
         const badge = STATUS_BADGE_STYLE[item.status];
 
-        const model = item.model_id
-          ? CATALOG_MODELS.find((m) => m.id === item.model_id)
-          : null;
+        const model = item.model_id ? (byId.get(item.model_id) ?? null) : null;
         const median = model?.median_eur ?? null;
         const deltaEur = median != null ? median - item.purchase_price_eur : null;
         const deltaPct =

@@ -9,7 +9,7 @@ import {
   formatDateShortFR,
   formatEur,
 } from "./datasets";
-import { CATALOG_MODELS } from "@/components/catalog/mockData";
+import { useCatalogModelMap } from "@/lib/useCatalogModelMap";
 import type { HardwareCategory } from "@/components/catalog/datasets";
 import ModelImage from "@/components/catalog/ModelImage";
 
@@ -36,6 +36,7 @@ export default function MarkAsSoldModal({
   const [priceStr, setPriceStr] = useState("");
   const [date, setDate] = useState<string>(todayIso());
   const [platform, setPlatform] = useState<PlatformKey>("LBC");
+  const { byId } = useCatalogModelMap();
   const [feesStr, setFeesStr] = useState("0");
 
   useEffect(() => {
@@ -66,11 +67,8 @@ export default function MarkAsSoldModal({
   }, [open]);
 
   const catalogModel = useMemo(
-    () =>
-      item?.model_id
-        ? CATALOG_MODELS.find((m) => m.id === item.model_id) ?? null
-        : null,
-    [item],
+    () => (item?.model_id ? (byId.get(item.model_id) ?? null) : null),
+    [item, byId],
   );
 
   if (!open || !item) return null;

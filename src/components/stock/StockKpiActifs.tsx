@@ -1,14 +1,15 @@
 import { useMemo } from "react";
 import { type StockItem, isActif, formatEur, isDormant } from "./datasets";
-import { CATALOG_MODELS } from "@/components/catalog/mockData";
+import { useCatalogModelMap } from "@/lib/useCatalogModelMap";
 
 export default function StockKpiActifs({ items }: { items: StockItem[] }) {
+  const { byId } = useCatalogModelMap();
   const actifs = useMemo(() => items.filter(isActif), [items]);
   const totalActifs = actifs.length;
   const totalImmo = actifs.reduce((s, it) => s + it.purchase_price_eur, 0);
   const catalogActifs = actifs.filter((it) => it.source === "catalog" && it.model_id);
   const totalMarche = catalogActifs.reduce((s, it) => {
-    const m = CATALOG_MODELS.find((x) => x.id === it.model_id);
+    const m = it.model_id ? byId.get(it.model_id) : undefined;
     return s + (m?.median_eur ?? it.purchase_price_eur);
   }, 0);
   const catalogImmo = catalogActifs.reduce(
