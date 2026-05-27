@@ -364,6 +364,30 @@ export default function StockBilanView({
           <div className="flex flex-col gap-6">
             {/* Régime */}
             <SubSection label="Régime fiscal">
+              <button
+                type="button"
+                onClick={() => setExplainerOpen(true)}
+                className="ease-expo mb-3 flex w-full items-center gap-2.5 rounded-lg px-4 py-2.5 text-left transition-colors hover:brightness-110"
+                style={{
+                  background: "rgba(9,177,186,0.08)",
+                  boxShadow: "inset 0 0 0 1px rgba(9,177,186,0.4)",
+                }}
+              >
+                <HelpCircle
+                  className="h-4 w-4 shrink-0"
+                  style={{ color: "#09B1BA" }}
+                  strokeWidth={1.75}
+                />
+                <span
+                  className="text-[13px] font-medium"
+                  style={{ color: "#09B1BA" }}
+                >
+                  Pas sûr de ton régime ? Comprendre les options
+                </span>
+                <span className="ml-auto font-mono text-[16px] leading-none" style={{ color: "#09B1BA" }}>
+                  →
+                </span>
+              </button>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                 {(["particulier", "micro_bic", "reel"] as AccountingRegime[]).map(
                   (r, idx) => {
