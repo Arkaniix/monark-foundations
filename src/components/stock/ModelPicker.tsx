@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, ArrowRight } from "lucide-react";
-import { CATALOG_MODELS } from "@/components/catalog/mockData";
+import { catalogApi } from "@/lib/api";
 import type { CatalogModel } from "@/components/catalog/datasets";
 import ModelImage from "@/components/catalog/ModelImage";
 
@@ -13,6 +13,20 @@ type Props = {
 export default function ModelPicker({ value, onChange, onSwitchToCustom }: Props) {
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
+  const [allModels, setAllModels] = useState<CatalogModel[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    catalogApi
+      .getAllModels()
+      .then((m) => {
+        if (!cancelled) setAllModels(m);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const trimmedQuery = query.trim();
   const hasQuery = trimmedQuery.length > 0;
@@ -20,13 +34,15 @@ export default function ModelPicker({ value, onChange, onSwitchToCustom }: Props
   const results = useMemo(() => {
     if (!hasQuery) return [];
     const q = trimmedQuery.toLowerCase();
-    return CATALOG_MODELS.filter(
-      (m) =>
-        m.name.toLowerCase().includes(q) ||
-        m.manufacturer.toLowerCase().includes(q) ||
-        m.family.toLowerCase().includes(q),
-    ).slice(0, 12);
-  }, [trimmedQuery, hasQuery]);
+    return allModels
+      .filter(
+        (m) =>
+          m.name.toLowerCase().includes(q) ||
+          m.manufacturer.toLowerCase().includes(q) ||
+          m.family.toLowerCase().includes(q),
+      )
+      .slice(0, 12);
+  }, [trimmedQuery, hasQuery, allModels]);
 
   const dropdownOpen = focused && hasQuery;
 
