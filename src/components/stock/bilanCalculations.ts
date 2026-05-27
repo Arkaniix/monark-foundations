@@ -13,8 +13,8 @@ import type {
 // Constantes (valeurs 2026)
 // ---------------------------------------------------------------------------
 
-export const SEUIL_FRANCHISE_TVA_MARCHANDISES_2026 = 91900;
-export const SEUIL_REGIME_MICRO_2026 = 188700;
+export const SEUIL_FRANCHISE_TVA_MARCHANDISES_2026 = 85000;
+export const SEUIL_REGIME_MICRO_2026 = 203100;
 export const URSSAF_TAUX_MARCHANDISES = 0.123;
 export const IR_LIBERATOIRE_TAUX_MARCHANDISES = 0.01;
 export const ABATTEMENT_MICRO_BIC_MARCHANDISES = 0.71;
