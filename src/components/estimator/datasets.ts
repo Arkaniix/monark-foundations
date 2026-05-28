@@ -114,6 +114,7 @@ export type ScoreBreakdown = {
   trend: number;
   liquidity: number;
   value_vs_new: number;
+  total_adjusted: number;
   total: number;
 };
 
