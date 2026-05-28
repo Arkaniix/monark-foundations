@@ -62,11 +62,12 @@ export type VariantEntry = {
 };
 
 export type CatalogModelDetail = CatalogModel & {
-  percentiles: PercentileDistribution;
+  percentiles: PercentileDistribution | null;
   sparkline_90d: number[];
   by_platform: PlatformBreakdown[];
   monthly_history: MonthlyHistoryEntry[];
   variants: VariantEntry[];
+  median_days_to_sell: number | null;
 };
 
 function buildPercentiles(median: number, liquidity_pct: number): PercentileDistribution {
@@ -159,7 +160,7 @@ function buildMonthlyHistory(
   return entries;
 }
 
-function buildVariants(currentModel: CatalogModel, allModels: CatalogModel[]): VariantEntry[] {
+export function buildVariants(currentModel: CatalogModel, allModels: CatalogModel[]): VariantEntry[] {
   return allModels
     .filter((m) => m.family === currentModel.family && m.category === currentModel.category)
     .sort((a, b) => b.score - a.score)
@@ -186,5 +187,6 @@ export function buildModelDetail(
     by_platform: buildPlatformBreakdown(model.median_eur, model.n_obs),
     monthly_history: buildMonthlyHistory(model.median_eur, model.trend_30d_pct, seed),
     variants: buildVariants(model, allModels),
+    median_days_to_sell: null,
   };
 }

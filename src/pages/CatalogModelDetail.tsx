@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { catalogApi } from "@/lib/api";
 import type { CatalogModelDetail as CatalogModelDetailT } from "@/components/catalog/modelDetail";
 import { useCatalogFavorites } from "@/lib/catalogFavorites";
+import { hasMarketData } from "@/components/catalog/datasets";
 import CatalogFicheHeader from "@/components/catalog/CatalogFicheHeader";
 import CatalogFicheOverview from "@/components/catalog/CatalogFicheOverview";
 import CatalogFichePercentiles from "@/components/catalog/CatalogFichePercentiles";
@@ -84,6 +85,44 @@ export default function CatalogModelDetail({ modelId }: Props) {
     );
   }
   if (!detail) return <CatalogFicheLoading />;
+
+  if (!hasMarketData(detail)) {
+    return (
+      <div className="flex flex-col">
+        <CatalogFicheHeader
+          detail={detail}
+          isFavorite={isFavorite(detail.id)}
+          onToggleFavorite={() => toggleFav(detail.id, detail.median_eur)}
+          onEstimate={handleEstimate}
+        />
+        <div className="flex flex-col gap-8 px-6 py-6">
+          <div
+            className="flex flex-col items-center justify-center gap-2 rounded-xl py-16 text-center"
+            style={{
+              background: "var(--mk-surface-1)",
+              border: "0.5px solid var(--mk-section-border)",
+            }}
+          >
+            <div className="font-mono text-[11px] tracking-[0.18em] text-zinc-500">
+              DONNÉES MARCHÉ INSUFFISANTES
+            </div>
+            <p className="max-w-md text-[12px] text-zinc-600">
+              Pas assez d&apos;observations pour calculer des statistiques fiables sur ce modèle.
+              Reviens plus tard, ou estime directement une annonce.
+            </p>
+          </div>
+          {detail.variants.length > 1 && (
+            <FadeInSection delay={60}>
+              <CatalogFicheVariants variants={detail.variants} familyLabel={detail.family} />
+            </FadeInSection>
+          )}
+          <FadeInSection delay={120}>
+            <CatalogFicheCtaEstimer modelName={detail.name} onEstimate={handleEstimate} />
+          </FadeInSection>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

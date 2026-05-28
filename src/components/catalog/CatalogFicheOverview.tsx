@@ -77,7 +77,7 @@ export default function CatalogFicheOverview({ detail }: Props) {
                 </div>
                 <div className="mt-2 font-mono text-[9.5px] tracking-[0.18em] text-zinc-600">
                   <GlossaryTooltip term="median30d">
-                    <span>MÉDIANE 30 J · {detail.n_obs} OBS</span>
+                    <span>MÉDIANE · {detail.n_obs} VENTES 30 J</span>
                   </GlossaryTooltip>
                 </div>
               </div>
@@ -115,7 +115,7 @@ export default function CatalogFicheOverview({ detail }: Props) {
               </Stat>
               <Stat
                 label="LIQUIDITÉ"
-                sub={`vente médiane ${Math.max(1, Math.round(30 - detail.liquidity_pct * 0.25))} j`}
+                sub={detail.median_days_to_sell != null ? `vente médiane ${Math.round(detail.median_days_to_sell)} j` : "—"}
                 termKey="liquidity"
               >
                 <span className="font-mono text-[18px] font-medium tabular-nums" style={{ color: liqColor }}>

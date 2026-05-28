@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ArrowLeft, Star, Calculator } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import type { CatalogModelDetail } from "./modelDetail";
-import { MANUFACTURER_DOT_COLOR, getScoreColor } from "./datasets";
+import { MANUFACTURER_DOT_COLOR, getScoreColor, hasMarketData } from "./datasets";
 
 type Props = {
   detail: CatalogModelDetail;
@@ -47,17 +47,19 @@ export default function CatalogFicheHeader({
           <span style={{ color: "#3f3f46" }}>/</span>
           <span>{detail.category}</span>
         </Link>
-        <div
-          className="rounded-md font-mono text-[10px] font-medium tracking-[0.12em]"
-          style={{
-            background: hexA(scoreColor, 0.12),
-            border: `0.5px solid ${hexA(scoreColor, 0.4)}`,
-            color: scoreColor,
-            padding: "5px 10px",
-          }}
-        >
-          SCORE {detail.score}
-        </div>
+        {hasMarketData(detail) && (
+          <div
+            className="rounded-md font-mono text-[10px] font-medium tracking-[0.12em]"
+            style={{
+              background: hexA(scoreColor, 0.12),
+              border: `0.5px solid ${hexA(scoreColor, 0.4)}`,
+              color: scoreColor,
+              padding: "5px 10px",
+            }}
+          >
+            SCORE {detail.score}
+          </div>
+        )}
         <div className="min-w-0">
           <div className="truncate text-[14px] font-medium leading-tight text-zinc-100">
             {detail.name}

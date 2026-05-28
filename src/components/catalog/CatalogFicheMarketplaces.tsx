@@ -11,18 +11,19 @@ type Props = {
 };
 
 export default function CatalogFicheMarketplaces({ by_platform }: Props) {
+  if (by_platform.length === 0) return null;
   const totalObs = by_platform.reduce((sum, p) => sum + p.n_obs, 0);
 
   return (
     <section className="flex flex-col gap-3.5">
-      <SectionLabel idx={4} label="OÙ SE VEND CE MODÈLE ?" />
+      <SectionLabel idx={4} label="OÙ EST-IL LISTÉ ?" />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {by_platform.map((p) => (
           <PlatformCard key={p.platform} entry={p} totalObs={totalObs} />
         ))}
       </div>
       <div className="font-mono text-[10.5px] leading-relaxed text-zinc-600">
-        Part de volume = % des ventes observées sur cette plateforme. Reflète où les acheteurs cherchent et où les vendeurs listent.
+        Part des annonces = % des annonces actives observées sur cette plateforme sur 30 jours.
       </div>
     </section>
   );
@@ -64,7 +65,7 @@ function PlatformCard({
         <AnimatedCounter value={entry.median_eur} suffix=" €" />
       </div>
       <div className="mb-4 flex items-center gap-2 font-mono text-[10px] tracking-[0.12em] text-zinc-600">
-        <GlossaryTooltip term="median30d"><span>MÉDIANE</span></GlossaryTooltip>
+        <GlossaryTooltip term="median30d"><span>PRIX MOYEN</span></GlossaryTooltip>
         <GlossaryTooltip term="spreadGlobal">
           <span style={{ color: spreadColor }}>
             <AnimatedCounter
@@ -86,7 +87,7 @@ function PlatformCard({
       >
         <div className="mb-1.5 flex items-baseline justify-between">
           <GlossaryTooltip term="partVolume">
-            <span className="font-mono text-[9px] tracking-[0.16em] text-zinc-500">PART DE VOLUME</span>
+            <span className="font-mono text-[9px] tracking-[0.16em] text-zinc-500">PART DES ANNONCES</span>
           </GlossaryTooltip>
           <span className="font-mono text-[16px] font-medium tabular-nums" style={{ color: brand }}>
             <AnimatedCounter value={volumeSharePct} suffix="%" decimals={0} />
@@ -98,7 +99,7 @@ function PlatformCard({
       <div className="font-mono text-[10px] tracking-[0.08em] text-zinc-600">
         <GlossaryTooltip term="observations">
           <span>
-            <span>N OBS </span>
+            <span>ANNONCES </span>
             <span className="text-zinc-300"><AnimatedCounter value={entry.n_obs} /></span>
             <span className="text-zinc-700"> · 30 J</span>
           </span>
