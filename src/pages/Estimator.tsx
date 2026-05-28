@@ -157,19 +157,34 @@ export default function Estimator({
       </section>
       </FadeInSection>
 
-      {state.status === "success" && (
+      {state.status === "success" && state.result.has_market_detail === false && (
+        <FadeInSection delay={60}>
+          <div className="mk-card p-6 flex flex-col gap-2">
+            <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-500">
+              ANALYSE COMPLÈTE
+            </div>
+            <p className="text-[13px] text-zinc-400 leading-relaxed">
+              Le positionnement marché, le score détaillé, la négociation et la
+              revente sont disponibles avec un plan supérieur. Ton verdict, le fair
+              price et la médiane restent gratuits.
+            </p>
+          </div>
+        </FadeInSection>
+      )}
+
+      {state.status === "success" && state.result.has_market_detail !== false && (
         <FadeInSection delay={60}>
           <EstimatorPositioning result={state.result} />
         </FadeInSection>
       )}
 
-      {state.status === "success" && (
+      {state.status === "success" && state.result.has_market_detail !== false && (
         <FadeInSection delay={120}>
           <EstimatorScoreBreakdown result={state.result} />
         </FadeInSection>
       )}
 
-      {state.status === "success" && (
+      {state.status === "success" && state.result.has_market_detail !== false && (
         <FadeInSection delay={180}>
           <EstimatorNegotiation result={state.result} />
         </FadeInSection>
@@ -196,7 +211,9 @@ export default function Estimator({
           </FadeInSection>
         )}
 
-      {state.status === "success" && !state.result.resale_where && (
+      {state.status === "success" &&
+        state.result.has_market_detail !== false &&
+        !state.result.resale_where && (
         <FadeInSection delay={240}>
           <div className="mk-card p-6 flex flex-col gap-2">
             <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-500">

@@ -453,6 +453,7 @@ function mapResponse(inputs: EstimatorInputs, resp: ApiEvaluateResponse): Estima
     data_quality: parseDataQuality(resp.score.confidence?.factors),
 
     negotiation,
+    has_market_detail: Boolean(resp.market?.distribution),
     resale_where: mapResaleWhere(resp, ask),
     resale_when: mapResaleWhen(resp),
   };
