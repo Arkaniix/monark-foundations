@@ -200,5 +200,40 @@ export const CATALOG_MODELS: CatalogModel[] = RAW.map((row, idx) => {
     score: computeOpportunityScore(liquidity_pct, margin_pct, trend_30d_pct),
     sparkline_30d: generateSparkline(median_eur, trend_30d_pct, idx + 1),
     image_url: null,
+    data_quality: liquidity_pct >= 55 ? "excellent" : "good",
+    composite_price: Math.round(median_eur * 0.98),
+    price_confidence: 0.85,
+    sold_count_30d: n_obs,
+    sold_count_90d: n_obs * 3,
+    last_observed_at: new Date(Date.now() - freshness_days * 86_400_000).toISOString(),
   };
 });
+
+// États de test (validation UI en mode mock) :
+//  - modèles sans données marché (data_quality null → carte « insuffisant »)
+//  - 1 modèle « insufficient » (CMS faible)
+//  - modèles avec données mais sans sparkline (sparkline_30d [] → aucune courbe)
+function markInsufficient(
+  m: CatalogModel | undefined,
+  quality: CatalogModel["data_quality"],
+): void {
+  if (!m) return;
+  m.data_quality = quality;
+  m.sparkline_30d = [];
+  m.freshness_days = null;
+  m.composite_price = null;
+  m.price_confidence = null;
+  m.sold_count_30d = null;
+  m.sold_count_90d = null;
+  m.last_observed_at = null;
+  m.liquidity_pct = 0;
+  m.median_eur = 0;
+  m.n_obs = 0;
+  m.margin_pct = 0;
+  m.score = 0;
+}
+markInsufficient(CATALOG_MODELS[3], null);
+markInsufficient(CATALOG_MODELS[7], null);
+markInsufficient(CATALOG_MODELS[11], "insufficient");
+if (CATALOG_MODELS[1]) CATALOG_MODELS[1].sparkline_30d = []; // données OK mais pas de courbe
+if (CATALOG_MODELS[5]) CATALOG_MODELS[5].sparkline_30d = [];

@@ -1,6 +1,6 @@
 import { Star, ArrowRight, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import type { CatalogModel } from "./datasets";
-import { MANUFACTURER_DOT_COLOR, getLiquidityColor, getTrendColor } from "./datasets";
+import { MANUFACTURER_DOT_COLOR, getLiquidityColor, getTrendColor, hasMarketData } from "./datasets";
 import ModelImage from "./ModelImage";
 import CatalogScoreChip from "./CatalogScoreChip";
 import FadeInSection from "../ui/FadeInSection";
@@ -60,7 +60,11 @@ function CatalogRow({ model, isFavorite, onToggleFavorite, onOpenDetails }: RowP
       </div>
 
       <div className="shrink-0">
-        <CatalogScoreChip score={model.score} size="sm" />
+        {hasMarketData(model) ? (
+          <CatalogScoreChip score={model.score} size="sm" />
+        ) : (
+          <span className="font-mono text-[9px] tracking-[0.14em] text-zinc-700">—</span>
+        )}
       </div>
 
       <div className="min-w-0 flex-1">
@@ -75,34 +79,50 @@ function CatalogRow({ model, isFavorite, onToggleFavorite, onOpenDetails }: RowP
         </div>
       </div>
 
-      <div className="hidden w-24 flex-col items-end gap-0.5 md:flex">
-        <span className="font-mono text-[11px] tabular-nums" style={{ color: liqColor }}>
-          {Math.round(model.liquidity_pct)}%
-        </span>
-        <span className="font-mono text-[9px] tracking-[0.16em] text-zinc-600">LIQUIDITÉ</span>
-      </div>
+      {hasMarketData(model) ? (
+        <>
+          <div className="hidden w-24 flex-col items-end gap-0.5 md:flex">
+            <span className="font-mono text-[11px] tabular-nums" style={{ color: liqColor }}>
+              {Math.round(model.liquidity_pct)}%
+            </span>
+            <span className="font-mono text-[9px] tracking-[0.16em] text-zinc-600">LIQUIDITÉ</span>
+          </div>
 
-      <div className="hidden w-28 flex-col items-end gap-0.5 lg:flex">
-        <span className="font-mono text-[10px] tracking-[0.14em] text-zinc-600">
-          N OBS <span className="ml-1 tabular-nums text-zinc-400">{model.n_obs}</span>
-        </span>
-        <span className="font-mono text-[10px] tracking-[0.14em] text-zinc-600">
-          FRAÎCHEUR <span className="ml-1 tabular-nums text-zinc-400">{model.freshness_days} j</span>
-        </span>
-      </div>
+          <div className="hidden w-28 flex-col items-end gap-0.5 lg:flex">
+            <span className="font-mono text-[10px] tracking-[0.14em] text-zinc-600">
+              VENTES 30 J <span className="ml-1 tabular-nums text-zinc-400">{model.n_obs}</span>
+            </span>
+            {model.freshness_days != null && (
+              <span className="font-mono text-[10px] tracking-[0.14em] text-zinc-600">
+                FRAÎCHEUR{" "}
+                <span
+                  className="ml-1 tabular-nums"
+                  style={{ color: model.freshness_days > 7 ? "#F59E0B" : "#a1a1aa" }}
+                >
+                  {model.freshness_days} j
+                </span>
+              </span>
+            )}
+          </div>
 
-      <div className="hidden w-28 items-center justify-end gap-1.5 sm:flex">
-        <Sparkline points={model.sparkline_30d} color={trendColor} width={40} height={12} />
-        <span className="font-mono text-[11px] tabular-nums" style={{ color: trendColor }}>
-          {trendSign}
-          {model.trend_30d_pct.toFixed(1)}%
-        </span>
-        <TrendIcon className="h-3 w-3" style={{ color: trendColor }} strokeWidth={2} />
-      </div>
+          <div className="hidden w-28 items-center justify-end gap-1.5 sm:flex">
+            <Sparkline points={model.sparkline_30d} color={trendColor} width={40} height={12} />
+            <span className="font-mono text-[11px] tabular-nums" style={{ color: trendColor }}>
+              {trendSign}
+              {model.trend_30d_pct.toFixed(1)}%
+            </span>
+            <TrendIcon className="h-3 w-3" style={{ color: trendColor }} strokeWidth={2} />
+          </div>
 
-      <div className="w-24 text-right font-mono text-[14px] tabular-nums text-zinc-100">
-        {eur.format(model.median_eur)} €
-      </div>
+          <div className="w-24 text-right font-mono text-[14px] tabular-nums text-zinc-100">
+            {eur.format(model.median_eur)} €
+          </div>
+        </>
+      ) : (
+        <div className="ml-auto hidden font-mono text-[10px] tracking-[0.14em] text-zinc-600 sm:block">
+          DONNÉES INSUFFISANTES
+        </div>
+      )}
 
       <button
         type="button"
@@ -133,14 +153,14 @@ function CatalogRow({ model, isFavorite, onToggleFavorite, onOpenDetails }: RowP
 }
 
 type SparklineProps = {
-  points: number[];
+  points: number[] | null;
   color: string;
   width: number;
   height: number;
 };
 
 function Sparkline({ points, color, width, height }: SparklineProps) {
-  if (points.length < 2) return null;
+  if (!points || points.length < 2) return null;
   const min = Math.min(...points);
   const max = Math.max(...points);
   const range = max - min || 1;
