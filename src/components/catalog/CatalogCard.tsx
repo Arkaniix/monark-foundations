@@ -11,6 +11,7 @@ import {
   getLiquidityColor,
   getTrendColor,
   hasMarketData,
+  formatFreshness,
 } from "./datasets";
 import ModelImage from "./ModelImage";
 import CatalogScoreChip from "./CatalogScoreChip";
@@ -159,7 +160,7 @@ export default function CatalogCard({
                       className="ml-1 tabular-nums"
                       style={{ color: model.freshness_days > 7 ? "#F59E0B" : "#a1a1aa" }}
                     >
-                      {model.freshness_days} j
+                      {formatFreshness(model.last_observed_at)}
                     </span>
                   </span>
                 )}
