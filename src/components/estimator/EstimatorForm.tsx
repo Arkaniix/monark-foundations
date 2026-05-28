@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Calculator } from "lucide-react";
 import { Field } from "@/components/ui";
+import { useAuth } from "@/context/AuthContext";
 import {
   HARDWARE_CATALOG,
   ITEM_STATES,
@@ -33,7 +34,10 @@ export default function EstimatorForm({
     initial?.platform ?? "LBC",
   );
 
-  const canSubmit = askPrice > 0 && !disabled;
+  const { user } = useAuth();
+  const creditCost = user?.subscription_tier === "free" ? 1 : 3;
+  const hasEnoughCredits = (user?.credits_remaining ?? Infinity) >= creditCost;
+  const canSubmit = askPrice > 0 && !disabled && hasEnoughCredits;
 
   const handleSubmit = () => {
     if (!canSubmit) return;
@@ -131,7 +135,9 @@ export default function EstimatorForm({
           className="btn-shimmer w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-md bg-blue-500 hover:bg-blue-400 text-white font-medium text-[13.5px] disabled:opacity-50 ease-expo transition-colors shadow-[0_8px_30px_-8px_rgba(59,130,246,0.6)]"
         >
           <Calculator className="w-4 h-4" />
-          Évaluer · 3 crédits
+          {hasEnoughCredits
+            ? `Évaluer · ${creditCost} crédit${creditCost > 1 ? "s" : ""}`
+            : "Crédits insuffisants"}
         </button>
 
         <div className="font-mono text-[10px] text-zinc-600 text-center">
