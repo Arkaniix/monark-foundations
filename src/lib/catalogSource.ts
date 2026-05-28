@@ -48,6 +48,15 @@ interface ApiModelListItem {
   liquidity: number;
   liquidity_score: number;
   ads_count: number;
+  // Phase 2 (null si pas de CMS)
+  market_margin_pct: number | null;
+  sparkline_30d: number[] | null;
+  last_observed_at: string | null;
+  composite_price: number | null;
+  price_confidence: number | null;
+  sold_count_30d: number | null;
+  sold_count_90d: number | null;
+  data_quality: "excellent" | "good" | "limited" | "insufficient" | null;
 }
 
 interface ApiModelPage {
@@ -67,10 +76,12 @@ const API_TO_FRONT_CATEGORY: Record<string, HardwareCategory> = {
 };
 
 // ---------------------------------------------------------------------------
-// Dérivations cosmétiques — répliques EXACTES du mock (components/catalog/mockData.ts)
+// Score d'opportunité — composition front sur entrées RÉELLES (liquidité,
+// marge marché backend, tendance). Plus aucune dérivation fabriquée ici :
+// fraîcheur, sparkline et marge viennent désormais de l'API.
 // ---------------------------------------------------------------------------
 
-/** Réplique de computeOpportunityScore() du mock. */
+/** Score d'opportunité 0-100 : 40% liquidité / 35% marge / 25% tendance. */
 function computeOpportunityScore(
   liquidity_pct: number,
   margin_pct: number,
@@ -82,45 +93,25 @@ function computeOpportunityScore(
   return Math.round(liq * 0.4 + marge * 0.35 + trend * 0.25);
 }
 
-/** Réplique de generateSparkline() du mock (12 points malgré le nom _30d). */
-function generateSparkline(median: number, trend_pct: number, seed: number): number[] {
-  const points = 12;
-  const drift = (median * trend_pct) / 100 / points;
-  const noise = median * 0.025;
-  const out: number[] = [];
-  let cur = median * (1 - trend_pct / 100);
-  for (let i = 0; i < points; i++) {
-    const s = Math.sin(seed * 13.37 + i * 1.7) * noise;
-    out.push(Math.round(cur + s));
-    cur += drift;
-  }
-  return out;
-}
-
-/**
- * margin_pct est codé en dur par modèle dans le mock. L'API ne l'expose pas →
- * on le dérive de façon déterministe à partir des signaux réels (liquidité +
- * tendance), centré ~14-16 %, borné 5-28 %. Cosmétique, mais cohérent et varié.
- */
-function deriveMarginPct(liquidity_pct: number, trend_30d_pct: number): number {
-  const m = 14 + (liquidity_pct - 60) * 0.06 + trend_30d_pct * 0.15;
-  return Math.round(Math.max(5, Math.min(28, m)));
-}
-
 function mapApiModel(item: ApiModelListItem): CatalogModel {
   const median = item.price_median_30d ?? item.fair_value_30d ?? 0;
   const trend = item.var_30d_pct ?? item.var_7d_pct ?? 0;
   const liquidity_pct = Math.round((item.liquidity_score ?? item.liquidity ?? 0) * 100);
-  const margin_pct = deriveMarginPct(liquidity_pct, trend);
+  const margin_pct = item.market_margin_pct ?? 0; // vraie marge backend (0 si pas de CMS)
   const medianRounded = Math.round(median);
   const trendRounded = Math.round(trend * 10) / 10;
+
+  // Fraîcheur RÉELLE : jours depuis la dernière observation. null si inconnu.
+  const freshness_days =
+    item.last_observed_at != null
+      ? Math.max(0, Math.floor((Date.now() - Date.parse(item.last_observed_at)) / 86_400_000))
+      : null;
 
   return {
     id: String(item.id),
     name: item.name,
     category: API_TO_FRONT_CATEGORY[item.category] ?? "GPU",
     // L'API peut renvoyer manufacturer=null ou une valeur hors-union ; cast best-effort.
-    // La couleur de pastille (MANUFACTURER_DOT_COLOR) gère un manquant sans crash.
     manufacturer: (item.manufacturer ?? "") as Manufacturer,
     brand: item.brand ?? null,
     family: item.family ?? "",
@@ -128,11 +119,19 @@ function mapApiModel(item: ApiModelListItem): CatalogModel {
     trend_30d_pct: trendRounded,
     liquidity_pct,
     margin_pct,
-    n_obs: item.volume ?? item.ads_count ?? 0,
-    freshness_days: (Math.abs(item.id) % 4) + 1, // data réellement fraîche (<7j) ; valeur dérivée 1-4
+    n_obs: item.sold_count_30d ?? item.volume ?? 0, // ventes réelles 30j (fallback échantillon)
+    freshness_days,
     score: computeOpportunityScore(liquidity_pct, margin_pct, trend),
-    sparkline_30d: generateSparkline(medianRounded, trend, item.id),
+    // sparkline RÉELLE (null backend → [] : le composant Sparkline n'affiche rien).
+    sparkline_30d: item.sparkline_30d ?? [],
     image_url: item.image_url ?? null,
+    // Signaux Phase 2 (passe-plat)
+    data_quality: item.data_quality ?? null,
+    composite_price: item.composite_price ?? null,
+    price_confidence: item.price_confidence ?? null,
+    sold_count_30d: item.sold_count_30d ?? null,
+    sold_count_90d: item.sold_count_90d ?? null,
+    last_observed_at: item.last_observed_at ?? null,
   };
 }
 
