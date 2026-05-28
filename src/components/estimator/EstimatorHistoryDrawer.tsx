@@ -235,9 +235,11 @@ function EntryCard({
   const score = result.score_total;
   const stale = isStale(entry);
 
-  const topPick = result.resale_where.platforms.find((p) => p.is_top_pick);
+  const topPick = result.resale_where?.platforms.find((p) => p.is_top_pick);
   const topPickPlatform =
-    topPick?.platform ?? result.resale_where.platforms[0]?.platform;
+    topPick?.platform ??
+    result.resale_where?.platforms[0]?.platform ??
+    inputs.platform;
   const topPickMargin = topPick?.net_margin_eur ?? 0;
 
   const confidence = result.confidence_pct;
