@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 type Props = { detail: CatalogModelDetail };
 
 export default function CatalogFichePercentiles({ detail }: Props) {
+  if (!detail.percentiles) return null;
   const { p10, p25, p50, p75, p90 } = detail.percentiles;
   const iqr = p75 - p25;
   const spread = p90 - p10;
