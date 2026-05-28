@@ -99,16 +99,22 @@ export default function EstimatorPositioning({
             HISTORIQUE 30 J · MÉDIANE SOLD
           </div>
           <div className="flex-1 flex items-center" style={{ minHeight: 90 }}>
-            <div className="w-full" style={{ aspectRatio: "4 / 1" }}>
-              <Sparkline
-                points={result.price_history_30d}
-                color="#3B82F6"
-                fillHeight
-                fill
-                animate
-                hover
-              />
-            </div>
+            {result.price_history_30d.length >= 2 ? (
+              <div className="w-full" style={{ aspectRatio: "4 / 1" }}>
+                <Sparkline
+                  points={result.price_history_30d}
+                  color="#3B82F6"
+                  fillHeight
+                  fill
+                  animate
+                  hover
+                />
+              </div>
+            ) : (
+              <div className="w-full text-center font-mono text-[10.5px] text-zinc-600">
+                Données sold insuffisantes sur 30 j
+              </div>
+            )}
           </div>
           <div className="mt-4 grid grid-cols-3 gap-3">
             <div>
@@ -156,6 +162,11 @@ export default function EstimatorPositioning({
               </div>
             </div>
           </div>
+          {result.price_history_30d.length >= 2 && (
+            <p className="mt-3 font-mono text-[9px] leading-relaxed text-zinc-600">
+              Médiane sold réelle — la courbe s'arrête au dernier relevé (le sold a un délai naturel).
+            </p>
+          )}
         </div>
       </div>
 
