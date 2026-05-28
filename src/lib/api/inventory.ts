@@ -22,7 +22,6 @@ const PLAT_API_TO_FRONT: Record<string, PlatformKey> = {
   leboncoin: "LBC",
   vinted: "VINTED",
   ebay: "EBAY",
-  facebook: "AUTRE",
   hardware_fr: "AUTRE",
   other: "AUTRE",
 };

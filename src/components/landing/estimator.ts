@@ -1,4 +1,4 @@
-export type Platform = "LBC" | "Vinted" | "eBay" | "FB";
+export type Platform = "LBC" | "Vinted" | "eBay";
 export type ItemState = "Neuf" | "Comme neuf" | "Bon" | "Acceptable" | "Pour pièces";
 
 export const MODELS: string[] = [
@@ -8,8 +8,8 @@ export const MODELS: string[] = [
   "Kit DDR5 32 Go 6000", "SSD 2 To NVMe Gen4",
 ];
 export const STATES: ItemState[] = ["Neuf", "Comme neuf", "Bon", "Acceptable", "Pour pièces"];
-export const PLATFORMS: Platform[] = ["LBC", "Vinted", "eBay", "FB"];
-export const FEES: Record<Platform, number> = { LBC: 12, Vinted: 5, eBay: 18, FB: 15 };
+export const PLATFORMS: Platform[] = ["LBC", "Vinted", "eBay"];
+export const FEES: Record<Platform, number> = { LBC: 12, Vinted: 5, eBay: 18 };
 
 export type EstimatorInputs = { model: string; state: ItemState; askPrice: number; platform: Platform };
 export type EstimatorResult = {
@@ -35,7 +35,7 @@ export function computeVerdict({ model, state, askPrice, platform }: EstimatorIn
   const ratio = askPrice / fair;
   const feesFrac = FEES[platform] / 100;
   const netMargin = Math.round(fair * (1 - feesFrac) - askPrice);
-  const platLiqMap: Record<Platform, number> = { LBC: 0.78, Vinted: 0.61, eBay: 0.74, FB: 0.55 };
+  const platLiqMap: Record<Platform, number> = { LBC: 0.78, Vinted: 0.61, eBay: 0.74 };
   const platLiq = platLiqMap[platform];
   const liq = Math.max(0.3, Math.min(0.95, platLiq + (ratio < 0.9 ? 0.06 : 0) - (ratio > 1.1 ? 0.08 : 0)));
   let verdict: string, color: string, glow: string;
@@ -48,7 +48,7 @@ export function computeVerdict({ model, state, askPrice, platform }: EstimatorIn
   const trend = ratio < 0.95 ? +6 : ratio > 1.05 ? -4 : +2;
   const liqMod = liq > 0.7 ? +3 : liq > 0.55 ? +1 : -2;
   const valueVsNew = state === "Neuf" ? -3 : state === "Comme neuf" ? -1 : state === "Bon" ? +2 : +4;
-  const affinityMap: Record<Platform, number> = { LBC: 88, eBay: 82, Vinted: 64, FB: 58 };
+  const affinityMap: Record<Platform, number> = { LBC: 88, eBay: 82, Vinted: 64 };
   const composite = {
     margin: Math.max(5, Math.min(95, 50 + (netMargin / fair) * 200)),
     liquidity: Math.round(liq * 100),
