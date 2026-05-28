@@ -31,7 +31,7 @@ export default function Hero() {
             <span className="text-zinc-500">En 3 secondes.</span>
           </h1>
           <p className="fade-up mt-5 text-[16px] leading-relaxed text-zinc-400 max-w-md" style={{ animationDelay: "150ms" }}>
-            Extension navigateur et moteur d'estimation pour le hardware PC d'occasion. Lit Leboncoin, Vinted, eBay et Facebook Marketplace en temps réel — vous donne un verdict reseller, un fair price, une marge nette.
+            Extension navigateur et moteur d'estimation pour le hardware PC d'occasion. Lit Leboncoin, Vinted et eBay en temps réel — vous donne un verdict reseller, un fair price, une marge nette.
           </p>
           <div className="fade-up mt-7 flex flex-wrap items-center gap-3" style={{ animationDelay: "300ms" }}>
             <a href="#install" className="btn-shimmer inline-flex items-center gap-2 px-4 py-2.5 rounded-md bg-blue-500 hover:bg-blue-400 text-white font-medium text-[13.5px] shadow-[0_8px_30px_-8px_rgba(59,130,246,0.6)] ease-expo transition-all">

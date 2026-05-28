@@ -87,7 +87,7 @@ export default function LensSection() {
               {([
                 ["Verdict reseller", "FONCER · NÉGOCIER · TENTER AU CULOT · PASSER. Quatre actions, jamais plus."],
                 ["Fair price composite", "Médiane pondérée LBC sold (×1.0) + eBay sold (×0.85), demi-vie 14 jours."],
-                ["Marge nette projetée", "Frais plateforme intégrés : LBC 12 %, FB 15 %, Vinted 5 %, eBay 5 %+13 %."],
+                ["Marge nette projetée", "Frais plateforme intégrés : LBC 12 %, Vinted 5 %, eBay 5 %+13 %."],
               ] as [string, string][]).map(([t, b]) => (
                 <li key={t} className="flex gap-3">
                   <div className="mt-0.5 w-4 h-4 rounded-sm bg-blue-500/15 border border-blue-500/40 flex items-center justify-center shrink-0">
