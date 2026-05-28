@@ -28,7 +28,7 @@ export default function CatalogFicheHistory({ monthly_history }: Props) {
 
   return (
     <section className="flex flex-col gap-3.5">
-      <SectionLabel idx={5} label="HISTORIQUE 6 MOIS" />
+      <SectionLabel idx={5} label={`HISTORIQUE ${monthly_history.length} MOIS`} />
       <div
         className="rounded-xl p-6"
         style={{
@@ -102,7 +102,7 @@ export default function CatalogFicheHistory({ monthly_history }: Props) {
               <th className="px-2 py-2.5 text-left font-normal" style={th}>MOIS</th>
               <th className="px-2 py-2.5 text-right font-normal" style={th}>MÉDIANE</th>
               <th className="px-2 py-2.5 text-right font-normal" style={th}>
-                <GlossaryTooltip term="deltaMoisPrec" position="bottom"><span>Δ M-1</span></GlossaryTooltip>
+                <GlossaryTooltip term="deltaMoisPrec" position="bottom"><span>Δ vs préc.</span></GlossaryTooltip>
               </th>
               <th className="px-2 py-2.5 text-right font-normal" style={th}>N OBS</th>
               <th className="px-2 py-2.5 text-left font-normal" style={th}>ANNOTATION</th>
