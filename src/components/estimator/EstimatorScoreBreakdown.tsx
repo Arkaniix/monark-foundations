@@ -18,7 +18,8 @@ export default function EstimatorScoreBreakdown({
   result,
 }: EstimatorScoreBreakdownProps) {
   const { score_breakdown, data_quality, confidence_pct, inputs } = result;
-  const { base, trend, liquidity, value_vs_new, total } = score_breakdown;
+  const { base, trend, liquidity, value_vs_new, total_adjusted, total } = score_breakdown;
+  const isClamped = base + total_adjusted !== total;
   const scoreColor = getScoreColor(total);
   const confidenceColor = getScoreColor(confidence_pct);
 
@@ -39,15 +40,16 @@ export default function EstimatorScoreBreakdown({
           {/* Colonne gauche : composantes */}
           <div className="flex flex-col gap-4">
             <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500">
-              COMPOSANTES
+              SIGNAUX
             </div>
 
             <div className="flex flex-col gap-2.5">
-              <BreakdownRow label="Score de base" hint="position prix" value={base} termKey="scoreBase" />
               <BreakdownRow label="Tendance" hint="14 j" value={trend} signed termKey="trend30d" />
               <BreakdownRow label="Liquidité" hint="rotation marché" value={liquidity} signed termKey="liquidity" />
               <BreakdownRow label="Décote vs neuf" hint="état" value={value_vs_new} signed termKey="decoteVsNeuf" />
               <div className="h-px bg-white/10 my-1" />
+              <BreakdownRow label="Score de base" hint="position prix" value={base} termKey="scoreBase" />
+              <BreakdownRow label="Ajustement net" hint="pondéré confiance" value={total_adjusted} signed />
               <BreakdownRow label="Score final" value={total} final termKey="score" />
             </div>
 
@@ -69,6 +71,11 @@ export default function EstimatorScoreBreakdown({
                 <span>100</span>
               </div>
             </div>
+
+            <p className="mt-2 text-[11px] text-zinc-500 leading-relaxed">
+              Signaux bruts ; l'ajustement net applique la pondération de confiance.
+              {isClamped && " Score plafonné à 100."}
+            </p>
           </div>
 
           {/* Colonne droite : sources & confiance */}

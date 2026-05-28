@@ -1,6 +1,4 @@
 import {
-  getScoreColor,
-  type ArgumentWeight,
   type EstimatorResult,
   type NegotiationArgument,
   type NegotiationKeywords,
@@ -72,7 +70,6 @@ export default function EstimatorNegotiation({ result }: EstimatorNegotiationPro
 }
 
 function OfferRow({ offer }: { offer: NegotiationOffer }) {
-  const probaColor = getScoreColor(offer.acceptance_probability_pct);
   const marginSign = offer.estimated_net_margin_eur >= 0 ? "+" : "";
   const marginColor = offer.estimated_net_margin_eur >= 0 ? "#10B981" : "#EF4444";
 
@@ -83,9 +80,6 @@ function OfferRow({ offer }: { offer: NegotiationOffer }) {
           <GlossaryTooltip term={OFFER_TIER_TERMS[offer.tier] ?? "offreNegociee"}>
             <span>{offer.label.toUpperCase()}</span>
           </GlossaryTooltip>
-        </div>
-        <div className="font-mono text-[10px] tracking-[0.15em]" style={{ color: probaColor }}>
-          <AnimatedCounter value={offer.acceptance_probability_pct} suffix=" %" /> d'acceptation
         </div>
       </div>
 
@@ -101,41 +95,18 @@ function OfferRow({ offer }: { offer: NegotiationOffer }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
-          <div
-            className="h-full rounded-full transition-[width] duration-500"
-            style={{
-              width: `${offer.acceptance_probability_pct}%`,
-              background: probaColor,
-            }}
-          />
-        </div>
-        <div className="text-[11px] text-zinc-500 whitespace-nowrap">
-          Marge si revente fair :{" "}
-          <span className="tabular-nums font-medium" style={{ color: marginColor }}>
-            <AnimatedCounter value={offer.estimated_net_margin_eur} prefix={marginSign} suffix=" €" />
-          </span>
-        </div>
+      <div className="text-[11px] text-zinc-500 whitespace-nowrap">
+        Marge si revente fair :{" "}
+        <span className="tabular-nums font-medium" style={{ color: marginColor }}>
+          <AnimatedCounter value={offer.estimated_net_margin_eur} prefix={marginSign} suffix=" €" />
+        </span>
       </div>
     </div>
   );
 }
 
-const WEIGHT_LABELS: Record<ArgumentWeight, string> = {
-  fort: "FORT",
-  "modéré": "MODÉRÉ",
-  faible: "FAIBLE",
-};
-
-const WEIGHT_COLORS: Record<ArgumentWeight, string> = {
-  fort: "#10B981",
-  "modéré": "#F59E0B",
-  faible: "#71717a",
-};
-
 function ArgumentRow({ argument }: { argument: NegotiationArgument }) {
-  const color = WEIGHT_COLORS[argument.weight];
+  const color = "#10B981";
   return (
     <div className="flex gap-3 items-start">
       <div
@@ -144,12 +115,6 @@ function ArgumentRow({ argument }: { argument: NegotiationArgument }) {
       />
       <div className="flex-1 flex flex-col gap-1">
         <p className="text-sm text-zinc-200 leading-relaxed">{argument.label}</p>
-        <div
-          className="font-mono text-[9.5px] tracking-[0.2em]"
-          style={{ color }}
-        >
-          {WEIGHT_LABELS[argument.weight]}
-        </div>
       </div>
     </div>
   );
@@ -159,8 +124,11 @@ function KeywordsBlock({ keywords }: { keywords: NegotiationKeywords }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 flex flex-col gap-4">
       <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500">
-        MOTS-CLÉS À SCANNER
+        RÉFLEXES DE NÉGO
       </div>
+      <p className="text-[11px] text-zinc-500 leading-relaxed">
+        Checklist générique — termes à repérer dans n'importe quelle annonce.
+      </p>
 
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-2">

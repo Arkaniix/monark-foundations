@@ -55,6 +55,7 @@ const SUCCESS_RESULT: EstimatorResult = {
     trend: 6,
     liquidity: 3,
     value_vs_new: 2,
+    total_adjusted: 11,
     total: 89,
   },
   landmarks: {

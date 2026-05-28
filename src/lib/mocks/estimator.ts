@@ -413,7 +413,7 @@ export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult
     percentile_position_pct: percentilePosition,
     category_market_stats: categoryMarketStats,
     score_total: totalScore,
-    score_breakdown: { base: baseScore, trend, liquidity: liqMod, value_vs_new: valueVsNew, total: totalScore },
+    score_breakdown: { base: baseScore, trend, liquidity: liqMod, value_vs_new: valueVsNew, total_adjusted: totalScore - baseScore, total: totalScore },
     landmarks: { ceiling_buy_eur: ceilingBuy, optimal_buy_eur: optimalBuy, floor_resale_eur: floorResale },
     data_quality: { observations_count: observations, fresh_within_hours: 48, platform_specific: true },
     negotiation,

@@ -123,7 +123,7 @@ interface ApiEvaluateResponse {
     confidence: { score: number; factors?: string[] };
     base_score?: number;
     percentile_rank?: number;
-    modifiers?: { trend?: number; liquidity?: number; value_vs_new?: number };
+    modifiers?: { trend?: number; liquidity?: number; value_vs_new?: number; total_raw?: number; total_adjusted?: number };
   };
   market?: {
     median_price?: number;
@@ -424,6 +424,7 @@ function mapResponse(inputs: EstimatorInputs, resp: ApiEvaluateResponse): Estima
       trend: modifiers.trend_14d,
       liquidity: modifiers.liquidity_mod,
       value_vs_new: modifiers.value_vs_new,
+      total_adjusted: Math.round(mod.total_adjusted ?? (score_total - baseScore)),
       total: score_total,
     },
     landmarks: {
