@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Calculator } from "lucide-react";
 import { Field } from "@/components/ui";
 import { useAuth } from "@/context/AuthContext";
+import { catalogApi } from "@/lib/api";
+import type { CatalogModel } from "@/components/catalog/datasets";
+import ModelPicker from "@/components/stock/ModelPicker";
 import {
-  HARDWARE_CATALOG,
   ITEM_STATES,
   PLATFORMS,
   PLATFORM_FEES_PCT,
@@ -23,9 +25,7 @@ export default function EstimatorForm({
   disabled = false,
   onSubmit,
 }: EstimatorFormProps) {
-  const [model, setModel] = useState<string>(
-    initial?.model ?? "Ryzen 7 7800X3D",
-  );
+  const [selectedModel, setSelectedModel] = useState<CatalogModel | null>(null);
   const [state, setState] = useState<ItemState>(initial?.state ?? "Bon");
   const [askPrice, setAskPrice] = useState<number>(
     initial?.ask_price_eur ?? 265,
@@ -33,6 +33,26 @@ export default function EstimatorForm({
   const [platform, setPlatform] = useState<Platform>(
     initial?.platform ?? "LBC",
   );
+
+  // Pré-remplissage (re-load depuis l'historique) : retrouve le modèle dans le catalogue.
+  useEffect(() => {
+    if (!initial?.model) return;
+    let cancelled = false;
+    catalogApi
+      .getAllModels()
+      .then((all) => {
+        if (!cancelled) {
+          const m = all.find((x) => x.name === initial.model);
+          if (m) setSelectedModel(m);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [initial?.model]);
+
+  const modelName = selectedModel?.name ?? "";
 
   const { user } = useAuth();
   const creditCost =
@@ -42,12 +62,12 @@ export default function EstimatorForm({
         ? 5
         : 3;
   const hasEnoughCredits = (user?.credits_remaining ?? Infinity) >= creditCost;
-  const canSubmit = askPrice > 0 && !disabled && hasEnoughCredits;
+  const canSubmit = !!modelName && askPrice > 0 && !disabled && hasEnoughCredits;
 
   const handleSubmit = () => {
     if (!canSubmit) return;
     onSubmit({
-      model,
+      model: modelName,
       state,
       ask_price_eur: askPrice,
       platform,
@@ -62,23 +82,7 @@ export default function EstimatorForm({
 
       <div className="space-y-5">
         <Field label="Modèle">
-          <select
-            value={model}
-            onChange={(e) => setModel(e.target.value)}
-            disabled={disabled}
-            className="w-full bg-zinc-950 border border-white/10 rounded-md px-3 py-2.5 text-[13.5px] focus:outline-none focus:border-blue-500/60 ease-expo transition-colors disabled:opacity-50"
-          >
-            {!HARDWARE_CATALOG.some((m) => m.name === model) && model && (
-              <option key={model} value={model} className="bg-zinc-950">
-                {model} (catalogue)
-              </option>
-            )}
-            {HARDWARE_CATALOG.map((m) => (
-              <option key={m.name} value={m.name} className="bg-zinc-950">
-                {m.name} · {m.category}
-              </option>
-            ))}
-          </select>
+          <ModelPicker value={selectedModel} onChange={setSelectedModel} />
         </Field>
 
         <Field label="État">
