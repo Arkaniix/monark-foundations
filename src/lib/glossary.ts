@@ -19,6 +19,10 @@ export const GLOSSARY = {
     title: "Médiane 30 jours",
     body: "Prix central observé sur l'ensemble des ventes sold des 30 derniers jours, toutes plateformes confondues. Moins sensible aux extrêmes qu'une moyenne.",
   },
+  medianActives30d: {
+    title: "Prix médian · annonces actives 30 j",
+    body: "Médiane des prix demandés sur les annonces actives observées sur cette plateforme sur 30 jours. La médiane est plus robuste que la moyenne, qui peut être tirée vers le haut par quelques annonces aux prix très éloignés du marché réel.",
+  },
   trend30d: {
     title: "Tendance 30 jours",
     body: "Variation du prix médian par rapport à il y a 30 jours. Positive = le marché monte, négative = il baisse.",
