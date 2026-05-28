@@ -162,6 +162,11 @@ export default function EstimatorPositioning({
               </div>
             </div>
           </div>
+          {result.price_history_30d.length >= 2 && (
+            <p className="mt-3 font-mono text-[9px] leading-relaxed text-zinc-600">
+              Médiane sold réelle — la courbe s'arrête au dernier relevé (le sold a un délai naturel).
+            </p>
+          )}
         </div>
       </div>
 
