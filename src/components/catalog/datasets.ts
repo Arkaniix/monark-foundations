@@ -211,4 +211,16 @@ export function getMarginColor(pct: number): string {
   return "#EF4444";
 }
 
+/** Fraîcheur lisible depuis l'ISO : "12 min", "3 h", "5 j". null si inconnu. */
+export function formatFreshness(lastObservedAt: string | null | undefined): string | null {
+  if (!lastObservedAt) return null;
+  const ms = Date.now() - Date.parse(lastObservedAt);
+  if (!Number.isFinite(ms) || ms < 0) return null;
+  const min = Math.floor(ms / 60_000);
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `${h} h`;
+  return `${Math.floor(h / 24)} j`;
+}
+
 export const PAGE_SIZE = 24;
