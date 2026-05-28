@@ -138,6 +138,8 @@ export const DEFAULT_FILTERS: CatalogFilters = {
 // CatalogModel
 // ============================================================================
 
+export type DataQuality = "excellent" | "good" | "limited" | "insufficient";
+
 export type CatalogModel = {
   id: string;
   name: string;
@@ -148,13 +150,30 @@ export type CatalogModel = {
   median_eur: number;
   trend_30d_pct: number;
   liquidity_pct: number;
+  /** Marge revente estimée (spread p25→médiane net frais LBC). 0 si pas de données. */
   margin_pct: number;
+  /** Ventes réelles sur 30 j (ex-"N OBS"). 0 si pas de données. */
   n_obs: number;
-  freshness_days: number;
+  /** Jours depuis la dernière observation réelle. null si inconnu. */
+  freshness_days: number | null;
   score: number;
+  /** Mini-courbe ~12 pts. [] si <3 buckets (≈55% des modèles) → rien affiché. */
   sparkline_30d: number[];
   image_url: string | null;
+  // ── Signaux marché Phase 2 (optionnels ; null si pas de CMS) ──────────────
+  /** Qualité de données. null = aucune stat marché. Pilote l'état "insuffisant". */
+  data_quality?: DataQuality | null;
+  composite_price?: number | null;
+  price_confidence?: number | null;
+  sold_count_30d?: number | null;
+  sold_count_90d?: number | null;
+  last_observed_at?: string | null;
 };
+
+/** True si le modèle a des données marché exploitables (≠ absence / insuffisant). */
+export function hasMarketData(model: Pick<CatalogModel, "data_quality">): boolean {
+  return model.data_quality != null && model.data_quality !== "insufficient";
+}
 
 export type CatalogListResponse = {
   models: CatalogModel[];

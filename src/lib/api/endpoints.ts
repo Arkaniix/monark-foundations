@@ -6,12 +6,7 @@ export const ENDPOINTS = {
   LOGOUT: "/v1/auth/logout",
   FORGOT_PASSWORD: "/v1/auth/forgot_password",
   RESET_PASSWORD: "/v1/auth/reset_password",
-  // ⚠️ Route corrigée : l'utilisateur courant est sur /v1/users/me (et NON /v1/auth/me,
-  // qui renvoie 404 en prod). C'était la cause des échecs de login/bootstrap.
-  ME: "/v1/users/me",
-  USER_SETTINGS: "/v1/users/me/settings",
-  DELETE_ME: "/v1/users/me",
-  RESTORE_ME: "/v1/users/me/restore",
+  ME: "/v1/auth/me",
 
   // ── Catalog / Hardware (public, sans JWT) ────────────────────────────────
   MODELS: "/v1/models",
@@ -31,34 +26,6 @@ export const ENDPOINTS = {
   ESTIMATOR_STATS: "/v1/estimator/stats",
   ESTIMATOR_RUN: (id: string | number) => `/v1/estimator/${id}`,
 
-  // ── Inventory (JWT) ──────────────────────────────────────────────────────
-  INVENTORY: "/v1/inventory",
-  INVENTORY_ITEM: (id: string) => `/v1/inventory/${id}`,
-  INVENTORY_LIST: (id: string) => `/v1/inventory/${id}/list`,
-  INVENTORY_UNLIST: (id: string) => `/v1/inventory/${id}/unlist`,
-  INVENTORY_SELL: (id: string) => `/v1/inventory/${id}/sell`,
-  INVENTORY_CANCEL_SALE: (id: string) => `/v1/inventory/${id}/cancel-sale`,
-
-  // ── Transactions (compta — JWT) ──────────────────────────────────────────
-  TRANSACTIONS: "/v1/inventory/transactions",
-  TRANSACTION_ITEM: (id: string) => `/v1/inventory/transactions/${id}`,
-
-  // ── Builds (JWT) ─────────────────────────────────────────────────────────
-  BUILDS: "/v1/builds",
-  BUILD_ITEM: (id: string) => `/v1/builds/${id}`,
-  BUILD_COMPONENTS: (id: string) => `/v1/builds/${id}/components`,
-  BUILD_COMPONENT_ITEM: (id: string, cid: string) => `/v1/builds/${id}/components/${cid}`,
-  BUILD_TEST: (id: string) => `/v1/builds/${id}/test`,
-  BUILD_UNTEST: (id: string) => `/v1/builds/${id}/untest`,
-  BUILD_LIST: (id: string) => `/v1/builds/${id}/list`,
-  BUILD_UNLIST: (id: string) => `/v1/builds/${id}/unlist`,
-  BUILD_SELL: (id: string) => `/v1/builds/${id}/sell`,
-  BUILD_CANCEL_SALE: (id: string) => `/v1/builds/${id}/cancel-sale`,
-  BUILD_FAIL: (id: string) => `/v1/builds/${id}/fail`,
-  BUILD_RESUME: (id: string) => `/v1/builds/${id}/resume`,
-  BUILD_RESELL: (id: string) => `/v1/builds/${id}/resell`,
-  BUILD_DUPLICATE: (id: string) => `/v1/builds/${id}/duplicate`,
-
   // ── Repair (symptoms public ; guide/history/deep sous JWT) ───────────────
   REPAIR_SYMPTOMS: "/v1/repair/symptoms",
   REPAIR_SYMPTOM: (slug: string) => `/v1/repair/symptoms/${slug}`,
@@ -67,8 +34,4 @@ export const ENDPOINTS = {
   REPAIR_HISTORY: "/v1/repair/history",
   REPAIR_HISTORY_DETAIL: (id: number) => `/v1/repair/history/${id}`,
   REPAIR_HISTORY_OUTCOME: (id: number) => `/v1/repair/history/${id}/outcome`,
-
-  // ── Watchlist (JWT) ──────────────────────────────────────────────────────
-  WATCHLIST: "/v1/watchlist",
-  WATCHLIST_ITEM: (id: string) => `/v1/watchlist/${id}`,
 } as const;
