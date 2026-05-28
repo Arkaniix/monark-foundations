@@ -29,7 +29,6 @@ import {
   PLATFORM_FEES_PCT,
   PLATFORMS,
   NEGOTIATION_KEYWORDS,
-  RESALE_TIMINGS,
 } from "../../components/estimator/datasets";
 import type { EstimatorHistoryEntry } from "../estimatorHistory";
 import type {
@@ -109,10 +108,26 @@ const ACCEPT_BY_VERDICT: Record<Verdict, { lowball: number; negotiated: number; 
 };
 
 const PLATFORM_AFFINITY: Record<Platform, number> = { LBC: 85, Vinted: 60, eBay: 75 };
-const PLATFORM_RESALE_FACTOR: Record<Platform, number> = { LBC: 0.94, Vinted: 0.97, eBay: 1.08 };
-const PLATFORM_DELAY_DAYS: Record<Platform, number> = { LBC: 7, Vinted: 10, eBay: 5 };
 
 // ── Forme (partielle) de POST /v1/estimator/evaluate (mode component) ───────
+interface ApiResalePlatform {
+  listing_price?: number;
+  recommended_price?: number;
+  seller_fees_pct?: number;
+  net_margin_eur?: number;
+  margin_eur?: number;
+  est_sell_days?: number;
+  composite_score?: number;
+  is_recommended?: boolean;
+  note?: string | null;
+  tip?: string | null;
+}
+interface ApiScenario {
+  sell_price?: number;
+  margin_eur?: number;
+  est_days?: number;
+  probability_pct?: number;
+}
 interface ApiEvaluateResponse {
   estimation_id: string;
   created_at: string;
@@ -143,6 +158,17 @@ interface ApiEvaluateResponse {
     savings_compromise_eur?: number;
     arguments?: string[];
     tip?: string;
+  };
+  resale?: {
+    best_platform?: string | null;
+    platforms?: Record<string, ApiResalePlatform>;
+    ranked_order?: string[];
+    vinted_excluded?: boolean;
+  };
+  scenarios?: {
+    quick?: ApiScenario;
+    optimal?: ApiScenario;
+    patient?: ApiScenario;
   };
 }
 
