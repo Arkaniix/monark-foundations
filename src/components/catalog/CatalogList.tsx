@@ -1,6 +1,6 @@
 import { Star, ArrowRight, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import type { CatalogModel } from "./datasets";
-import { MANUFACTURER_DOT_COLOR, getLiquidityColor, getTrendColor, hasMarketData } from "./datasets";
+import { MANUFACTURER_DOT_COLOR, getLiquidityColor, getTrendColor, hasMarketData, formatFreshness } from "./datasets";
 import ModelImage from "./ModelImage";
 import CatalogScoreChip from "./CatalogScoreChip";
 import FadeInSection from "../ui/FadeInSection";
@@ -99,7 +99,7 @@ function CatalogRow({ model, isFavorite, onToggleFavorite, onOpenDetails }: RowP
                   className="ml-1 tabular-nums"
                   style={{ color: model.freshness_days > 7 ? "#F59E0B" : "#a1a1aa" }}
                 >
-                  {model.freshness_days} j
+                  {formatFreshness(model.last_observed_at)}
                 </span>
               </span>
             )}
