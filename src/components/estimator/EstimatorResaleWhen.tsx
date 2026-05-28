@@ -14,12 +14,6 @@ const TIMING_TERMS: Record<string, GlossaryKey> = {
   PATIENT: "timingPatient",
 };
 
-const PLATFORM_BRAND_COLORS: Record<Platform, string> = {
-  LBC: "#FF6E14",
-  eBay: "#0064D2",
-  Vinted: "#09B1BA",
-};
-
 const OPTIMAL_COLOR = "#10B981";
 const MARGIN_POSITIVE = "#10B981";
 const MARGIN_NEGATIVE = "#EF4444";
@@ -40,10 +34,8 @@ export default function EstimatorResaleWhen({
   result,
   selectedPlatform,
 }: EstimatorResaleWhenProps) {
-  const brandColor = PLATFORM_BRAND_COLORS[selectedPlatform];
-  const options = result.resale_when.by_platform[selectedPlatform];
-  const platformLabel =
-    selectedPlatform === "eBay" ? "EBAY" : selectedPlatform.toUpperCase();
+  if (!result.resale_when) return null;
+  const options = result.resale_when.by_platform[selectedPlatform] ?? [];
 
   return (
     <section className="flex flex-col gap-5">
@@ -54,25 +46,6 @@ export default function EstimatorResaleWhen({
         <div className="h-px w-10 bg-white/10" />
         <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-500">
           QUAND REVENDRE
-        </div>
-        <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-600">
-          ·
-        </div>
-        <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-500">
-          sur
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span
-            className="w-1.5 h-1.5 rounded-full"
-            style={{ background: brandColor }}
-            aria-hidden="true"
-          />
-          <span
-            className="font-mono text-[10.5px] tracking-[0.2em] font-medium"
-            style={{ color: brandColor }}
-          >
-            {platformLabel}
-          </span>
         </div>
       </div>
 
@@ -96,7 +69,8 @@ export default function EstimatorResaleWhen({
 
       <div className="font-mono text-[10.5px] text-zinc-600 leading-relaxed">
         Marge nette à ce timing = prix attendu × (1 − frais) − prix d'achat de
-        référence ({result.resale_where.cost_basis_eur} €).
+        référence ({result.resale_where?.cost_basis_eur ?? 0} €). Délais et
+        probabilités estimés.
       </div>
     </section>
   );

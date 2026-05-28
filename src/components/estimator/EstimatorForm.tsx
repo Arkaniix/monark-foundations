@@ -35,7 +35,12 @@ export default function EstimatorForm({
   );
 
   const { user } = useAuth();
-  const creditCost = user?.subscription_tier === "free" ? 1 : 3;
+  const creditCost =
+    user?.subscription_tier === "free"
+      ? 1
+      : user?.subscription_tier === "pro"
+        ? 5
+        : 3;
   const hasEnoughCredits = (user?.credits_remaining ?? Infinity) >= creditCost;
   const canSubmit = askPrice > 0 && !disabled && hasEnoughCredits;
 

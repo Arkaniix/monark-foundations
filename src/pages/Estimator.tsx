@@ -112,14 +112,9 @@ export default function Estimator({
   const effectivePlatform: Platform | null = useMemo(() => {
     if (state.status !== "success") return null;
     if (selectedPlatform) return selectedPlatform;
-    const topPick = state.result.resale_where.platforms.find(
-      (p) => p.is_top_pick,
-    );
-    return (
-      topPick?.platform ??
-      state.result.resale_where.platforms[0]?.platform ??
-      null
-    );
+    const platforms = state.result.resale_where?.platforms ?? [];
+    const topPick = platforms.find((p) => p.is_top_pick);
+    return topPick?.platform ?? platforms[0]?.platform ?? null;
   }, [state, selectedPlatform]);
 
   return (
@@ -180,7 +175,7 @@ export default function Estimator({
         </FadeInSection>
       )}
 
-      {state.status === "success" && (
+      {state.status === "success" && state.result.resale_where && (
         <FadeInSection delay={240}>
           <EstimatorResaleWhere
             result={state.result}
@@ -190,12 +185,29 @@ export default function Estimator({
         </FadeInSection>
       )}
 
-      {state.status === "success" && effectivePlatform && (
-        <FadeInSection delay={300}>
-          <EstimatorResaleWhen
-            result={state.result}
-            selectedPlatform={effectivePlatform}
-          />
+      {state.status === "success" &&
+        state.result.resale_when &&
+        effectivePlatform && (
+          <FadeInSection delay={300}>
+            <EstimatorResaleWhen
+              result={state.result}
+              selectedPlatform={effectivePlatform}
+            />
+          </FadeInSection>
+        )}
+
+      {state.status === "success" && !state.result.resale_where && (
+        <FadeInSection delay={240}>
+          <div className="mk-card p-6 flex flex-col gap-2">
+            <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-500">
+              REVENTE & TIMING
+            </div>
+            <p className="text-[13px] text-zinc-400 leading-relaxed">
+              L'analyse détaillée « où » et « quand » revendre (marges nettes par
+              plateforme, scénarios rapide / optimal / patient) est disponible
+              avec le plan Pro.
+            </p>
+          </div>
         </FadeInSection>
       )}
     </div>

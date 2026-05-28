@@ -228,8 +228,8 @@ export type EstimatorResult = {
 
   negotiation: NegotiationPlan;
 
-  resale_where: ResaleWhereRecommendation;
-  resale_when: ResaleWhenRecommendation;
+  resale_where?: ResaleWhereRecommendation;
+  resale_when?: ResaleWhenRecommendation;
 };
 
 export type HardwareModel = {

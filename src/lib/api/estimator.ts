@@ -29,7 +29,6 @@ import {
   PLATFORM_FEES_PCT,
   PLATFORMS,
   NEGOTIATION_KEYWORDS,
-  RESALE_TIMINGS,
 } from "../../components/estimator/datasets";
 import type { EstimatorHistoryEntry } from "../estimatorHistory";
 import type {
@@ -109,10 +108,26 @@ const ACCEPT_BY_VERDICT: Record<Verdict, { lowball: number; negotiated: number; 
 };
 
 const PLATFORM_AFFINITY: Record<Platform, number> = { LBC: 85, Vinted: 60, eBay: 75 };
-const PLATFORM_RESALE_FACTOR: Record<Platform, number> = { LBC: 0.94, Vinted: 0.97, eBay: 1.08 };
-const PLATFORM_DELAY_DAYS: Record<Platform, number> = { LBC: 7, Vinted: 10, eBay: 5 };
 
 // ── Forme (partielle) de POST /v1/estimator/evaluate (mode component) ───────
+interface ApiResalePlatform {
+  listing_price?: number;
+  recommended_price?: number;
+  seller_fees_pct?: number;
+  net_margin_eur?: number;
+  margin_eur?: number;
+  est_sell_days?: number;
+  composite_score?: number;
+  is_recommended?: boolean;
+  note?: string | null;
+  tip?: string | null;
+}
+interface ApiScenario {
+  sell_price?: number;
+  margin_eur?: number;
+  est_days?: number;
+  probability_pct?: number;
+}
 interface ApiEvaluateResponse {
   estimation_id: string;
   created_at: string;
@@ -143,6 +158,17 @@ interface ApiEvaluateResponse {
     savings_compromise_eur?: number;
     arguments?: string[];
     tip?: string;
+  };
+  resale?: {
+    best_platform?: string | null;
+    platforms?: Record<string, ApiResalePlatform>;
+    ranked_order?: string[];
+    vinted_excluded?: boolean;
+  };
+  scenarios?: {
+    quick?: ApiScenario;
+    optimal?: ApiScenario;
+    patient?: ApiScenario;
   };
 }
 
@@ -212,69 +238,77 @@ function parseDataQuality(factors: string[] | undefined): DataQuality {
   };
 }
 
-// ── Dérivation revente ───────────────────────────────────────────────────────
+// ── Mapping revente réelle (level pro) ───────────────────────────────────────
 
-function buildResaleWhere(costBasis: number, fair: number): ResaleWhereRecommendation {
-  const platforms: PlatformResaleStats[] = PLATFORMS.map((p) => {
-    const estimated = Math.round(fair * PLATFORM_RESALE_FACTOR[p]);
-    const fees_pct = PLATFORM_FEES_PCT[p];
-    const net = Math.round(estimated * (1 - fees_pct / 100) - costBasis);
-    const score = Math.max(0, Math.min(100, 50 + (net / Math.max(1, costBasis)) * 100));
-    return {
-      platform: p,
-      estimated_price_eur: estimated,
-      fees_pct,
-      net_margin_eur: net,
-      expected_delay_days: PLATFORM_DELAY_DAYS[p],
-      recommendation_score: Math.round(score),
-      is_top_pick: false,
-      narrative: `Revente estimée ${estimated} € sur ${p}, ${fees_pct}% de frais, marge nette ~${net} €.`,
-    };
-  });
-  let topIdx = 0;
-  platforms.forEach((pl, i) => {
-    if (pl.net_margin_eur > platforms[topIdx].net_margin_eur) topIdx = i;
-  });
-  platforms[topIdx].is_top_pick = true;
+const RESALE_API_TO_FRONT: Record<string, Platform> = {
+  leboncoin: "LBC",
+  ebay: "eBay",
+};
+
+function mapResaleWhere(
+  resp: ApiEvaluateResponse,
+  ask: number,
+): ResaleWhereRecommendation | undefined {
+  const r = resp.resale;
+  if (!r || !r.platforms) return undefined;
+  const order = r.ranked_order ?? Object.keys(r.platforms);
+  const platforms: PlatformResaleStats[] = [];
+  for (const key of order) {
+    const p = r.platforms[key];
+    const front = RESALE_API_TO_FRONT[key];
+    if (!p || !front) continue;
+    platforms.push({
+      platform: front,
+      estimated_price_eur: Math.round(p.listing_price ?? p.recommended_price ?? 0),
+      fees_pct: p.seller_fees_pct ?? 0,
+      net_margin_eur: Math.round(p.net_margin_eur ?? p.margin_eur ?? 0),
+      expected_delay_days: p.est_sell_days ?? 0,
+      recommendation_score: Math.round(p.composite_score ?? 0),
+      is_top_pick: Boolean(p.is_recommended),
+      narrative: p.tip ?? p.note ?? "",
+    });
+  }
+  if (platforms.length === 0) return undefined;
+  if (!platforms.some((p) => p.is_top_pick)) platforms[0].is_top_pick = true;
+  const top = platforms.find((p) => p.is_top_pick) ?? platforms[0];
   return {
-    cost_basis_eur: Math.round(costBasis),
+    cost_basis_eur: Math.round(ask),
     platforms,
-    top_pick_narrative: `${platforms[topIdx].platform} maximise la marge nette (~${platforms[topIdx].net_margin_eur} €) pour ce modèle.`,
+    top_pick_narrative: `${top.platform} maximise la marge nette (~${top.net_margin_eur} €).`,
   };
 }
 
-function buildResaleWhen(costBasis: number, fair: number, verdict: Verdict): ResaleWhenRecommendation {
-  const TIMING_PRICE: Record<string, number> = { RAPIDE: 0.93, OPTIMAL: 1.0, PATIENT: 1.06 };
-  const TIMING_DELAY: Record<string, number> = { RAPIDE: 0.6, OPTIMAL: 1.0, PATIENT: 1.9 };
-  const accept = ACCEPT_BY_VERDICT[verdict];
-  const TIMING_ACCEPT: Record<string, number> = {
-    RAPIDE: accept.cordial,
-    OPTIMAL: accept.negotiated,
-    PATIENT: accept.lowball,
-  };
+const SCENARIO_NARRATIVE: Record<ResaleWhenOption["timing"], string> = {
+  RAPIDE: "Vente rapide, prix bas mais liquidité immédiate.",
+  OPTIMAL: "Meilleur compromis prix / délai.",
+  PATIENT: "Prix maximal au prix d'un délai plus long.",
+};
+
+function mapResaleWhen(
+  resp: ApiEvaluateResponse,
+): ResaleWhenRecommendation | undefined {
+  const s = resp.scenarios;
+  if (!s) return undefined;
+  const mk = (
+    timing: ResaleWhenOption["timing"],
+    sc: ApiScenario | undefined,
+    isTop: boolean,
+  ): ResaleWhenOption => ({
+    timing,
+    expected_price_eur: Math.round(sc?.sell_price ?? 0),
+    expected_delay_days: sc?.est_days ?? 0,
+    acceptance_probability_pct: sc?.probability_pct ?? 0,
+    net_margin_eur: Math.round(sc?.margin_eur ?? 0),
+    is_top_pick: isTop,
+    narrative: SCENARIO_NARRATIVE[timing],
+  });
+  const options: ResaleWhenOption[] = [
+    mk("RAPIDE", s.quick, false),
+    mk("OPTIMAL", s.optimal, true),
+    mk("PATIENT", s.patient, false),
+  ];
   const by_platform = {} as Record<Platform, ResaleWhenOption[]>;
-  for (const p of PLATFORMS) {
-    const base = fair * PLATFORM_RESALE_FACTOR[p];
-    const options: ResaleWhenOption[] = RESALE_TIMINGS.map((t) => {
-      const price = Math.round(base * TIMING_PRICE[t]);
-      const net = Math.round(price * (1 - PLATFORM_FEES_PCT[p] / 100) - costBasis);
-      return {
-        timing: t,
-        expected_price_eur: price,
-        expected_delay_days: Math.round(PLATFORM_DELAY_DAYS[p] * TIMING_DELAY[t]),
-        acceptance_probability_pct: TIMING_ACCEPT[t],
-        net_margin_eur: net,
-        is_top_pick: t === "OPTIMAL",
-        narrative:
-          t === "RAPIDE"
-            ? "Vente rapide, prix bas mais liquidité immédiate."
-            : t === "OPTIMAL"
-              ? "Meilleur compromis prix / délai."
-              : "Prix maximal au prix d'un délai plus long.",
-      };
-    });
-    by_platform[p] = options;
-  }
+  for (const p of PLATFORMS) by_platform[p] = options;
   return { by_platform };
 }
 
@@ -393,7 +427,6 @@ function mapResponse(inputs: EstimatorInputs, resp: ApiEvaluateResponse): Estima
     strategy_narrative: neg.tip ?? "Proposez sous le prix affiché : la négociation est la norme.",
   };
 
-  const costBasis = compromise; // base de revente = prix d'achat négocié réaliste
   const seed = resp.model?.id ?? Math.round(fair);
 
   return {
@@ -435,8 +468,8 @@ function mapResponse(inputs: EstimatorInputs, resp: ApiEvaluateResponse): Estima
     data_quality: parseDataQuality(resp.score.confidence?.factors),
 
     negotiation,
-    resale_where: buildResaleWhere(costBasis, fair),
-    resale_when: buildResaleWhen(costBasis, fair, verdict),
+    resale_where: mapResaleWhere(resp, ask),
+    resale_when: mapResaleWhen(resp),
   };
 }
 
@@ -450,7 +483,6 @@ export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult
     price: inputs.ask_price_eur,
     platform: PLATFORM_TO_API[inputs.platform],
     condition: STATE_TO_CONDITION[inputs.state],
-    level: "complete",
   };
   const resp = await apiFetch<ApiEvaluateResponse>(ENDPOINTS.ESTIMATOR_EVALUATE, {
     method: "POST",
