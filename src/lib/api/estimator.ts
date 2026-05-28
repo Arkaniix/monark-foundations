@@ -208,19 +208,6 @@ function argCategory(s: string): NegotiationArgument["category"] {
   return "position";
 }
 
-function generatePriceHistory(median: number, delta30Pct: number, seed: number): number[] {
-  const n = 30;
-  const drift = (median * delta30Pct) / 100 / n;
-  const noise = median * 0.02;
-  const out: number[] = [];
-  let cur = median * (1 - delta30Pct / 100);
-  for (let i = 0; i < n; i++) {
-    out.push(Math.round(cur + Math.sin(seed * 7.1 + i * 0.9) * noise));
-    cur += drift;
-  }
-  return out;
-}
-
 function parseDataQuality(factors: string[] | undefined): DataQuality {
   const f = factors ?? [];
   let observations_count = 0;
@@ -427,8 +414,6 @@ function mapResponse(inputs: EstimatorInputs, resp: ApiEvaluateResponse): Estima
     strategy_narrative: neg.tip ?? "Proposez sous le prix affiché : la négociation est la norme.",
   };
 
-  const seed = resp.model?.id ?? Math.round(fair);
-
   return {
     inputs,
     model_name: resp.model?.name ?? inputs.model,
@@ -447,7 +432,7 @@ function mapResponse(inputs: EstimatorInputs, resp: ApiEvaluateResponse): Estima
     platform_fees_pct: feesPct,
     evaluated_at: resp.created_at,
 
-    price_history_30d: generatePriceHistory(fair, delta30, seed),
+    price_history_30d: [],
     percentile_position_pct: resp.market?.percentile_rank ?? resp.score.percentile_rank ?? 50,
     category_market_stats,
 
@@ -475,6 +460,28 @@ function mapResponse(inputs: EstimatorInputs, resp: ApiEvaluateResponse): Estima
 
 // ── Entrée publique ──────────────────────────────────────────────────────────
 
+interface ApiHistoryPoint {
+  price_median?: number | null;
+}
+interface ApiHistoryResponse {
+  points?: ApiHistoryPoint[];
+}
+
+// Vraie série médiane SOLD 30 j (dé-lumpée : key=sale, sold pur). Tolérante : [] si indispo.
+async function fetchSoldHistory(modelId: number): Promise<number[]> {
+  try {
+    const data = await apiFetch<ApiHistoryResponse>(
+      `${ENDPOINTS.MARKET_HISTORY(modelId)}?days=30&bucket=day&key=sale&kind=sold`,
+      { method: "GET" },
+    );
+    return (data.points ?? [])
+      .map((p) => (typeof p.price_median === "number" ? Math.round(p.price_median) : null))
+      .filter((v): v is number => v !== null);
+  } catch {
+    return [];
+  }
+}
+
 export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult> {
   const modelId = await resolveModelId(inputs.model);
   const body = {
@@ -484,11 +491,16 @@ export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult
     platform: PLATFORM_TO_API[inputs.platform],
     condition: STATE_TO_CONDITION[inputs.state],
   };
-  const resp = await apiFetch<ApiEvaluateResponse>(ENDPOINTS.ESTIMATOR_EVALUATE, {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
-  return mapResponse(inputs, resp);
+  const [resp, history] = await Promise.all([
+    apiFetch<ApiEvaluateResponse>(ENDPOINTS.ESTIMATOR_EVALUATE, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+    fetchSoldHistory(modelId),
+  ]);
+  const result = mapResponse(inputs, resp);
+  result.price_history_30d = history;
+  return result;
 }
 
 // ── Historique serveur ───────────────────────────────────────────────────────
