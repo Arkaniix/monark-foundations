@@ -228,6 +228,8 @@ export type EstimatorResult = {
 
   negotiation: NegotiationPlan;
 
+  has_market_detail?: boolean;
+
   resale_where?: ResaleWhereRecommendation;
   resale_when?: ResaleWhenRecommendation;
 };
