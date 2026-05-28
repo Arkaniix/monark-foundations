@@ -114,6 +114,11 @@ export default function CatalogFicheHistory({ monthly_history }: Props) {
             ))}
           </tbody>
         </table>
+        {monthly_history.length < 12 && (
+          <div className="mt-4 font-mono text-[10.5px] leading-relaxed text-zinc-600">
+            Collecte démarrée en mars 2026 — l'historique complet (12 mois) apparaîtra progressivement.
+          </div>
+        )}
       </div>
     </section>
   );

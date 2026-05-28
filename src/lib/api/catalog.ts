@@ -69,7 +69,7 @@ interface ApiPlatformEntry {
   platform: string;
   label: string;
   count: number;
-  avg_price: number | null;
+  median_price: number | null;
 }
 interface ApiListingsCount {
   by_platform: ApiPlatformEntry[];
@@ -120,8 +120,8 @@ function mapPlatforms(
   const out: PlatformBreakdown[] = [];
   for (const e of listings?.by_platform ?? []) {
     const platform = toPlatform(e.platform);
-    if (!platform || e.avg_price == null) continue;
-    const price = Math.round(e.avg_price);
+    if (!platform || e.median_price == null) continue;
+    const price = Math.round(e.median_price);
     const fees = PLATFORM_FEES_PCT[platform];
     out.push({
       platform,

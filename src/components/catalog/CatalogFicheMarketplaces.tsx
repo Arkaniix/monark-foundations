@@ -65,7 +65,7 @@ function PlatformCard({
         <AnimatedCounter value={entry.median_eur} suffix=" €" />
       </div>
       <div className="mb-4 flex items-center gap-2 font-mono text-[10px] tracking-[0.12em] text-zinc-600">
-        <GlossaryTooltip term="median30d"><span>PRIX MOYEN</span></GlossaryTooltip>
+        <GlossaryTooltip term="medianActives30d"><span>PRIX MÉDIAN</span></GlossaryTooltip>
         <GlossaryTooltip term="spreadGlobal">
           <span style={{ color: spreadColor }}>
             <AnimatedCounter
