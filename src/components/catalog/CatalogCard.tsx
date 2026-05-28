@@ -10,6 +10,7 @@ import {
   MANUFACTURER_DOT_COLOR,
   getLiquidityColor,
   getTrendColor,
+  hasMarketData,
 } from "./datasets";
 import ModelImage from "./ModelImage";
 import CatalogScoreChip from "./CatalogScoreChip";
@@ -68,9 +69,11 @@ export default function CatalogCard({
         aria-label={`Ouvrir ${model.name}`}
       >
         <ModelImage category={model.category} url={model.image_url} />
-        <div className="absolute left-2 top-2">
-          <CatalogScoreChip score={model.score} size="sm" />
-        </div>
+        {hasMarketData(model) && (
+          <div className="absolute left-2 top-2">
+            <CatalogScoreChip score={model.score} size="sm" />
+          </div>
+        )}
         <div className="absolute right-2 top-2 rounded border border-white/10 bg-black/60 px-1.5 py-0.5 font-mono text-[9.5px] tracking-[0.16em] text-zinc-400">
           {model.category}
         </div>
@@ -94,62 +97,86 @@ export default function CatalogCard({
           <span className="truncate">{model.family}</span>
         </div>
 
-        {/* 4. Prix + sparkline + delta */}
-        <div className="flex items-end justify-between gap-2">
-          <div className="font-mono text-[18px] tabular-nums text-zinc-100">
-            <AnimatedCounter value={model.median_eur} suffix=" €" decimals={0} />
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Sparkline
-              points={model.sparkline_30d}
-              color={trendColor}
-              width={40}
-              height={12}
-            />
-            <span
-              className="font-mono text-[11px] tabular-nums"
-              style={{ color: trendColor }}
+        {hasMarketData(model) ? (
+          <>
+            {/* 4. Prix + sparkline + delta */}
+            <div className="flex items-end justify-between gap-2">
+              <div className="font-mono text-[18px] tabular-nums text-zinc-100">
+                <AnimatedCounter value={model.median_eur} suffix=" €" decimals={0} />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Sparkline
+                  points={model.sparkline_30d}
+                  color={trendColor}
+                  width={40}
+                  height={12}
+                />
+                <span
+                  className="font-mono text-[11px] tabular-nums"
+                  style={{ color: trendColor }}
+                >
+                  <AnimatedCounter
+                    value={model.trend_30d_pct}
+                    prefix={trendSign}
+                    suffix="%"
+                    decimals={1}
+                  />
+                </span>
+                <TrendIcon className="h-3 w-3" style={{ color: trendColor }} strokeWidth={2} />
+              </div>
+            </div>
+
+            {/* 5. Label */}
+            <div
+              className="font-mono text-[9.5px] tracking-[0.18em] text-zinc-600"
+              title="Médiane pondérée des ventes (fenêtre glissante ~90 j, demi-vie 14 j)"
             >
-              <AnimatedCounter
-                value={model.trend_30d_pct}
-                prefix={trendSign}
-                suffix="%"
-                decimals={1}
+              PRIX MÉDIAN
+            </div>
+
+            {/* 6. Bloc liquidité */}
+            <div className="flex flex-col gap-1.5 border-t border-white/[0.06] pt-2.5">
+              <div className="flex items-center justify-between font-mono text-[10px] tracking-[0.14em]">
+                <span className="text-zinc-600">LIQUIDITÉ</span>
+                <span className="tabular-nums" style={{ color: liqColor }}>
+                  <AnimatedCounter value={model.liquidity_pct} suffix="%" decimals={0} />
+                </span>
+              </div>
+              <AnimatedBar
+                percent={Math.max(0, Math.min(100, model.liquidity_pct))}
+                color={liqColor}
+                height={3}
+                rail="rgba(255,255,255,0.05)"
               />
+              <div className="flex items-center justify-between font-mono text-[9.5px] tracking-[0.14em] text-zinc-600">
+                <span title="Ventes observées sur 30 jours">
+                  VENTES 30 J <span className="ml-1 tabular-nums text-zinc-400">{model.n_obs}</span>
+                </span>
+                {model.freshness_days != null && (
+                  <span title="Ancienneté de la dernière observation">
+                    FRAÎCHEUR{" "}
+                    <span
+                      className="ml-1 tabular-nums"
+                      style={{ color: model.freshness_days > 7 ? "#F59E0B" : "#a1a1aa" }}
+                    >
+                      {model.freshness_days} j
+                    </span>
+                  </span>
+                )}
+              </div>
+            </div>
+          </>
+        ) : (
+          /* État données insuffisantes */
+          <div className="flex flex-1 flex-col items-center justify-center gap-1 border-t border-white/[0.06] py-7 text-center">
+            <span className="font-mono text-[10px] tracking-[0.16em] text-zinc-600">
+              DONNÉES INSUFFISANTES
             </span>
-            <TrendIcon className="h-3 w-3" style={{ color: trendColor }} strokeWidth={2} />
-          </div>
-        </div>
-
-        {/* 5. Label */}
-        <div className="font-mono text-[9.5px] tracking-[0.18em] text-zinc-600">
-          MÉDIANE 30 J
-        </div>
-
-        {/* 6. Bloc liquidité */}
-        <div className="flex flex-col gap-1.5 border-t border-white/[0.06] pt-2.5">
-          <div className="flex items-center justify-between font-mono text-[10px] tracking-[0.14em]">
-            <span className="text-zinc-600">LIQUIDITÉ</span>
-            <span className="tabular-nums" style={{ color: liqColor }}>
-              <AnimatedCounter value={model.liquidity_pct} suffix="%" decimals={0} />
-            </span>
-          </div>
-          <AnimatedBar
-            percent={Math.max(0, Math.min(100, model.liquidity_pct))}
-            color={liqColor}
-            height={3}
-            rail="rgba(255,255,255,0.05)"
-          />
-          <div className="flex items-center justify-between font-mono text-[9.5px] tracking-[0.14em] text-zinc-600">
-            <span>
-              N OBS <span className="ml-1 tabular-nums text-zinc-400">{model.n_obs}</span>
-            </span>
-            <span>
-              FRAÎCHEUR{" "}
-              <span className="ml-1 tabular-nums text-zinc-400">{model.freshness_days} j</span>
+            <span className="text-[10.5px] text-zinc-600">
+              Pas assez d&apos;observations marché
             </span>
           </div>
-        </div>
+        )}
 
         {/* 7. Footer actions */}
         <div className="mt-1 flex items-center gap-1.5 border-t border-white/[0.06] pt-2.5">
@@ -215,14 +242,14 @@ function formatPrice(eur: number): string {
 }
 
 type SparklineProps = {
-  points: number[];
+  points: number[] | null;
   color: string;
   width: number;
   height: number;
 };
 
 function Sparkline({ points, color, width, height }: SparklineProps) {
-  if (points.length < 2) return null;
+  if (!points || points.length < 2) return null;
   const min = Math.min(...points);
   const max = Math.max(...points);
   const range = max - min || 1;
