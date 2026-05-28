@@ -31,6 +31,7 @@ export default function EstimatorResaleWhere({
   onSelect,
 }: EstimatorResaleWhereProps) {
   const { resale_where } = result;
+  if (!resale_where) return null;
 
   return (
     <section className="flex flex-col gap-5">
