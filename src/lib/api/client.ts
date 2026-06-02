@@ -89,6 +89,24 @@ async function tryRefresh(): Promise<boolean> {
     return false;
   }
 }
+const MAX_RETRIES_429 = 3;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Délai avant retry sur 429. Priorité au header `Retry-After` (en secondes)
+ * renvoyé par l'API ; à défaut, backoff exponentiel avec jitter.
+ */
+function retryDelayMs(res: Response, attempt: number): number {
+  const header = res.headers.get("Retry-After");
+  if (header) {
+    const secs = Number(header);
+    if (Number.isFinite(secs) && secs >= 0) return secs * 1000;
+  }
+  return 500 * 2 ** attempt + Math.random() * 250; // 500 / 1000 / 2000 ms + jitter
+}
 
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const url = `${BASE_URL}${path}`;
