@@ -121,6 +121,14 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     }
   }
 
+  // Rate-limit (429) : la requête est rejetée AVANT traitement → retry sûr pour
+  // toutes les méthodes. On respecte Retry-After si présent, sinon backoff
+  // exponentiel jitter (~500 ms → 1 s → 2 s), 3 tentatives max.
+  for (let attempt = 0; res.status === 429 && attempt < MAX_RETRIES_429; attempt++) {
+    await sleep(retryDelayMs(res, attempt));
+    res = await doRequest();
+  }
+
   if (!res.ok) {
     let body: { message?: string; detail?: string; code?: string; details?: unknown } = {};
     try {
