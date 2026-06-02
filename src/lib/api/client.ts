@@ -91,6 +91,8 @@ async function tryRefresh(): Promise<boolean> {
 }
 const MAX_RETRIES_429 = 3;
 
+const RETRY_DELAY_CAP_MS = 6000; // borne UX : ne jamais geler l'UI plus de ~6 s par tentative
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -103,7 +105,7 @@ function retryDelayMs(res: Response, attempt: number): number {
   const header = res.headers.get("Retry-After");
   if (header) {
     const secs = Number(header);
-    if (Number.isFinite(secs) && secs >= 0) return secs * 1000;
+    if (Number.isFinite(secs) && secs >= 0) return Math.min(secs * 1000, RETRY_DELAY_CAP_MS);
   }
   return 500 * 2 ** attempt + Math.random() * 250; // 500 / 1000 / 2000 ms + jitter
 }
