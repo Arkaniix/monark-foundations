@@ -140,7 +140,7 @@ function mapApiModel(item: ApiModelListItem): CatalogModel {
 // ---------------------------------------------------------------------------
 
 const TTL_MS = 5 * 60 * 1000;
-const PAGE_LIMIT = 100; // plafond imposé par l'API
+const PAGE_LIMIT = 1000; // plafond API relevé (Phase 2 backend) → catalogue en 1 requête
 
 let cache: { at: number; models: CatalogModel[] } | null = null;
 let inflight: Promise<CatalogModel[]> | null = null;
