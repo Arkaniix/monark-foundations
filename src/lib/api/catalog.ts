@@ -165,7 +165,13 @@ function mapMonthlyHistory(hist: ApiHistoryResponse | null): MonthlyHistoryEntry
   return chrono.reverse(); // la fiche attend l'ordre récent → ancien
 }
 
+const DETAIL_TTL_MS = 3 * 60 * 1000;
+const detailCache = new Map<string, { at: number; detail: CatalogModelDetail }>();
+
 export async function getModelDetail(id: string): Promise<CatalogModelDetail | null> {
+  const cached = detailCache.get(id);
+  if (cached && Date.now() - cached.at < DETAIL_TTL_MS) return cached.detail;
+
   const all = await fetchAllCatalogModels();
   const model = all.find((m) => m.id === id);
   if (!model) return null;
@@ -174,7 +180,7 @@ export async function getModelDetail(id: string): Promise<CatalogModelDetail | n
 
   // Pas de CMS → fiche en mode "données insuffisantes" (aucun appel marché).
   if (!hasMarketData(model)) {
-    return {
+    const detail: CatalogModelDetail = {
       ...model,
       percentiles: null,
       sparkline_90d: [],
@@ -183,6 +189,8 @@ export async function getModelDetail(id: string): Promise<CatalogModelDetail | n
       variants,
       median_days_to_sell: null,
     };
+    detailCache.set(id, { at: Date.now(), detail });
+    return detail;
   }
 
   const [summary, histWeek, histMonth, listings] = await Promise.all([
@@ -198,7 +206,7 @@ export async function getModelDetail(id: string): Promise<CatalogModelDetail | n
     ).catch(() => null),
   ]);
 
-  return {
+  const detail: CatalogModelDetail = {
     ...model,
     percentiles: mapPercentiles(summary),
     sparkline_90d: mapSparkline90d(histWeek),
@@ -207,4 +215,6 @@ export async function getModelDetail(id: string): Promise<CatalogModelDetail | n
     variants,
     median_days_to_sell: summary?.median_days_to_sell ?? null,
   };
+  detailCache.set(id, { at: Date.now(), detail });
+  return detail;
 }
