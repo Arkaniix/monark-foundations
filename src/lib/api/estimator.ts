@@ -344,12 +344,28 @@ async function resolveModelId(name: string): Promise<number> {
 
 function mapResponse(inputs: EstimatorInputs, resp: ApiEvaluateResponse): EstimatorResult {
   const ask = inputs.ask_price_eur;
-  const feesPct = PLATFORM_FEES_PCT[inputs.platform];
-  const feesFrac = feesPct / 100;
-
   const fair = Math.round(resp.market?.fair_value ?? resp.market?.median_price ?? ask);
-  const fairNet = fair * (1 - feesFrac);
-  const net_margin_eur = Math.round(fairNet - ask);
+
+  // F1b — frais / net de la plateforme sélectionnée : on lit l'entrée resale correspondante
+  // pour rester cohérent avec ce qui est affiché en §03a (revente).
+  const selectedResale =
+    resp.resale?.platforms?.[PLATFORM_TO_API[inputs.platform]];
+  const feesPct =
+    typeof selectedResale?.seller_fees_pct === "number"
+      ? selectedResale.seller_fees_pct
+      : PLATFORM_FEES_PCT[inputs.platform];
+  const feesFrac = feesPct / 100;
+  const fairNet =
+    typeof selectedResale?.seller_net_price === "number"
+      ? selectedResale.seller_net_price
+      : fair * (1 - feesFrac);
+  const net_margin_eur = Math.round(
+    typeof selectedResale?.net_margin_eur === "number"
+      ? selectedResale.net_margin_eur
+      : typeof selectedResale?.margin_eur === "number"
+        ? selectedResale.margin_eur
+        : fairNet - ask,
+  );
 
   const verdict = VERDICT_EN_TO_FR[resp.score.verdict] ?? "NÉGOCIER";
   const mod = resp.score.modifiers ?? {};
@@ -476,7 +492,11 @@ function mapResponse(inputs: EstimatorInputs, resp: ApiEvaluateResponse): Estima
     landmarks: {
       ceiling_buy_eur: Math.round(neg.max_price ?? ask),
       optimal_buy_eur: Math.round(neg.compromise_offer ?? ask * 0.91),
-      floor_resale_eur: Math.round(fairNet),
+      floor_resale_eur: Math.round(
+        typeof selectedResale?.seller_net_price === "number"
+          ? selectedResale.seller_net_price
+          : fairNet,
+      ),
     },
     data_quality: parseDataQuality(resp.score.confidence?.factors),
 
