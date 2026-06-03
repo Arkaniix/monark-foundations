@@ -51,6 +51,7 @@ import type {
   ResaleWhenOption,
   ResaleWhenRecommendation,
   DataQuality,
+  Likelihood,
 } from "../../components/estimator/datasets";
 
 // ── Maps front → API ────────────────────────────────────────────────────────
@@ -99,34 +100,44 @@ export const API_CAT_TO_FRONT: Record<string, HardwareCategory> = {
   PSU: "PSU",
 };
 
-// Probabilités d'acceptation par palier, modulées par le verdict (synthétique).
-const ACCEPT_BY_VERDICT: Record<Verdict, { lowball: number; negotiated: number; cordial: number }> = {
-  FONCER: { lowball: 55, negotiated: 75, cordial: 90 },
-  "NÉGOCIER": { lowball: 40, negotiated: 65, cordial: 85 },
-  TENTER: { lowball: 25, negotiated: 45, cordial: 70 },
-  PASSER: { lowball: 15, negotiated: 30, cordial: 55 },
-};
-
 const PLATFORM_AFFINITY: Record<Platform, number> = { LBC: 85, Vinted: 60, eBay: 75 };
+
+function mapLikelihood(s: string | undefined): Likelihood {
+  const v = (s ?? "").toLowerCase();
+  if (v.includes("élev") || v.includes("elev") || v === "high") return "élevée";
+  if (v.includes("faib") || v === "low") return "faible";
+  return "modérée";
+}
 
 // ── Forme (partielle) de POST /v1/estimator/evaluate (mode component) ───────
 interface ApiResalePlatform {
   listing_price?: number;
   recommended_price?: number;
+  seller_net_price?: number;
   seller_fees_pct?: number;
   net_margin_eur?: number;
   margin_eur?: number;
+  net_margin_pct?: number;
   est_sell_days?: number;
   composite_score?: number;
   is_recommended?: boolean;
   note?: string | null;
   tip?: string | null;
+  data_source_tier?: number;
+  data_confidence?: "low" | "medium" | "high";
 }
 interface ApiScenario {
   sell_price?: number;
   margin_eur?: number;
   est_days?: number;
   probability_pct?: number;
+  likelihood?: string;
+}
+interface ApiNegotiationOffer {
+  type?: string;
+  label?: string;
+  price?: number;
+  likelihood?: string;
 }
 interface ApiEvaluateResponse {
   estimation_id: string;
@@ -145,12 +156,17 @@ interface ApiEvaluateResponse {
     fair_value?: number | null;
     percentile_rank?: number;
     distribution?: PercentileDistribution | null;
+    sold_distribution?: PercentileDistribution | null;
+    asking_distribution?: PercentileDistribution | null;
+    positioning_basis?: string;
     new_price?: number | null;
     discount_vs_new_pct?: number | null;
   };
   trends?: { trend_7d_pct?: number; trend_30d_pct?: number; momentum?: string; interpretation?: string };
   liquidity?: { score?: number; sold_30d?: number; active_listings?: number; interpretation?: string };
   negotiation?: {
+    offers?: ApiNegotiationOffer[];
+    seller_motivation?: { level: string; age_days: number; narrative: string };
     aggressive_offer?: number;
     compromise_offer?: number;
     max_price?: number;
@@ -170,6 +186,8 @@ interface ApiEvaluateResponse {
     optimal?: ApiScenario;
     patient?: ApiScenario;
   };
+  warnings?: { code: string; severity: "danger" | "warning"; message: string }[];
+  primary_risk?: unknown;
 }
 
 interface AutocompleteItem {
@@ -253,6 +271,9 @@ function mapResaleWhere(
       recommendation_score: Math.round(p.composite_score ?? 0),
       is_top_pick: Boolean(p.is_recommended),
       narrative: p.tip ?? p.note ?? "",
+      data_confidence: p.data_confidence,
+      seller_net_price:
+        typeof p.seller_net_price === "number" ? p.seller_net_price : undefined,
     });
   }
   if (platforms.length === 0) return undefined;
@@ -284,7 +305,7 @@ function mapResaleWhen(
     timing,
     expected_price_eur: Math.round(sc?.sell_price ?? 0),
     expected_delay_days: sc?.est_days ?? 0,
-    acceptance_probability_pct: sc?.probability_pct ?? 0,
+    likelihood: mapLikelihood(sc?.likelihood),
     net_margin_eur: Math.round(sc?.margin_eur ?? 0),
     is_top_pick: isTop,
     narrative: SCENARIO_NARRATIVE[timing],
@@ -338,13 +359,16 @@ function mapResponse(inputs: EstimatorInputs, resp: ApiEvaluateResponse): Estima
     value_vs_new: mod.value_vs_new ?? 0,
   };
 
-  const distribution: PercentileDistribution = resp.market?.distribution ?? {
-    p10: Math.round(fair * 0.85),
-    p25: Math.round(fair * 0.93),
-    p50: fair,
-    p75: Math.round(fair * 1.08),
-    p90: Math.round(fair * 1.18),
-  };
+  // F1 — base SOLD en priorité (le positionnement doit être sur les ventes, pas l'asking).
+  const distribution: PercentileDistribution =
+    resp.market?.sold_distribution ??
+    resp.market?.distribution ?? {
+      p10: Math.round(fair * 0.85),
+      p25: Math.round(fair * 0.93),
+      p50: fair,
+      p75: Math.round(fair * 1.08),
+      p90: Math.round(fair * 1.18),
+    };
 
   const liqScore = resp.liquidity?.score ?? 0;
   const delta30 = resp.trends?.trend_30d_pct ?? 0;
@@ -377,41 +401,45 @@ function mapResponse(inputs: EstimatorInputs, resp: ApiEvaluateResponse): Estima
   const baseScore = resp.score.base_score ?? resp.score.overall;
   const score_total = resp.score.overall;
 
-  // Négociation : chiffres réels si présents, sinon dérivés.
+  // F1 — Négociation : mappage direct de l'API. Pas de fabrication de probabilités.
   const neg = resp.negotiation ?? {};
-  const aggressive = neg.aggressive_offer ?? Math.round(ask * 0.82);
-  const compromise = neg.compromise_offer ?? Math.round(ask * 0.91);
-  const cordial = Math.min(ask, neg.max_price ?? Math.round(ask * 0.97));
-  const accept = ACCEPT_BY_VERDICT[verdict];
 
-  const mkOffer = (
-    tier: NegotiationOffer["tier"],
-    label: string,
-    amount: number,
-    prob: number,
-  ): NegotiationOffer => ({
-    tier,
-    label,
-    amount_eur: Math.round(amount),
-    pct_of_ask: ask > 0 ? Math.round((amount / ask) * 100) : 0,
-    savings_eur: Math.round(ask - amount),
-    estimated_net_margin_eur: Math.round(fairNet - amount),
-    acceptance_probability_pct: prob,
-  });
+  // Net indicatif = (resale best seller_net_price si dispo) - prix offert. Fallback : fairNet.
+  let bestNetRef: number = fairNet;
+  const resaleR = resp.resale;
+  if (resaleR?.platforms) {
+    const bestKey =
+      (resaleR.best_platform && resaleR.platforms[resaleR.best_platform]) ||
+      Object.values(resaleR.platforms).find((p) => p.is_recommended);
+    const snp =
+      typeof bestKey === "object" && bestKey
+        ? bestKey.seller_net_price
+        : undefined;
+    if (typeof snp === "number") bestNetRef = snp;
+  }
+
+  const apiOffers = Array.isArray(neg.offers) ? neg.offers : [];
+  const offers: NegotiationOffer[] = apiOffers
+    .filter((o) => typeof o.price === "number")
+    .map((o) => ({
+      type: o.type ?? "offer",
+      label: o.label ?? o.type ?? "Offre",
+      price_eur: Math.round(o.price ?? 0),
+      estimated_net_margin_eur: Math.round(bestNetRef - (o.price ?? 0)),
+      likelihood: mapLikelihood(o.likelihood),
+    }));
 
   const negotiation: NegotiationPlan = {
-    offers: [
-      mkOffer("lowball", "Tenter au culot", aggressive, accept.lowball),
-      mkOffer("negotiated", "Négocier", compromise, accept.negotiated),
-      mkOffer("cordial", "Offre cordiale", cordial, accept.cordial),
-    ],
+    offers,
     arguments: (neg.arguments ?? []).map((label) => ({
       category: argCategory(label),
       label,
       weight: "modéré" as const,
     })),
     keywords: NEGOTIATION_KEYWORDS,
-    strategy_narrative: neg.tip ?? "Proposez sous le prix affiché : la négociation est la norme.",
+    strategy_narrative:
+      neg.tip ?? "Proposez sous le prix affiché : la négociation est la norme.",
+    seller_motivation: neg.seller_motivation,
   };
 
   return {
@@ -447,15 +475,19 @@ function mapResponse(inputs: EstimatorInputs, resp: ApiEvaluateResponse): Estima
     },
     landmarks: {
       ceiling_buy_eur: Math.round(neg.max_price ?? ask),
-      optimal_buy_eur: Math.round(compromise),
+      optimal_buy_eur: Math.round(neg.compromise_offer ?? ask * 0.91),
       floor_resale_eur: Math.round(fairNet),
     },
     data_quality: parseDataQuality(resp.score.confidence?.factors),
 
     negotiation,
-    has_market_detail: Boolean(resp.market?.distribution),
+    has_market_detail: Boolean(
+      resp.market?.sold_distribution ?? resp.market?.distribution,
+    ),
     resale_where: mapResaleWhere(resp, ask),
     resale_when: mapResaleWhen(resp),
+    warnings: Array.isArray(resp.warnings) ? resp.warnings : [],
+    positioning_basis: resp.market?.positioning_basis,
   };
 }
 
@@ -485,13 +517,17 @@ async function fetchSoldHistory(modelId: number): Promise<number[]> {
 
 export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult> {
   const modelId = await resolveModelId(inputs.model);
-  const body = {
+  const body: Record<string, unknown> = {
     mode: "component",
+    flow: "buy",
     model_id: modelId,
     price: inputs.ask_price_eur,
     platform: PLATFORM_TO_API[inputs.platform],
     condition: STATE_TO_CONDITION[inputs.state],
   };
+  if (typeof inputs.listing_age_days === "number") {
+    body.listing_age_days = inputs.listing_age_days;
+  }
   const [resp, history] = await Promise.all([
     apiFetch<ApiEvaluateResponse>(ENDPOINTS.ESTIMATOR_EVALUATE, {
       method: "POST",
