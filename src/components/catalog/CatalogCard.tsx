@@ -103,7 +103,7 @@ export default function CatalogCard({
             {/* 4. Prix + sparkline + delta */}
             <div className="flex items-end justify-between gap-2">
               <div className="font-mono text-[18px] tabular-nums text-zinc-100">
-                <AnimatedCounter value={model.median_eur} suffix=" €" decimals={0} />
+                <AnimatedCounter value={model.median_eur} suffix=" €" decimals={0} respectEntrance />
               </div>
               <div className="flex items-center gap-1.5">
                 <Sparkline
@@ -121,6 +121,7 @@ export default function CatalogCard({
                     prefix={trendSign}
                     suffix="%"
                     decimals={1}
+                    respectEntrance
                   />
                 </span>
                 <TrendIcon className="h-3 w-3" style={{ color: trendColor }} strokeWidth={2} />
@@ -140,7 +141,7 @@ export default function CatalogCard({
               <div className="flex items-center justify-between font-mono text-[10px] tracking-[0.14em]">
                 <span className="text-zinc-600">LIQUIDITÉ</span>
                 <span className="tabular-nums" style={{ color: liqColor }}>
-                  <AnimatedCounter value={model.liquidity_pct} suffix="%" decimals={0} />
+                  <AnimatedCounter value={model.liquidity_pct} suffix="%" decimals={0} respectEntrance />
                 </span>
               </div>
               <AnimatedBar
@@ -148,6 +149,7 @@ export default function CatalogCard({
                 color={liqColor}
                 height={3}
                 rail="rgba(255,255,255,0.05)"
+                respectEntrance
               />
               <div className="flex items-center justify-between font-mono text-[9.5px] tracking-[0.14em] text-zinc-600">
                 <span title="Ventes observées sur 30 jours">
