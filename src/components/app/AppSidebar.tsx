@@ -174,10 +174,10 @@ function NavItem({ to, label, Icon, active = false, onClick }: NavItemProps) {
         />
       )}
       {to && !onClick ? (
-        <a href={to} className={className} style={style}>
+        <Link to={to} className={className} style={style}>
           {iconEl}
           <span>{label}</span>
-        </a>
+        </Link>
       ) : (
         <button
           type="button"
