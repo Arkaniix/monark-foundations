@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import useReducedMotion from "@/lib/useReducedMotion";
+import { isEntranceComplete, markEntranceCompleteSoon } from "@/lib/entranceAnimation";
 
 type AnimatedBarProps = {
   percent: number;
@@ -9,6 +10,9 @@ type AnimatedBarProps = {
   delay?: number;
   rail?: string;
   className?: string;
+  // Voir AnimatedCounter : quand true, la barre ne s'anime qu'à la première vague de la session ;
+  // aux montages suivants (navigations) elle affiche directement sa largeur finale.
+  respectEntrance?: boolean;
 };
 
 export default function AnimatedBar({
@@ -19,20 +23,23 @@ export default function AnimatedBar({
   delay = 100,
   rail = "rgba(255,255,255,0.06)",
   className = "",
+  respectEntrance = false,
 }: AnimatedBarProps) {
   const reducedMotion = useReducedMotion();
-  const [width, setWidth] = useState(reducedMotion ? percent : 0);
+  const skipAnimation = reducedMotion || (respectEntrance && isEntranceComplete());
+  const [width, setWidth] = useState(skipAnimation ? percent : 0);
 
   useEffect(() => {
-    if (reducedMotion) {
+    if (reducedMotion || (respectEntrance && isEntranceComplete())) {
       setWidth(percent);
       return;
     }
+    if (respectEntrance) markEntranceCompleteSoon();
     const timeout = setTimeout(() => {
       setWidth(percent);
     }, delay);
     return () => clearTimeout(timeout);
-  }, [percent, delay, reducedMotion]);
+  }, [percent, delay, reducedMotion, respectEntrance]);
 
   return (
     <div
