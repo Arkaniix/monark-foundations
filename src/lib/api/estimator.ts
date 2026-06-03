@@ -52,6 +52,11 @@ import type {
   ResaleWhenRecommendation,
   DataQuality,
   Likelihood,
+  SellResult,
+  SellStrategy,
+  SellPlatform,
+  SellStrategyTier,
+  AnyEstimatorResult,
 } from "../../components/estimator/datasets";
 
 // ── Maps front → API ────────────────────────────────────────────────────────
@@ -188,6 +193,41 @@ interface ApiEvaluateResponse {
   };
   warnings?: { code: string; severity: "danger" | "warning"; message: string }[];
   primary_risk?: unknown;
+  // F2a — Mode VENTE
+  flow?: string;
+  status?: string;
+  strategies?: {
+    rapide?: ApiSellStrategy;
+    optimal?: ApiSellStrategy;
+    patient?: ApiSellStrategy;
+  };
+  platform_reco?: {
+    best_platform?: string | null;
+    ranked_order?: string[];
+    vinted_excluded?: boolean;
+    platforms?: Record<string, ApiSellPlatform>;
+  };
+}
+
+interface ApiSellStrategy {
+  listing_price?: number;
+  net_price?: number;
+  est_days?: number;
+  likelihood?: string;
+  profit_eur?: number;
+  profit_pct?: number;
+}
+
+interface ApiSellPlatform {
+  seller_net_price?: number;
+  seller_fees_pct?: number;
+  net_margin_eur?: number;
+  net_margin_pct?: number;
+  is_recommended?: boolean;
+  est_sell_days?: number;
+  data_confidence?: "low" | "medium" | "high";
+  note?: string | null;
+  tip?: string | null;
 }
 
 interface AutocompleteItem {
@@ -535,8 +575,46 @@ async function fetchSoldHistory(modelId: number): Promise<number[]> {
   }
 }
 
-export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult> {
+export async function evaluate(
+  inputs: EstimatorInputs,
+): Promise<AnyEstimatorResult> {
   const modelId = await resolveModelId(inputs.model);
+  const isSell = inputs.flow === "sell";
+
+  if (isSell) {
+    const body: Record<string, unknown> = {
+      mode: "component",
+      flow: "sell",
+      model_id: modelId,
+      platform: PLATFORM_TO_API[inputs.platform],
+      condition: STATE_TO_CONDITION[inputs.state],
+    };
+    if (typeof inputs.acquisition_cost === "number") {
+      body.acquisition_cost = inputs.acquisition_cost;
+    }
+    let resp: ApiEvaluateResponse;
+    try {
+      resp = await apiFetch<ApiEvaluateResponse>(ENDPOINTS.ESTIMATOR_EVALUATE, {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+    } catch (err) {
+      // Fallback : certains backends exigent encore `price`. Retente avec 0.
+      if (err instanceof ApiException && err.status === 422) {
+        resp = await apiFetch<ApiEvaluateResponse>(
+          ENDPOINTS.ESTIMATOR_EVALUATE,
+          {
+            method: "POST",
+            body: JSON.stringify({ ...body, price: 0 }),
+          },
+        );
+      } else {
+        throw err;
+      }
+    }
+    return mapSellResponse(inputs, resp);
+  }
+
   const body: Record<string, unknown> = {
     mode: "component",
     flow: "buy",
@@ -556,8 +634,96 @@ export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult
     fetchSoldHistory(modelId),
   ]);
   const result = mapResponse(inputs, resp);
+  result.flow = "buy";
   result.price_history_30d = history;
   return result;
+}
+
+// ── F2a — Mapping SELL ───────────────────────────────────────────────────────
+
+const SELL_TIERS: SellStrategyTier[] = ["rapide", "optimal", "patient"];
+
+function mapSellStrategy(
+  tier: SellStrategyTier,
+  s: ApiSellStrategy | undefined,
+): SellStrategy {
+  return {
+    tier,
+    listing_price: Math.round(s?.listing_price ?? 0),
+    net_price: Math.round(s?.net_price ?? 0),
+    est_days: s?.est_days ?? 0,
+    likelihood: mapLikelihood(s?.likelihood),
+    profit_eur:
+      typeof s?.profit_eur === "number" ? Math.round(s.profit_eur) : undefined,
+    profit_pct:
+      typeof s?.profit_pct === "number" ? Math.round(s.profit_pct) : undefined,
+  };
+}
+
+function mapSellResponse(
+  inputs: EstimatorInputs,
+  resp: ApiEvaluateResponse,
+): SellResult {
+  const sold = resp.market?.sold_distribution;
+  const median = Math.round(sold?.p50 ?? resp.market?.median_price ?? 0);
+
+  const delta30 = resp.trends?.trend_30d_pct ?? 0;
+  const trend_status = trendStatus(delta30, resp.trends?.momentum);
+  const trend_narrative =
+    resp.trends?.interpretation ?? "Tendance marché récente.";
+
+  const strategies: SellStrategy[] = SELL_TIERS.map((t) =>
+    mapSellStrategy(t, resp.strategies?.[t]),
+  );
+  const recommended =
+    strategies.find((s) => s.tier === "optimal") ?? strategies[0];
+
+  const reco = resp.platform_reco;
+  const order = reco?.ranked_order ?? Object.keys(reco?.platforms ?? {});
+  const platforms: SellPlatform[] = [];
+  for (const key of order) {
+    const p = reco?.platforms?.[key];
+    const front = RESALE_API_TO_FRONT[key];
+    if (!p || !front) continue;
+    platforms.push({
+      platform: front,
+      seller_net_price: Math.round(p.seller_net_price ?? 0),
+      fees_pct: p.seller_fees_pct ?? 0,
+      net_margin_eur:
+        typeof p.net_margin_eur === "number"
+          ? Math.round(p.net_margin_eur)
+          : undefined,
+      est_sell_days: p.est_sell_days ?? 0,
+      is_recommended: Boolean(p.is_recommended),
+      data_confidence: p.data_confidence,
+      narrative: p.tip ?? p.note ?? "",
+    });
+  }
+  if (platforms.length && !platforms.some((p) => p.is_recommended)) {
+    platforms[0].is_recommended = true;
+  }
+  const bestKey = reco?.best_platform ?? order[0] ?? "";
+  const best_platform =
+    RESALE_API_TO_FRONT[bestKey] ??
+    platforms.find((p) => p.is_recommended)?.platform ??
+    platforms[0]?.platform ??
+    inputs.platform;
+
+  return {
+    flow: "sell",
+    inputs,
+    model_name: resp.model?.name ?? inputs.model,
+    category: API_CAT_TO_FRONT[resp.model?.category ?? ""] ?? "GPU",
+    median_eur: median,
+    trend_status,
+    trend_narrative,
+    acquisition_cost: inputs.acquisition_cost,
+    recommended,
+    strategies,
+    platforms,
+    best_platform,
+    evaluated_at: resp.created_at,
+  };
 }
 
 // ── Historique serveur ───────────────────────────────────────────────────────

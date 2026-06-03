@@ -27,6 +27,7 @@ import {
   type TrendStatus,
   type ValueVsNewStatus,
   type Verdict,
+  type AnyEstimatorResult,
 } from "../../components/estimator/datasets";
 
 const STATE_MULTIPLIERS: Record<ItemState, number> = {
@@ -355,7 +356,9 @@ function buildResaleWhen(
   return { by_platform };
 }
 
-export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult> {
+export async function evaluate(
+  inputs: EstimatorInputs,
+): Promise<AnyEstimatorResult> {
   await mockDelay(380);
 
   const { model, state, ask_price_eur, platform } = inputs;

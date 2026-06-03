@@ -14,6 +14,11 @@ import {
   type Platform,
 } from "./datasets";
 
+const FLOWS: { value: "buy" | "sell"; label: string }[] = [
+  { value: "buy", label: "Achat" },
+  { value: "sell", label: "Vente" },
+];
+
 type EstimatorFormProps = {
   initial?: Partial<EstimatorInputs>;
   disabled?: boolean;
@@ -28,6 +33,7 @@ export default function EstimatorForm({
   feesPctByPlatform,
 }: EstimatorFormProps) {
   const [selectedModel, setSelectedModel] = useState<CatalogModel | null>(null);
+  const [flow, setFlow] = useState<"buy" | "sell">(initial?.flow ?? "buy");
   const [state, setState] = useState<ItemState>(initial?.state ?? "Bon");
   const [askPrice, setAskPrice] = useState<number>(
     initial?.ask_price_eur ?? 265,
@@ -38,6 +44,11 @@ export default function EstimatorForm({
   const [listingAgeDays, setListingAgeDays] = useState<string>(
     typeof initial?.listing_age_days === "number"
       ? String(initial.listing_age_days)
+      : "",
+  );
+  const [acquisitionCost, setAcquisitionCost] = useState<string>(
+    typeof initial?.acquisition_cost === "number"
+      ? String(initial.acquisition_cost)
       : "",
   );
 
@@ -62,12 +73,33 @@ export default function EstimatorForm({
   const modelName = selectedModel?.name ?? "";
 
   const { user } = useAuth();
-  const creditCost = 3;
+  const creditCost = flow === "sell" ? 7 : 3;
   const hasEnoughCredits = (user?.credits_remaining ?? Infinity) >= creditCost;
-  const canSubmit = !!modelName && askPrice > 0 && !disabled && hasEnoughCredits;
+  const canSubmit =
+    !!modelName &&
+    (flow === "sell" || askPrice > 0) &&
+    !disabled &&
+    hasEnoughCredits;
 
   const handleSubmit = () => {
     if (!canSubmit) return;
+    if (flow === "sell") {
+      const parsedAcq =
+        acquisitionCost.trim() === ""
+          ? undefined
+          : Number.parseFloat(acquisitionCost);
+      onSubmit({
+        model: modelName,
+        state,
+        ask_price_eur: 0,
+        platform,
+        flow: "sell",
+        ...(typeof parsedAcq === "number" && Number.isFinite(parsedAcq) && parsedAcq >= 0
+          ? { acquisition_cost: parsedAcq }
+          : {}),
+      });
+      return;
+    }
     const parsedAge = listingAgeDays.trim() === ""
       ? undefined
       : Number.parseInt(listingAgeDays, 10);
@@ -76,6 +108,7 @@ export default function EstimatorForm({
       state,
       ask_price_eur: askPrice,
       platform,
+      flow: "buy",
       ...(typeof parsedAge === "number" && Number.isFinite(parsedAge) && parsedAge >= 0
         ? { listing_age_days: parsedAge }
         : {}),
@@ -89,6 +122,27 @@ export default function EstimatorForm({
       </div>
 
       <div className="space-y-5">
+        <Field label="Mode">
+          <div className="grid grid-cols-2 gap-1.5">
+            {FLOWS.map((f) => (
+              <button
+                key={f.value}
+                type="button"
+                disabled={disabled}
+                onClick={() => setFlow(f.value)}
+                className={
+                  "py-2 rounded text-[11px] border ease-expo transition-all disabled:opacity-50 " +
+                  (flow === f.value
+                    ? "border-white/30 bg-white/10 text-zinc-100"
+                    : "border-white/10 text-zinc-500 hover:text-zinc-200 hover:border-white/15")
+                }
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </Field>
+
         <Field label="Modèle">
           <ModelPicker value={selectedModel} onChange={setSelectedModel} />
         </Field>
@@ -114,6 +168,7 @@ export default function EstimatorForm({
           </div>
         </Field>
 
+        {flow === "buy" && (
         <Field label="Prix demandé (€)">
           <input
             type="number"
@@ -123,7 +178,9 @@ export default function EstimatorForm({
             className="font-mono w-full bg-zinc-950 border border-white/10 rounded-md px-3 py-2.5 text-[14px] focus:outline-none focus:border-blue-500/60 ease-expo transition-colors disabled:opacity-50"
           />
         </Field>
+        )}
 
+        {flow === "buy" && (
         <Field label="Âge de l'annonce (jours)">
           <input
             type="number"
@@ -138,6 +195,24 @@ export default function EstimatorForm({
             affine la marge de négociation
           </div>
         </Field>
+        )}
+
+        {flow === "sell" && (
+        <Field label="Prix d'achat (€)">
+          <input
+            type="number"
+            min={0}
+            value={acquisitionCost}
+            disabled={disabled}
+            placeholder="optionnel"
+            onChange={(e) => setAcquisitionCost(e.target.value)}
+            className="font-mono w-full bg-zinc-950 border border-white/10 rounded-md px-3 py-2.5 text-[14px] focus:outline-none focus:border-blue-500/60 ease-expo transition-colors disabled:opacity-50"
+          />
+          <div className="font-mono text-[10px] text-zinc-600 mt-1.5">
+            pour calculer ton profit
+          </div>
+        </Field>
+        )}
 
         <Field label="Plateforme">
         <div className="grid grid-cols-3 gap-1.5">
