@@ -148,7 +148,7 @@ interface ApiEvaluateResponse {
   estimation_id: string;
   created_at: string;
   model?: { id: number; name: string; category: string; manufacturer?: string; image_url?: string };
-  score?: {
+  score: {
     overall: number;
     verdict: string;
     confidence: { score: number; factors?: string[] };
