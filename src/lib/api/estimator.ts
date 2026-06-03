@@ -148,7 +148,7 @@ interface ApiEvaluateResponse {
   estimation_id: string;
   created_at: string;
   model?: { id: number; name: string; category: string; manufacturer?: string; image_url?: string };
-  score: {
+  score?: {
     overall: number;
     verdict: string;
     confidence: { score: number; factors?: string[] };
@@ -193,6 +193,41 @@ interface ApiEvaluateResponse {
   };
   warnings?: { code: string; severity: "danger" | "warning"; message: string }[];
   primary_risk?: unknown;
+  // F2a — Mode VENTE
+  flow?: string;
+  status?: string;
+  strategies?: {
+    rapide?: ApiSellStrategy;
+    optimal?: ApiSellStrategy;
+    patient?: ApiSellStrategy;
+  };
+  platform_reco?: {
+    best_platform?: string | null;
+    ranked_order?: string[];
+    vinted_excluded?: boolean;
+    platforms?: Record<string, ApiSellPlatform>;
+  };
+}
+
+interface ApiSellStrategy {
+  listing_price?: number;
+  net_price?: number;
+  est_days?: number;
+  likelihood?: string;
+  profit_eur?: number;
+  profit_pct?: number;
+}
+
+interface ApiSellPlatform {
+  seller_net_price?: number;
+  seller_fees_pct?: number;
+  net_margin_eur?: number;
+  net_margin_pct?: number;
+  is_recommended?: boolean;
+  est_sell_days?: number;
+  data_confidence?: "low" | "medium" | "high";
+  note?: string | null;
+  tip?: string | null;
 }
 
 interface AutocompleteItem {
