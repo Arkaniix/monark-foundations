@@ -18,12 +18,14 @@ type EstimatorFormProps = {
   initial?: Partial<EstimatorInputs>;
   disabled?: boolean;
   onSubmit: (inputs: EstimatorInputs) => void;
+  feesPctByPlatform?: Partial<Record<Platform, number>>;
 };
 
 export default function EstimatorForm({
   initial,
   disabled = false,
   onSubmit,
+  feesPctByPlatform,
 }: EstimatorFormProps) {
   const [selectedModel, setSelectedModel] = useState<CatalogModel | null>(null);
   const [state, setState] = useState<ItemState>(initial?.state ?? "Bon");
@@ -32,6 +34,11 @@ export default function EstimatorForm({
   );
   const [platform, setPlatform] = useState<Platform>(
     initial?.platform ?? "LBC",
+  );
+  const [listingAgeDays, setListingAgeDays] = useState<string>(
+    typeof initial?.listing_age_days === "number"
+      ? String(initial.listing_age_days)
+      : "",
   );
 
   // Pré-remplissage (re-load depuis l'historique) : retrouve le modèle dans le catalogue.
@@ -55,22 +62,23 @@ export default function EstimatorForm({
   const modelName = selectedModel?.name ?? "";
 
   const { user } = useAuth();
-  const creditCost =
-    user?.subscription_tier === "free"
-      ? 1
-      : user?.subscription_tier === "pro"
-        ? 5
-        : 3;
+  const creditCost = 3;
   const hasEnoughCredits = (user?.credits_remaining ?? Infinity) >= creditCost;
   const canSubmit = !!modelName && askPrice > 0 && !disabled && hasEnoughCredits;
 
   const handleSubmit = () => {
     if (!canSubmit) return;
+    const parsedAge = listingAgeDays.trim() === ""
+      ? undefined
+      : Number.parseInt(listingAgeDays, 10);
     onSubmit({
       model: modelName,
       state,
       ask_price_eur: askPrice,
       platform,
+      ...(typeof parsedAge === "number" && Number.isFinite(parsedAge) && parsedAge >= 0
+        ? { listing_age_days: parsedAge }
+        : {}),
     });
   };
 
@@ -116,6 +124,21 @@ export default function EstimatorForm({
           />
         </Field>
 
+        <Field label="Âge de l'annonce (jours)">
+          <input
+            type="number"
+            min={0}
+            value={listingAgeDays}
+            disabled={disabled}
+            placeholder="optionnel"
+            onChange={(e) => setListingAgeDays(e.target.value)}
+            className="font-mono w-full bg-zinc-950 border border-white/10 rounded-md px-3 py-2.5 text-[14px] focus:outline-none focus:border-blue-500/60 ease-expo transition-colors disabled:opacity-50"
+          />
+          <div className="font-mono text-[10px] text-zinc-600 mt-1.5">
+            affine la marge de négociation
+          </div>
+        </Field>
+
         <Field label="Plateforme">
         <div className="grid grid-cols-3 gap-1.5">
             {PLATFORMS.map((p) => (
@@ -145,12 +168,13 @@ export default function EstimatorForm({
         >
           <Calculator className="w-4 h-4" />
           {hasEnoughCredits
-            ? `Évaluer · ${creditCost} crédit${creditCost > 1 ? "s" : ""}`
+            ? `Évaluer · ${creditCost} crédits`
             : "Crédits insuffisants"}
         </button>
 
         <div className="font-mono text-[10px] text-zinc-600 text-center">
-          Frais plateforme appliqués : {PLATFORM_FEES_PCT[platform]} %
+          Frais plateforme appliqués :{" "}
+          {feesPctByPlatform?.[platform] ?? PLATFORM_FEES_PCT[platform]} %
         </div>
       </div>
     </div>

@@ -3,15 +3,15 @@ import {
   type NegotiationArgument,
   type NegotiationKeywords,
   type NegotiationOffer,
+  type Likelihood,
 } from "./datasets";
 import GlossaryTooltip from "@/components/ui/GlossaryTooltip";
 import AnimatedCounter from "@/components/ui/AnimatedCounter";
-import type { GlossaryKey } from "@/lib/glossary";
 
-const OFFER_TIER_TERMS: Record<string, GlossaryKey> = {
-  lowball: "offreLowball",
-  negotiated: "offreNegociee",
-  cordial: "offreCordiale",
+const LIKELIHOOD_COLOR: Record<Likelihood, string> = {
+  "élevée": "#10B981",
+  "modérée": "#F59E0B",
+  "faible": "#71717A",
 };
 
 type EstimatorNegotiationProps = {
@@ -38,8 +38,13 @@ export default function EstimatorNegotiation({ result }: EstimatorNegotiationPro
           <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500">OFFRES TARIFÉES</div>
 
           <div className="flex flex-col gap-3">
-            {negotiation.offers.map((offer) => (
-              <OfferRow key={offer.tier} offer={offer} />
+            {negotiation.offers.length === 0 && (
+              <div className="text-[12.5px] text-zinc-500">
+                Aucune offre suggérée pour ce cas.
+              </div>
+            )}
+            {negotiation.offers.map((offer, i) => (
+              <OfferRow key={`${offer.type}-${i}`} offer={offer} />
             ))}
           </div>
 
@@ -49,6 +54,23 @@ export default function EstimatorNegotiation({ result }: EstimatorNegotiationPro
               {negotiation.strategy_narrative}
             </p>
           </div>
+
+          {negotiation.seller_motivation && (
+            <div className="mt-2 pt-4 border-t border-white/5 flex flex-col gap-2">
+              <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500">
+                MOTIVATION VENDEUR
+              </div>
+              <p className="text-sm text-zinc-300 leading-relaxed">
+                {negotiation.seller_motivation.narrative}
+              </p>
+              <div className="font-mono text-[10.5px] text-zinc-500">
+                En ligne depuis {negotiation.seller_motivation.age_days} j
+                {negotiation.seller_motivation.level
+                  ? ` · ${negotiation.seller_motivation.level}`
+                  : ""}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Colonne droite : arguments + mots-clés */}
@@ -72,31 +94,35 @@ export default function EstimatorNegotiation({ result }: EstimatorNegotiationPro
 function OfferRow({ offer }: { offer: NegotiationOffer }) {
   const marginSign = offer.estimated_net_margin_eur >= 0 ? "+" : "";
   const marginColor = offer.estimated_net_margin_eur >= 0 ? "#10B981" : "#EF4444";
+  const lkColor = LIKELIHOOD_COLOR[offer.likelihood];
 
   return (
     <div className="rounded-xl border border-white/5 bg-white/[0.015] p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
         <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-400">
-          <GlossaryTooltip term={OFFER_TIER_TERMS[offer.tier] ?? "offreNegociee"}>
-            <span>{offer.label.toUpperCase()}</span>
-          </GlossaryTooltip>
+          <span>{offer.label.toUpperCase()}</span>
         </div>
+        <span
+          className="px-2 py-0.5 rounded-md font-mono text-[10px] tracking-wider border"
+          style={{
+            color: lkColor,
+            borderColor: `${lkColor}55`,
+            background: `${lkColor}12`,
+          }}
+          aria-label={`Probabilité d'acceptation : ${offer.likelihood}`}
+        >
+          {offer.likelihood.toUpperCase()}
+        </span>
       </div>
 
       <div className="flex items-baseline gap-3 flex-wrap">
         <div className="text-2xl font-semibold text-zinc-100 tabular-nums">
-          <AnimatedCounter value={offer.amount_eur} suffix=" €" />
-        </div>
-        <div className="text-xs text-zinc-500 tabular-nums">
-          <AnimatedCounter value={offer.pct_of_ask} suffix=" % du demandé" />
-        </div>
-        <div className="text-xs text-zinc-400 tabular-nums">
-          Économise <AnimatedCounter value={offer.savings_eur} suffix=" €" />
+          <AnimatedCounter value={offer.price_eur} suffix=" €" />
         </div>
       </div>
 
       <div className="text-[11px] text-zinc-500 whitespace-nowrap">
-        Marge si revente fair :{" "}
+        Marge nette indicative à la revente :{" "}
         <span className="tabular-nums font-medium" style={{ color: marginColor }}>
           <AnimatedCounter value={offer.estimated_net_margin_eur} prefix={marginSign} suffix=" €" />
         </span>

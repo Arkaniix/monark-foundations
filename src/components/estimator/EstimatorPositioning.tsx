@@ -4,6 +4,12 @@ import GlossaryTooltip from "@/components/ui/GlossaryTooltip";
 import AnimatedCounter from "@/components/ui/AnimatedCounter";
 import { VERDICT_COLORS, type EstimatorResult } from "./datasets";
 
+const POSITIONING_BASIS_LABEL: Record<string, string> = {
+  sold: "sur les ventes récentes (90 j)",
+  sold_widened: "sur ventes élargies (180 j)",
+  mixed_fallback: "estimation sur échantillon élargi",
+};
+
 type EstimatorPositioningProps = {
   result: EstimatorResult;
 };
@@ -50,6 +56,14 @@ export default function EstimatorPositioning({
           POSITIONNEMENT MARCHÉ
         </div>
       </div>
+
+      {result.positioning_basis &&
+        POSITIONING_BASIS_LABEL[result.positioning_basis] && (
+          <div className="font-mono text-[10px] tracking-wider text-zinc-600 -mt-2">
+            Positionnement basé{" "}
+            {POSITIONING_BASIS_LABEL[result.positioning_basis]}.
+          </div>
+        )}
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <div className="mk-card-flat-soft lg:col-span-3 p-5">

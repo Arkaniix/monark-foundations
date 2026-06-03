@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import type {
   EstimatorResult,
+  Likelihood,
   Platform,
   ResaleWhenOption,
 } from "./datasets";
@@ -20,6 +21,12 @@ const MARGIN_NEGATIVE = "#EF4444";
 const DELAY_FAST = "#10B981";
 const DELAY_MEDIUM = "#F59E0B";
 const DELAY_SLOW = "#EF4444";
+
+const LIKELIHOOD_COLOR: Record<Likelihood, string> = {
+  "élevée": "#10B981",
+  "modérée": "#F59E0B",
+  "faible": "#71717A",
+};
 
 type EstimatorResaleWhenProps = {
   result: EstimatorResult;
@@ -58,7 +65,7 @@ export default function EstimatorResaleWhen({
           <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">
             <GlossaryTooltip term="margeNette" position="bottom"><span>MARGE NETTE</span></GlossaryTooltip>
           </div>
-          <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">ACCEPT.</div>
+          <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">PROBA.</div>
           <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">STRATÉGIE</div>
         </div>
 
@@ -93,12 +100,7 @@ function TimingRow({
       : option.expected_delay_days <= 21
         ? DELAY_MEDIUM
         : DELAY_SLOW;
-  const accColor =
-    option.acceptance_probability_pct >= 75
-      ? "#10B981"
-      : option.acceptance_probability_pct >= 50
-        ? "#F59E0B"
-        : "#EF4444";
+  const lkColor = LIKELIHOOD_COLOR[option.likelihood];
 
   const baseBg = isOptimal ? "rgba(255,255,255,0.018)" : "transparent";
   const hoverBg = isOptimal
@@ -152,11 +154,17 @@ function TimingRow({
             decimals={0}
           />
         </div>
-        <div
-          className="font-mono text-[14px] font-medium tabular-nums"
-          style={{ color: accColor }}
-        >
-          <AnimatedCounter value={option.acceptance_probability_pct} suffix=" %" decimals={0} />
+        <div>
+          <span
+            className="px-1.5 py-0.5 rounded font-mono text-[10.5px] tracking-wider border"
+            style={{
+              color: lkColor,
+              borderColor: `${lkColor}55`,
+              background: `${lkColor}12`,
+            }}
+          >
+            {option.likelihood.toUpperCase()}
+          </span>
         </div>
         <div className="text-[12.5px] text-zinc-400 leading-relaxed">
           {option.narrative}
@@ -225,12 +233,18 @@ function TimingRow({
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">ACCEPT.</div>
-            <div
-              className="font-mono text-[14px] font-medium tabular-nums"
-              style={{ color: accColor }}
-            >
-              <AnimatedCounter value={option.acceptance_probability_pct} suffix=" %" decimals={0} />
+            <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">PROBA.</div>
+            <div>
+              <span
+                className="px-1.5 py-0.5 rounded font-mono text-[10.5px] tracking-wider border"
+                style={{
+                  color: lkColor,
+                  borderColor: `${lkColor}55`,
+                  background: `${lkColor}12`,
+                }}
+              >
+                {option.likelihood.toUpperCase()}
+              </span>
             </div>
           </div>
         </div>

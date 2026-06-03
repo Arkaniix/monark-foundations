@@ -58,9 +58,9 @@ export default function EstimatorResaleWhere({
       </div>
 
       <div className="font-mono text-[10.5px] text-zinc-600 leading-relaxed">
-        Marge nette = prix de revente × (1 − frais) − prix d'achat de référence
-        ({resale_where.cost_basis_eur} €). Délais estimés à partir de la
-        liquidité catégorie sur 30 j.
+        Marge nette estimée par le marché, frais plateforme déduits — sur la
+        base d'un prix d'achat de référence ({resale_where.cost_basis_eur} €).
+        Délais estimés à partir de la liquidité catégorie sur 30 j.
       </div>
     </section>
   );
@@ -114,6 +114,15 @@ function PlatformCard({
             {platform.platform.toUpperCase()}
           </span>
         </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+        {platform.data_confidence === "low" && (
+          <span
+            className="font-mono text-[9.5px] tracking-wider text-zinc-500 border border-white/10 rounded px-1.5 py-0.5"
+            title="Marge dérivée d'un proxy, fiabilité réduite"
+          >
+            DONNÉE ESTIMÉE
+          </span>
+        )}
         {isTopPick && (
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <span
@@ -131,6 +140,7 @@ function PlatformCard({
             </GlossaryTooltip>
           </div>
         )}
+        </div>
       </div>
 
       <div className="font-mono text-[10px] text-zinc-600 -mt-2">

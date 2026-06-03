@@ -71,9 +71,9 @@ const SUCCESS_RESULT: EstimatorResult = {
 
   negotiation: {
     offers: [
-      { tier: "lowball", label: "Offre agressive", amount_eur: 212, pct_of_ask: 80, savings_eur: 53, estimated_net_margin_eur: 63, acceptance_probability_pct: 30 },
-      { tier: "negotiated", label: "Contre-offre", amount_eur: 233, pct_of_ask: 88, savings_eur: 32, estimated_net_margin_eur: 42, acceptance_probability_pct: 60 },
-      { tier: "cordial", label: "Offre cordiale", amount_eur: 252, pct_of_ask: 95, savings_eur: 13, estimated_net_margin_eur: 23, acceptance_probability_pct: 82 },
+      { type: "lowball", label: "Offre agressive", price_eur: 212, estimated_net_margin_eur: 63, likelihood: "faible" },
+      { type: "negotiated", label: "Contre-offre", price_eur: 233, estimated_net_margin_eur: 42, likelihood: "modérée" },
+      { type: "cordial", label: "Offre cordiale", price_eur: 252, estimated_net_margin_eur: 23, likelihood: "élevée" },
     ],
     arguments: [
       { category: "concurrence", label: "412 ventes / mois sur CPU — vendeur sous pression concurrence, argument volume solide.", weight: "fort" },
@@ -98,19 +98,19 @@ const SUCCESS_RESULT: EstimatorResult = {
   resale_when: {
     by_platform: {
       LBC: [
-        { timing: "RAPIDE", expected_price_eur: 266, expected_delay_days: 3, acceptance_probability_pct: 92, net_margin_eur: -31, is_top_pick: false, narrative: "Vente quasi-immédiate sur LBC. Prix accessible, on rogne sur la marge pour libérer le cash rapidement." },
-        { timing: "OPTIMAL", expected_price_eur: 313, expected_delay_days: 9, acceptance_probability_pct: 82, net_margin_eur: 10, is_top_pick: true, narrative: "Meilleur compromis marge × délai sur LBC. Le sweet spot par défaut." },
-        { timing: "PATIENT", expected_price_eur: 354, expected_delay_days: 25, acceptance_probability_pct: 58, net_margin_eur: 46, is_top_pick: false, narrative: "Maximiser le prix au prix d'un délai long sur LBC. Pour qui peut attendre." },
+        { timing: "RAPIDE", expected_price_eur: 266, expected_delay_days: 3, likelihood: "élevée", net_margin_eur: -31, is_top_pick: false, narrative: "Vente quasi-immédiate sur LBC. Prix accessible, on rogne sur la marge pour libérer le cash rapidement." },
+        { timing: "OPTIMAL", expected_price_eur: 313, expected_delay_days: 9, likelihood: "élevée", net_margin_eur: 10, is_top_pick: true, narrative: "Meilleur compromis marge × délai sur LBC. Le sweet spot par défaut." },
+        { timing: "PATIENT", expected_price_eur: 354, expected_delay_days: 25, likelihood: "modérée", net_margin_eur: 46, is_top_pick: false, narrative: "Maximiser le prix au prix d'un délai long sur LBC. Pour qui peut attendre." },
       ],
       eBay: [
-        { timing: "RAPIDE", expected_price_eur: 280, expected_delay_days: 5, acceptance_probability_pct: 92, net_margin_eur: -35, is_top_pick: false, narrative: "Vente quasi-immédiate sur eBay. Prix accessible, on rogne sur la marge pour libérer le cash rapidement." },
-        { timing: "OPTIMAL", expected_price_eur: 329, expected_delay_days: 15, acceptance_probability_pct: 82, net_margin_eur: 5, is_top_pick: true, narrative: "Meilleur compromis marge × délai sur eBay. Le sweet spot par défaut." },
-        { timing: "PATIENT", expected_price_eur: 372, expected_delay_days: 42, acceptance_probability_pct: 58, net_margin_eur: 40, is_top_pick: false, narrative: "Maximiser le prix au prix d'un délai long sur eBay. Pour qui peut attendre." },
+        { timing: "RAPIDE", expected_price_eur: 280, expected_delay_days: 5, likelihood: "élevée", net_margin_eur: -35, is_top_pick: false, narrative: "Vente quasi-immédiate sur eBay. Prix accessible, on rogne sur la marge pour libérer le cash rapidement." },
+        { timing: "OPTIMAL", expected_price_eur: 329, expected_delay_days: 15, likelihood: "élevée", net_margin_eur: 5, is_top_pick: true, narrative: "Meilleur compromis marge × délai sur eBay. Le sweet spot par défaut." },
+        { timing: "PATIENT", expected_price_eur: 372, expected_delay_days: 42, likelihood: "modérée", net_margin_eur: 40, is_top_pick: false, narrative: "Maximiser le prix au prix d'un délai long sur eBay. Pour qui peut attendre." },
       ],
       Vinted: [
-        { timing: "RAPIDE", expected_price_eur: 245, expected_delay_days: 7, acceptance_probability_pct: 92, net_margin_eur: -32, is_top_pick: false, narrative: "Vente quasi-immédiate sur Vinted. Prix accessible, on rogne sur la marge pour libérer le cash rapidement." },
-        { timing: "OPTIMAL", expected_price_eur: 288, expected_delay_days: 22, acceptance_probability_pct: 82, net_margin_eur: 9, is_top_pick: true, narrative: "Meilleur compromis marge × délai sur Vinted. Le sweet spot par défaut." },
-        { timing: "PATIENT", expected_price_eur: 326, expected_delay_days: 62, acceptance_probability_pct: 58, net_margin_eur: 45, is_top_pick: false, narrative: "Maximiser le prix au prix d'un délai long sur Vinted. Pour qui peut attendre." },
+        { timing: "RAPIDE", expected_price_eur: 245, expected_delay_days: 7, likelihood: "élevée", net_margin_eur: -32, is_top_pick: false, narrative: "Vente quasi-immédiate sur Vinted. Prix accessible, on rogne sur la marge pour libérer le cash rapidement." },
+        { timing: "OPTIMAL", expected_price_eur: 288, expected_delay_days: 22, likelihood: "élevée", net_margin_eur: 9, is_top_pick: true, narrative: "Meilleur compromis marge × délai sur Vinted. Le sweet spot par défaut." },
+        { timing: "PATIENT", expected_price_eur: 326, expected_delay_days: 62, likelihood: "modérée", net_margin_eur: 45, is_top_pick: false, narrative: "Maximiser le prix au prix d'un délai long sur Vinted. Pour qui peut attendre." },
       ],
     },
   },
