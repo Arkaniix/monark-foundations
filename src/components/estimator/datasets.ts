@@ -55,6 +55,7 @@ export type EstimatorInputs = {
   platform: Platform;
   shipping_cost_eur?: number;
   region_fr?: string;
+  listing_age_days?: number;
 };
 
 export type PercentileDistribution = {
@@ -134,14 +135,20 @@ export type DataQuality = {
 
 export type OfferTier = "lowball" | "negotiated" | "cordial";
 
+export type Likelihood = "élevée" | "modérée" | "faible";
+
 export type NegotiationOffer = {
-  tier: OfferTier;
+  type: string;
   label: string;
-  amount_eur: number;
-  pct_of_ask: number;
-  savings_eur: number;
+  price_eur: number;
   estimated_net_margin_eur: number;
-  acceptance_probability_pct: number;
+  likelihood: Likelihood;
+  // Legacy (anciens champs : tolérés mais non utilisés en F1)
+  tier?: OfferTier;
+  amount_eur?: number;
+  pct_of_ask?: number;
+  savings_eur?: number;
+  acceptance_probability_pct?: number;
 };
 
 export type ArgumentWeight = "fort" | "modéré" | "faible";
@@ -162,6 +169,11 @@ export type NegotiationPlan = {
   arguments: NegotiationArgument[];
   keywords: NegotiationKeywords;
   strategy_narrative: string;
+  seller_motivation?: {
+    level: string;
+    age_days: number;
+    narrative: string;
+  };
 };
 
 // E5a — Où revendre §05a
@@ -175,6 +187,8 @@ export type PlatformResaleStats = {
   recommendation_score: number;
   is_top_pick: boolean;
   narrative: string;
+  data_confidence?: "low" | "medium" | "high";
+  seller_net_price?: number;
 };
 
 export type ResaleWhereRecommendation = {
@@ -193,10 +207,11 @@ export type ResaleWhenOption = {
   timing: ResaleTiming;
   expected_price_eur: number;
   expected_delay_days: number;
-  acceptance_probability_pct: number;
+  likelihood: Likelihood;
   net_margin_eur: number;
   is_top_pick: boolean;
   narrative: string;
+  acceptance_probability_pct?: number;
 };
 
 export type ResaleWhenRecommendation = {
@@ -232,6 +247,13 @@ export type EstimatorResult = {
 
   resale_where?: ResaleWhereRecommendation;
   resale_when?: ResaleWhenRecommendation;
+
+  warnings?: {
+    code: string;
+    severity: "danger" | "warning";
+    message: string;
+  }[];
+  positioning_basis?: string;
 };
 
 export type HardwareModel = {
