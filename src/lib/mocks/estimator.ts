@@ -155,12 +155,19 @@ function buildOffers(askPrice: number, fairPrice: number, optimalBuy: number, fe
   const negotiated = Math.min(negotiatedRaw, askPrice - 1);
   const cordial = Math.min(cordialRaw, askPrice - 1);
   const acc = ACCEPTANCE_BY_VERDICT[verdict];
+  const likelihoodFromP = (p: number): "élevée" | "modérée" | "faible" =>
+    p >= 70 ? "élevée" : p >= 40 ? "modérée" : "faible";
   const make = (tier: "lowball" | "negotiated" | "cordial", amount: number, label: string, p: number): NegotiationOffer => ({
-    tier, label, amount_eur: amount,
+    type: tier,
+    tier,
+    label,
+    price_eur: amount,
+    amount_eur: amount,
     pct_of_ask: Math.round((amount / askPrice) * 100),
     savings_eur: askPrice - amount,
     estimated_net_margin_eur: Math.round(fairPrice * (1 - feesFrac) - amount),
     acceptance_probability_pct: p,
+    likelihood: likelihoodFromP(p),
   });
   return [
     make("lowball", lowball, "Offre agressive", acc.lowball),
@@ -317,6 +324,7 @@ function buildResaleWhen(
         expected_price_eur: rapidePrice,
         expected_delay_days: rapideDelay,
         acceptance_probability_pct: 92,
+        likelihood: "élevée",
         net_margin_eur: Math.round(rapidePrice * (1 - feesFrac) - costBasis),
         is_top_pick: false,
         narrative: `Vente quasi-immédiate sur ${platform}. Prix accessible, on rogne sur la marge pour libérer le cash rapidement.`,
@@ -326,6 +334,7 @@ function buildResaleWhen(
         expected_price_eur: optimalPrice,
         expected_delay_days: optimalDelay,
         acceptance_probability_pct: 82,
+        likelihood: "élevée",
         net_margin_eur: Math.round(optimalPrice * (1 - feesFrac) - costBasis),
         is_top_pick: true,
         narrative: `Meilleur compromis marge × délai sur ${platform}. Le sweet spot par défaut.`,
@@ -335,6 +344,7 @@ function buildResaleWhen(
         expected_price_eur: patientPrice,
         expected_delay_days: patientDelay,
         acceptance_probability_pct: 58,
+        likelihood: "modérée",
         net_margin_eur: Math.round(patientPrice * (1 - feesFrac) - costBasis),
         is_top_pick: false,
         narrative: `Maximiser le prix au prix d'un délai long sur ${platform}. Pour qui peut attendre.`,
