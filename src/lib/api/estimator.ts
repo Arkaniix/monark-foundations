@@ -575,8 +575,46 @@ async function fetchSoldHistory(modelId: number): Promise<number[]> {
   }
 }
 
-export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult> {
+export async function evaluate(
+  inputs: EstimatorInputs,
+): Promise<AnyEstimatorResult> {
   const modelId = await resolveModelId(inputs.model);
+  const isSell = inputs.flow === "sell";
+
+  if (isSell) {
+    const body: Record<string, unknown> = {
+      mode: "component",
+      flow: "sell",
+      model_id: modelId,
+      platform: PLATFORM_TO_API[inputs.platform],
+      condition: STATE_TO_CONDITION[inputs.state],
+    };
+    if (typeof inputs.acquisition_cost === "number") {
+      body.acquisition_cost = inputs.acquisition_cost;
+    }
+    let resp: ApiEvaluateResponse;
+    try {
+      resp = await apiFetch<ApiEvaluateResponse>(ENDPOINTS.ESTIMATOR_EVALUATE, {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+    } catch (err) {
+      // Fallback : certains backends exigent encore `price`. Retente avec 0.
+      if (err instanceof ApiException && err.status === 422) {
+        resp = await apiFetch<ApiEvaluateResponse>(
+          ENDPOINTS.ESTIMATOR_EVALUATE,
+          {
+            method: "POST",
+            body: JSON.stringify({ ...body, price: 0 }),
+          },
+        );
+      } else {
+        throw err;
+      }
+    }
+    return mapSellResponse(inputs, resp);
+  }
+
   const body: Record<string, unknown> = {
     mode: "component",
     flow: "buy",
@@ -596,6 +634,7 @@ export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult
     fetchSoldHistory(modelId),
   ]);
   const result = mapResponse(inputs, resp);
+  result.flow = "buy";
   result.price_history_30d = history;
   return result;
 }
