@@ -10,6 +10,7 @@ import { EstimatorScoreBreakdown } from "@/components/estimator/EstimatorScoreBr
 import { EstimatorNegotiation } from "@/components/estimator/EstimatorNegotiation";
 import { EstimatorResaleWhere } from "@/components/estimator/EstimatorResaleWhere";
 import { EstimatorResaleWhen } from "@/components/estimator/EstimatorResaleWhen";
+import { EstimatorWarnings } from "@/components/estimator/EstimatorWarnings";
 import { EstimatorHistoryButton } from "@/components/estimator/EstimatorHistoryButton";
 import { EstimatorHistoryDrawer } from "@/components/estimator/EstimatorHistoryDrawer";
 import { EstimatorCapBlockModal } from "@/components/estimator/EstimatorCapBlockModal";
@@ -117,6 +118,15 @@ export default function Estimator({
     return topPick?.platform ?? platforms[0]?.platform ?? null;
   }, [state, selectedPlatform]);
 
+  const feesPctByPlatform = useMemo<Partial<Record<Platform, number>>>(() => {
+    if (state.status !== "success") return {};
+    const out: Partial<Record<Platform, number>> = {};
+    for (const p of state.result.resale_where?.platforms ?? []) {
+      out[p.platform] = p.fees_pct;
+    }
+    return out;
+  }, [state]);
+
   return (
     <>
     <div className="flex flex-col gap-10">
@@ -143,6 +153,7 @@ export default function Estimator({
             initial={initialInputs}
             disabled={formDisabled}
             onSubmit={handleSubmit}
+            feesPctByPlatform={feesPctByPlatform}
           />
 
           {state.status === "idle" && <EstimatorIdle />}
@@ -157,41 +168,37 @@ export default function Estimator({
       </section>
       </FadeInSection>
 
+      {state.status === "success" &&
+        state.result.warnings &&
+        state.result.warnings.length > 0 && (
+          <FadeInSection delay={60}>
+            <EstimatorWarnings warnings={state.result.warnings} />
+          </FadeInSection>
+        )}
+
       {state.status === "success" && state.result.has_market_detail === false && (
-        <FadeInSection delay={60}>
+        <FadeInSection delay={120}>
           <div className="mk-card p-6 flex flex-col gap-2">
             <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-500">
-              ANALYSE COMPLÈTE
+              DONNÉES INSUFFISANTES
             </div>
             <p className="text-[13px] text-zinc-400 leading-relaxed">
-              Le positionnement marché, le score détaillé, la négociation et la
-              revente sont disponibles avec un plan supérieur. Ton verdict, le fair
-              price et la médiane restent gratuits.
+              Données insuffisantes pour ce modèle — le verdict et la médiane
+              restent affichés, mais le détail marché demande plus de ventes
+              observées.
             </p>
           </div>
         </FadeInSection>
       )}
 
       {state.status === "success" && state.result.has_market_detail !== false && (
-        <FadeInSection delay={60}>
-          <EstimatorPositioning result={state.result} />
-        </FadeInSection>
-      )}
-
-      {state.status === "success" && state.result.has_market_detail !== false && (
         <FadeInSection delay={120}>
-          <EstimatorScoreBreakdown result={state.result} />
-        </FadeInSection>
-      )}
-
-      {state.status === "success" && state.result.has_market_detail !== false && (
-        <FadeInSection delay={180}>
           <EstimatorNegotiation result={state.result} />
         </FadeInSection>
       )}
 
       {state.status === "success" && state.result.resale_where && (
-        <FadeInSection delay={240}>
+        <FadeInSection delay={180}>
           <EstimatorResaleWhere
             result={state.result}
             selectedPlatform={effectivePlatform ?? state.result.inputs.platform}
@@ -203,7 +210,7 @@ export default function Estimator({
       {state.status === "success" &&
         state.result.resale_when &&
         effectivePlatform && (
-          <FadeInSection delay={300}>
+          <FadeInSection delay={240}>
             <EstimatorResaleWhen
               result={state.result}
               selectedPlatform={effectivePlatform}
@@ -211,20 +218,15 @@ export default function Estimator({
           </FadeInSection>
         )}
 
-      {state.status === "success" &&
-        state.result.has_market_detail !== false &&
-        !state.result.resale_where && (
-        <FadeInSection delay={240}>
-          <div className="mk-card p-6 flex flex-col gap-2">
-            <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-500">
-              REVENTE & TIMING
-            </div>
-            <p className="text-[13px] text-zinc-400 leading-relaxed">
-              L'analyse détaillée « où » et « quand » revendre (marges nettes par
-              plateforme, scénarios rapide / optimal / patient) est disponible
-              avec le plan Pro.
-            </p>
-          </div>
+      {state.status === "success" && state.result.has_market_detail !== false && (
+        <FadeInSection delay={300}>
+          <EstimatorPositioning result={state.result} />
+        </FadeInSection>
+      )}
+
+      {state.status === "success" && state.result.has_market_detail !== false && (
+        <FadeInSection delay={360}>
+          <EstimatorScoreBreakdown result={state.result} />
         </FadeInSection>
       )}
     </div>
