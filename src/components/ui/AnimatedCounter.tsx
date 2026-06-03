@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import useReducedMotion from "@/lib/useReducedMotion";
+import { isEntranceComplete, markEntranceCompleteSoon } from "@/lib/entranceAnimation";
 
 type AnimatedCounterProps = {
   value: number;
@@ -9,6 +10,9 @@ type AnimatedCounterProps = {
   duration?: number;
   delay?: number;
   frenchLocale?: boolean;
+  // Quand true, le compteur ne fait défiler les chiffres qu'à la première vague d'animations de
+  // la session. Aux montages suivants (navigations), il affiche directement la valeur finale.
+  respectEntrance?: boolean;
 };
 
 export default function AnimatedCounter({
@@ -19,17 +23,20 @@ export default function AnimatedCounter({
   duration = 500,
   delay = 0,
   frenchLocale = true,
+  respectEntrance = false,
 }: AnimatedCounterProps) {
   const reducedMotion = useReducedMotion();
-  const [current, setCurrent] = useState(reducedMotion ? value : 0);
+  const skipAnimation = reducedMotion || (respectEntrance && isEntranceComplete());
+  const [current, setCurrent] = useState(skipAnimation ? value : 0);
   const startTimeRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (reducedMotion) {
+    if (reducedMotion || (respectEntrance && isEntranceComplete())) {
       setCurrent(value);
       return;
     }
+    if (respectEntrance) markEntranceCompleteSoon();
 
     let cancelled = false;
     const startValue = 0;
@@ -61,7 +68,7 @@ export default function AnimatedCounter({
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       startTimeRef.current = null;
     };
-  }, [value, duration, delay, reducedMotion]);
+  }, [value, duration, delay, reducedMotion, respectEntrance]);
 
   const d = decimals ?? (Number.isInteger(value) ? 0 : 1);
   const displayValue = frenchLocale
