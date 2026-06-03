@@ -48,7 +48,7 @@ export default function EstimatorResaleWhen({
     <section className="flex flex-col gap-5">
       <div className="flex items-center gap-3 flex-wrap">
         <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-600">
-          § 05b
+          § 03b
         </div>
         <div className="h-px w-10 bg-white/10" />
         <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-500">
@@ -65,7 +65,7 @@ export default function EstimatorResaleWhen({
           <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">
             <GlossaryTooltip term="margeNette" position="bottom"><span>MARGE NETTE</span></GlossaryTooltip>
           </div>
-          <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">PROBA.</div>
+          <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">FIABILITÉ</div>
           <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">STRATÉGIE</div>
         </div>
 
@@ -77,7 +77,7 @@ export default function EstimatorResaleWhen({
       <div className="font-mono text-[10.5px] text-zinc-600 leading-relaxed">
         Marge nette à ce timing = prix attendu × (1 − frais) − prix d'achat de
         référence ({result.resale_where?.cost_basis_eur ?? 0} €). Délais et
-        probabilités estimés.
+        fiabilité estimés.
       </div>
     </section>
   );
@@ -233,7 +233,7 @@ function TimingRow({
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">PROBA.</div>
+            <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">FIABILITÉ</div>
             <div>
               <span
                 className="px-1.5 py-0.5 rounded font-mono text-[10.5px] tracking-wider border"

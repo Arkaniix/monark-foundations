@@ -172,10 +172,6 @@ export default function EstimatorForm({
             : "Crédits insuffisants"}
         </button>
 
-        <div className="font-mono text-[10px] text-zinc-600 text-center">
-          Frais plateforme appliqués :{" "}
-          {feesPctByPlatform?.[platform] ?? PLATFORM_FEES_PCT[platform]} %
-        </div>
       </div>
     </div>
   );

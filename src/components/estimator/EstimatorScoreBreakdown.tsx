@@ -27,7 +27,7 @@ export default function EstimatorScoreBreakdown({
     <section className="flex flex-col gap-5">
       <div className="flex items-center gap-3">
         <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-600">
-          § 03
+          § 05
         </div>
         <div className="h-px w-10 bg-white/10" />
         <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-500">
