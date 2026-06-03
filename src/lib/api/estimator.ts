@@ -600,6 +600,93 @@ export async function evaluate(inputs: EstimatorInputs): Promise<EstimatorResult
   return result;
 }
 
+// ── F2a — Mapping SELL ───────────────────────────────────────────────────────
+
+const SELL_TIERS: SellStrategyTier[] = ["rapide", "optimal", "patient"];
+
+function mapSellStrategy(
+  tier: SellStrategyTier,
+  s: ApiSellStrategy | undefined,
+): SellStrategy {
+  return {
+    tier,
+    listing_price: Math.round(s?.listing_price ?? 0),
+    net_price: Math.round(s?.net_price ?? 0),
+    est_days: s?.est_days ?? 0,
+    likelihood: mapLikelihood(s?.likelihood),
+    profit_eur:
+      typeof s?.profit_eur === "number" ? Math.round(s.profit_eur) : undefined,
+    profit_pct:
+      typeof s?.profit_pct === "number" ? Math.round(s.profit_pct) : undefined,
+  };
+}
+
+function mapSellResponse(
+  inputs: EstimatorInputs,
+  resp: ApiEvaluateResponse,
+): SellResult {
+  const sold = resp.market?.sold_distribution;
+  const median = Math.round(sold?.p50 ?? resp.market?.median_price ?? 0);
+
+  const delta30 = resp.trends?.trend_30d_pct ?? 0;
+  const trend_status = trendStatus(delta30, resp.trends?.momentum);
+  const trend_narrative =
+    resp.trends?.interpretation ?? "Tendance marché récente.";
+
+  const strategies: SellStrategy[] = SELL_TIERS.map((t) =>
+    mapSellStrategy(t, resp.strategies?.[t]),
+  );
+  const recommended =
+    strategies.find((s) => s.tier === "optimal") ?? strategies[0];
+
+  const reco = resp.platform_reco;
+  const order = reco?.ranked_order ?? Object.keys(reco?.platforms ?? {});
+  const platforms: SellPlatform[] = [];
+  for (const key of order) {
+    const p = reco?.platforms?.[key];
+    const front = RESALE_API_TO_FRONT[key];
+    if (!p || !front) continue;
+    platforms.push({
+      platform: front,
+      seller_net_price: Math.round(p.seller_net_price ?? 0),
+      fees_pct: p.seller_fees_pct ?? 0,
+      net_margin_eur:
+        typeof p.net_margin_eur === "number"
+          ? Math.round(p.net_margin_eur)
+          : undefined,
+      est_sell_days: p.est_sell_days ?? 0,
+      is_recommended: Boolean(p.is_recommended),
+      data_confidence: p.data_confidence,
+      narrative: p.tip ?? p.note ?? "",
+    });
+  }
+  if (platforms.length && !platforms.some((p) => p.is_recommended)) {
+    platforms[0].is_recommended = true;
+  }
+  const bestKey = reco?.best_platform ?? order[0] ?? "";
+  const best_platform =
+    RESALE_API_TO_FRONT[bestKey] ??
+    platforms.find((p) => p.is_recommended)?.platform ??
+    platforms[0]?.platform ??
+    inputs.platform;
+
+  return {
+    flow: "sell",
+    inputs,
+    model_name: resp.model?.name ?? inputs.model,
+    category: API_CAT_TO_FRONT[resp.model?.category ?? ""] ?? "GPU",
+    median_eur: median,
+    trend_status,
+    trend_narrative,
+    acquisition_cost: inputs.acquisition_cost,
+    recommended,
+    strategies,
+    platforms,
+    best_platform,
+    evaluated_at: resp.created_at,
+  };
+}
+
 // ── Historique serveur ───────────────────────────────────────────────────────
 
 interface ApiHistoryItem {
