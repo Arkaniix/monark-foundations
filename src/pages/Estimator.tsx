@@ -20,12 +20,17 @@ import type {
   EstimatorInputs,
   EstimatorResult,
   Platform,
+  AnyEstimatorResult,
+  SellResult,
 } from "@/components/estimator/datasets";
+import EstimatorSellRecommendation from "@/components/estimator/EstimatorSellRecommendation";
+import EstimatorSellStrategies from "@/components/estimator/EstimatorSellStrategies";
+import EstimatorSellWhere from "@/components/estimator/EstimatorSellWhere";
 
 export type EstimatorState =
   | { status: "idle" }
   | { status: "evaluating"; inputs: EstimatorInputs }
-  | { status: "success"; result: EstimatorResult }
+  | { status: "success"; result: AnyEstimatorResult }
   | { status: "error"; message: string; code?: number; lastInputs?: EstimatorInputs };
 
 type EstimatorPageProps = {
@@ -67,7 +72,9 @@ export default function Estimator({
       try {
         const result = await estimatorApi.evaluate(inputs);
         setState({ status: "success", result });
-        history.add(inputs, result);
+        if (result.flow !== "sell") {
+          history.add(inputs, result as EstimatorResult);
+        }
       } catch (err) {
         const code = err instanceof ApiException ? err.status : undefined;
         const message =
@@ -112,6 +119,7 @@ export default function Estimator({
 
   const effectivePlatform: Platform | null = useMemo(() => {
     if (state.status !== "success") return null;
+    if (state.result.flow === "sell") return null;
     if (selectedPlatform) return selectedPlatform;
     const platforms = state.result.resale_where?.platforms ?? [];
     const topPick = platforms.find((p) => p.is_top_pick);
@@ -120,12 +128,22 @@ export default function Estimator({
 
   const feesPctByPlatform = useMemo<Partial<Record<Platform, number>>>(() => {
     if (state.status !== "success") return {};
+    if (state.result.flow === "sell") return {};
     const out: Partial<Record<Platform, number>> = {};
     for (const p of state.result.resale_where?.platforms ?? []) {
       out[p.platform] = p.fees_pct;
     }
     return out;
   }, [state]);
+
+  const isSellSuccess =
+    state.status === "success" && state.result.flow === "sell";
+  const isBuySuccess =
+    state.status === "success" && state.result.flow !== "sell";
+  const buyResult =
+    isBuySuccess ? (state.result as EstimatorResult) : null;
+  const sellResult =
+    isSellSuccess ? (state.result as SellResult) : null;
 
   return (
     <>
@@ -158,9 +176,8 @@ export default function Estimator({
 
           {state.status === "idle" && <EstimatorIdle />}
           {state.status === "evaluating" && <EstimatorIdle pending />}
-          {state.status === "success" && (
-            <EstimatorVerdict result={state.result} />
-          )}
+          {buyResult && <EstimatorVerdict result={buyResult} />}
+          {sellResult && <EstimatorSellRecommendation result={sellResult} />}
           {state.status === "error" && (
             <EstimatorError message={state.message} code={state.code} onRetry={handleRetry} />
           )}
@@ -168,15 +185,13 @@ export default function Estimator({
       </section>
       </FadeInSection>
 
-      {state.status === "success" &&
-        state.result.warnings &&
-        state.result.warnings.length > 0 && (
+      {buyResult && buyResult.warnings && buyResult.warnings.length > 0 && (
           <FadeInSection delay={60}>
-            <EstimatorWarnings warnings={state.result.warnings} />
+            <EstimatorWarnings warnings={buyResult.warnings} />
           </FadeInSection>
         )}
 
-      {state.status === "success" && state.result.has_market_detail === false && (
+      {buyResult && buyResult.has_market_detail === false && (
         <FadeInSection delay={120}>
           <div className="mk-card p-6 flex flex-col gap-2">
             <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-500">
@@ -191,42 +206,52 @@ export default function Estimator({
         </FadeInSection>
       )}
 
-      {state.status === "success" && state.result.has_market_detail !== false && (
+      {buyResult && buyResult.has_market_detail !== false && (
         <FadeInSection delay={120}>
-          <EstimatorNegotiation result={state.result} />
+          <EstimatorNegotiation result={buyResult} />
         </FadeInSection>
       )}
 
-      {state.status === "success" && state.result.resale_where && (
+      {buyResult && buyResult.resale_where && (
         <FadeInSection delay={180}>
           <EstimatorResaleWhere
-            result={state.result}
-            selectedPlatform={effectivePlatform ?? state.result.inputs.platform}
+            result={buyResult}
+            selectedPlatform={effectivePlatform ?? buyResult.inputs.platform}
             onSelect={setSelectedPlatform}
           />
         </FadeInSection>
       )}
 
-      {state.status === "success" &&
-        state.result.resale_when &&
-        effectivePlatform && (
+      {buyResult && buyResult.resale_when && effectivePlatform && (
           <FadeInSection delay={240}>
             <EstimatorResaleWhen
-              result={state.result}
+              result={buyResult}
               selectedPlatform={effectivePlatform}
             />
           </FadeInSection>
         )}
 
-      {state.status === "success" && state.result.has_market_detail !== false && (
+      {buyResult && buyResult.has_market_detail !== false && (
         <FadeInSection delay={300}>
-          <EstimatorPositioning result={state.result} />
+          <EstimatorPositioning result={buyResult} />
         </FadeInSection>
       )}
 
-      {state.status === "success" && state.result.has_market_detail !== false && (
+      {buyResult && buyResult.has_market_detail !== false && (
         <FadeInSection delay={360}>
-          <EstimatorScoreBreakdown result={state.result} />
+          <EstimatorScoreBreakdown result={buyResult} />
+        </FadeInSection>
+      )}
+
+      {sellResult && (
+        <FadeInSection delay={120}>
+          <EstimatorSellStrategies result={sellResult} />
+        </FadeInSection>
+      )}
+
+      {sellResult && (
+        <FadeInSection delay={180}>
+          <EstimatorSellWhere result={sellResult} />
         </FadeInSection>
       )}
     </div>
