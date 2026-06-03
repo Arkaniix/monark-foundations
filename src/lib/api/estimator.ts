@@ -52,6 +52,11 @@ import type {
   ResaleWhenRecommendation,
   DataQuality,
   Likelihood,
+  SellResult,
+  SellStrategy,
+  SellPlatform,
+  SellStrategyTier,
+  AnyEstimatorResult,
 } from "../../components/estimator/datasets";
 
 // ── Maps front → API ────────────────────────────────────────────────────────
