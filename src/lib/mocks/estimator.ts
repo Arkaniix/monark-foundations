@@ -27,6 +27,7 @@ import {
   type TrendStatus,
   type ValueVsNewStatus,
   type Verdict,
+  type AnyEstimatorResult,
 } from "../../components/estimator/datasets";
 
 const STATE_MULTIPLIERS: Record<ItemState, number> = {
