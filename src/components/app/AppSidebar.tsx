@@ -7,6 +7,7 @@ import {
   Wrench,
 } from "lucide-react";
 import Logo from "../ui/Logo";
+import { Link } from "@tanstack/react-router";
 
 type AppSidebarUser = {
   subscription_tier: "free" | "standard" | "pro";
