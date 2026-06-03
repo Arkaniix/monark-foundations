@@ -56,6 +56,8 @@ export type EstimatorInputs = {
   shipping_cost_eur?: number;
   region_fr?: string;
   listing_age_days?: number;
+  flow?: "buy" | "sell";
+  acquisition_cost?: number;
 };
 
 export type PercentileDistribution = {
@@ -220,6 +222,7 @@ export type ResaleWhenRecommendation = {
 
 export type EstimatorResult = {
   inputs: EstimatorInputs;
+  flow?: "buy" | "sell";
   model_name: string;
   category: HardwareCategory;
   verdict: Verdict;
@@ -255,6 +258,49 @@ export type EstimatorResult = {
   }[];
   positioning_basis?: string;
 };
+
+// F2a — Mode VENTE
+
+export type SellStrategyTier = "rapide" | "optimal" | "patient";
+
+export type SellStrategy = {
+  tier: SellStrategyTier;
+  listing_price: number;
+  net_price: number;
+  est_days: number;
+  likelihood: Likelihood;
+  profit_eur?: number;
+  profit_pct?: number;
+};
+
+export type SellPlatform = {
+  platform: Platform;
+  seller_net_price: number;
+  fees_pct: number;
+  net_margin_eur?: number;
+  est_sell_days: number;
+  is_recommended: boolean;
+  data_confidence?: "low" | "medium" | "high";
+  narrative: string;
+};
+
+export type SellResult = {
+  flow: "sell";
+  inputs: EstimatorInputs;
+  model_name: string;
+  category: HardwareCategory;
+  median_eur: number;
+  trend_status: TrendStatus;
+  trend_narrative: string;
+  acquisition_cost?: number;
+  recommended: SellStrategy;
+  strategies: SellStrategy[];
+  platforms: SellPlatform[];
+  best_platform: Platform;
+  evaluated_at: string;
+};
+
+export type AnyEstimatorResult = EstimatorResult | SellResult;
 
 export type HardwareModel = {
   name: string;
