@@ -57,6 +57,10 @@ import type {
   SellPlatform,
   SellStrategyTier,
   AnyEstimatorResult,
+  DecayStep,
+  SellProjection,
+  SellPresentation,
+  PricingBasis,
 } from "../../components/estimator/datasets";
 
 // ── Maps front → API ────────────────────────────────────────────────────────
@@ -733,6 +737,62 @@ function mapSellResponse(
     platforms[0]?.platform ??
     inputs.platform;
 
+  const decay: DecayStep[] | undefined = Array.isArray(resp.decay_schedule)
+    ? resp.decay_schedule
+        .filter(
+          (d) =>
+            typeof d.day === "number" &&
+            typeof d.price === "number" &&
+            (d.strategy === "patient" ||
+              d.strategy === "optimal" ||
+              d.strategy === "rapide"),
+        )
+        .map((d) => ({
+          day: d.day as number,
+          strategy: d.strategy as DecayStep["strategy"],
+          price: Math.round(d.price as number),
+        }))
+        .sort((a, b) => a.day - b.day)
+    : undefined;
+
+  const projection: SellProjection | undefined = resp.projection
+    ? {
+        timing: resp.projection.timing ?? "neutral",
+        trend_30d_pct:
+          typeof resp.projection.trend_30d_pct === "number"
+            ? resp.projection.trend_30d_pct
+            : null,
+        projected_patient_value:
+          typeof resp.projection.projected_patient_value === "number"
+            ? Math.round(resp.projection.projected_patient_value)
+            : null,
+        narrative: resp.projection.narrative ?? "",
+      }
+    : undefined;
+
+  const presentation: SellPresentation | undefined = resp.presentation
+    ? {
+        completeness: Array.isArray(resp.presentation.completeness)
+          ? resp.presentation.completeness
+          : [],
+        terms_to_avoid: Array.isArray(resp.presentation.terms_to_avoid)
+          ? resp.presentation.terms_to_avoid
+          : [],
+        terms_to_favor: Array.isArray(resp.presentation.terms_to_favor)
+          ? resp.presentation.terms_to_favor
+          : [],
+        condition_framing: resp.presentation.condition_framing ?? "",
+        category_tip: resp.presentation.category_tip,
+      }
+    : undefined;
+
+  const pricing_basis: PricingBasis | undefined = resp.pricing_basis
+    ? {
+        data_source_tier: (resp.pricing_basis.data_source_tier ?? 1) as 1 | 2 | 3,
+        data_confidence: resp.pricing_basis.data_confidence ?? "high",
+      }
+    : undefined;
+
   return {
     flow: "sell",
     inputs,
@@ -747,6 +807,10 @@ function mapSellResponse(
     platforms,
     best_platform,
     evaluated_at: resp.created_at,
+    decay,
+    projection,
+    presentation,
+    pricing_basis,
   };
 }
 
