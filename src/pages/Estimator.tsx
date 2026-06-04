@@ -26,6 +26,9 @@ import type {
 import EstimatorSellRecommendation from "@/components/estimator/EstimatorSellRecommendation";
 import EstimatorSellStrategies from "@/components/estimator/EstimatorSellStrategies";
 import EstimatorSellWhere from "@/components/estimator/EstimatorSellWhere";
+import EstimatorSellProjection from "@/components/estimator/EstimatorSellProjection";
+import EstimatorSellDecay from "@/components/estimator/EstimatorSellDecay";
+import EstimatorSellPresentation from "@/components/estimator/EstimatorSellPresentation";
 
 export type EstimatorState =
   | { status: "idle" }
@@ -252,6 +255,24 @@ export default function Estimator({
       {sellResult && (
         <FadeInSection delay={180}>
           <EstimatorSellWhere result={sellResult} />
+        </FadeInSection>
+      )}
+
+      {sellResult && sellResult.projection && (
+        <FadeInSection delay={240}>
+          <EstimatorSellProjection result={sellResult} />
+        </FadeInSection>
+      )}
+
+      {sellResult && sellResult.decay && sellResult.decay.length > 0 && (
+        <FadeInSection delay={300}>
+          <EstimatorSellDecay result={sellResult} />
+        </FadeInSection>
+      )}
+
+      {sellResult && sellResult.presentation && (
+        <FadeInSection delay={360}>
+          <EstimatorSellPresentation result={sellResult} />
         </FadeInSection>
       )}
     </div>
