@@ -52,7 +52,9 @@ export default function EstimatorVerdict({ result }: EstimatorVerdictProps) {
       </div>
 
       <div className="flex flex-col items-center text-center gap-3">
-        <VerdictCrystal color={color} size={140} />
+        <div className="crystal-pop crystal-float">
+          <VerdictCrystal color={color} size={140} />
+        </div>
 
         <GlossaryTooltip term={verdictTerm}>
           <span

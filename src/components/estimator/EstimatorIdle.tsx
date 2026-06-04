@@ -7,7 +7,7 @@ type EstimatorIdleProps = {
 export default function EstimatorIdle({ pending = false }: EstimatorIdleProps) {
   return (
     <div className="mk-card p-6 flex flex-col items-center justify-center text-center gap-4 min-h-[420px]">
-      <div className={pending ? "" : "opacity-30"}>
+      <div className={(pending ? "" : "opacity-30") + " crystal-pop crystal-float"}>
         <VerdictCrystal color={pending ? "#3B82F6" : "#52525B"} size={120} />
       </div>
 
