@@ -167,6 +167,7 @@ interface ApiEvaluateResponse {
     distribution?: PercentileDistribution | null;
     sold_distribution?: PercentileDistribution | null;
     asking_distribution?: PercentileDistribution | null;
+    sold_histogram?: { bin_min: number; bin_max: number; count: number }[] | null;
     positioning_basis?: string;
     new_price?: number | null;
     discount_vs_new_pct?: number | null;
