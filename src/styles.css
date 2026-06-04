@@ -580,9 +580,8 @@ body::before {
 
 /* Crystal — entrée + flottement (conteneur du VerdictCrystal) */
 @keyframes crystal-pop {
-  0% { opacity: 0; transform: scale(0.4) rotate(-35deg); }
-  55% { opacity: 1; }
-  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  0% { transform: scale(0.4) rotate(-35deg); }
+  100% { transform: scale(1) rotate(0deg); }
 }
 .crystal-pop { animation: crystal-pop 760ms cubic-bezier(0.16, 1, 0.3, 1) both; }
 
@@ -591,6 +590,13 @@ body::before {
   50% { transform: translateY(-4px) rotate(2deg); }
 }
 .crystal-float { animation: crystal-float 5s ease-in-out infinite; }
+
+/* crystal-pop + crystal-float sur le MÊME élément : pop d'abord, float ensuite
+   (différé 760ms), sinon les deux animent transform en même temps et s'annulent. */
+.crystal-pop.crystal-float {
+  animation: crystal-pop 760ms cubic-bezier(0.16, 1, 0.3, 1) both,
+             crystal-float 5s ease-in-out 760ms infinite;
+}
 
 /* Chips — sélecteurs segmentés (Mode / État / Plateforme) */
 .chip {
