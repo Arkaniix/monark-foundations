@@ -15,12 +15,25 @@ export default function EstimatorSellRecommendation({ result }: Props) {
   const hasProfit = typeof r.profit_eur === "number";
   const profitColor =
     (r.profit_eur ?? 0) >= 0 ? "#10B981" : "#EF4444";
+  const pb = result.pricing_basis;
+  const isEstimated =
+    pb?.data_source_tier === 3 || pb?.data_confidence === "low";
 
   return (
     <div className="mk-card p-6 fade-up flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <div className="font-mono text-[10px] tracking-wider text-zinc-500">
-          RECOMMANDATION VENTE
+        <div className="flex items-center gap-2">
+          <div className="font-mono text-[10px] tracking-wider text-zinc-500">
+            RECOMMANDATION VENTE
+          </div>
+          {isEstimated && (
+            <span
+              className="font-mono text-[9.5px] tracking-wider text-zinc-500 border border-white/10 rounded px-1.5 py-0.5"
+              title="Prix LBC dérivé d'eBay faute de ventes natives."
+            >
+              ESTIMÉ
+            </span>
+          )}
         </div>
         <div className="font-mono text-[10px] tracking-wider text-zinc-600">
           {result.model_name} · {result.category}
