@@ -131,10 +131,8 @@ export default function EstimatorForm({
                 disabled={disabled}
                 onClick={() => setFlow(f.value)}
                 className={
-                  "py-2 rounded text-[11px] border ease-expo transition-all disabled:opacity-50 " +
-                  (flow === f.value
-                    ? "border-white/30 bg-white/10 text-zinc-100"
-                    : "border-white/10 text-zinc-500 hover:text-zinc-200 hover:border-white/15")
+                  "chip py-2 text-[11px] text-zinc-500 disabled:opacity-50 " +
+                  (flow === f.value ? "on" : "")
                 }
               >
                 {f.label}
@@ -156,10 +154,8 @@ export default function EstimatorForm({
                 disabled={disabled}
                 onClick={() => setState(s)}
                 className={
-                  "py-2 rounded text-[11px] border ease-expo transition-all disabled:opacity-50 " +
-                  (state === s
-                    ? "border-white/30 bg-white/10 text-zinc-100"
-                    : "border-white/10 text-zinc-500 hover:text-zinc-200 hover:border-white/15")
+                  "chip py-2 text-[11px] text-zinc-500 disabled:opacity-50 " +
+                  (state === s ? "on" : "")
                 }
               >
                 {s}
@@ -223,10 +219,8 @@ export default function EstimatorForm({
                 disabled={disabled}
                 onClick={() => setPlatform(p)}
                 className={
-                  "py-2 rounded font-mono text-[11px] border ease-expo transition-all disabled:opacity-50 " +
-                  (platform === p
-                    ? "border-white/30 bg-white/10 text-zinc-100"
-                    : "border-white/10 text-zinc-500 hover:text-zinc-200 hover:border-white/15")
+                  "chip py-2 font-mono text-[11px] text-zinc-500 disabled:opacity-50 " +
+                  (platform === p ? "on" : "")
                 }
               >
                 {p}
