@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+type HistogramBin = { bin_min: number; bin_max: number; count: number };
+
 type PercentileChartProps = {
   distribution: {
     p10: number;
@@ -21,9 +23,15 @@ type PercentileChartProps = {
   chartTitle?: string;
   /** Paragraphe sous le titre. Par défaut : hint estimator. */
   chartHint?: string;
+  /**
+   * Histogramme RÉEL des ventes sold (bins contigus {bin_min,bin_max,count}).
+   * Si fourni & non-vide, les barres représentent la vraie densité (comptes bruts)
+   * et remplacent la gaussienne synthétique. Sinon, fallback gaussien.
+   */
+  histogram?: HistogramBin[] | null;
 };
 
-const BARS = 32;
+const GAUSS_BARS = 32;
 const VIEWBOX_W = 800;
 const VIEWBOX_H = 180;
 const TOP_PAD = 26;
@@ -58,9 +66,10 @@ function computePercentileForPrice(
 }
 
 /**
- * Histogramme de distribution P10 → P90 avec curseur prix saisi.
- * E2.2 : viewBox plus haut, hover interactif sur barres, tag percentile,
- * légende axe Y. Composant pur — découplé du domaine.
+ * Histogramme de distribution des prix sold avec curseur prix saisi.
+ * Barres = densité RÉELLE des ventes sold si `histogram` fourni (comptes bruts),
+ * sinon gaussienne approximée (fallback fiche catalogue / landing).
+ * Composant pur — découplé du domaine.
  */
 export default function PercentileChart({
   distribution,
@@ -70,22 +79,42 @@ export default function PercentileChart({
   percentilePosition,
   chartTitle = "DISTRIBUTION P10 → P90 · COMPARABLES SOLD",
   chartHint = "Hauteur des barres = densité estimée des ventes sold (gaussienne approximée). Plus haut = plus de transactions à ce prix.",
+  histogram,
 }: PercentileChartProps) {
   const { p10, p25, p50, p75, p90 } = distribution;
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
 
-  const min = (askPrice !== undefined ? Math.min(p10, askPrice) : p10) * 0.92;
-  const max = (askPrice !== undefined ? Math.max(p90, askPrice) : p90) * 1.08;
-  const X = (v: number) => ((v - min) / (max - min)) * 100;
+  const hasReal = !!histogram && histogram.length > 0;
+  const nBars = hasReal ? histogram!.length : GAUSS_BARS;
 
-  const points: number[] = [];
-  for (let i = 0; i < BARS; i++) {
-    const x = min + (i / BARS) * (max - min);
-    const sigma = (p90 - p10) / 2.563;
-    const y = Math.exp(-Math.pow((x - p50) / sigma, 2) / 2);
-    points.push(y);
-  }
-  const ymax = Math.max(...points);
+  const dataMin = hasReal ? histogram![0].bin_min : p10;
+  const dataMax = hasReal ? histogram![nBars - 1].bin_max : p90;
+  const min = hasReal
+    ? Math.min(dataMin, askPrice ?? dataMin)
+    : (askPrice !== undefined ? Math.min(p10, askPrice) : p10) * 0.92;
+  const max = hasReal
+    ? Math.max(dataMax, askPrice ?? dataMax)
+    : (askPrice !== undefined ? Math.max(p90, askPrice) : p90) * 1.08;
+  const span = max - min || 1;
+  const X = (v: number) => ((v - min) / span) * 100;
+  const clampX8 = (v: number) => Math.max(0, Math.min(VIEWBOX_W, X(v) * 8));
+
+  const counts: number[] = hasReal
+    ? histogram!.map((b) => b.count)
+    : Array.from({ length: GAUSS_BARS }, (_, i) => {
+        const x = min + (i / GAUSS_BARS) * span;
+        const sigma = (p90 - p10) / 2.563 || 1;
+        return Math.exp(-Math.pow((x - p50) / sigma, 2) / 2);
+      });
+  const ymax = Math.max(...counts) || 1;
+
+  const barX = (i: number): number =>
+    hasReal ? clampX8(histogram![i].bin_min) : i * (VIEWBOX_W / GAUSS_BARS);
+  const barW = (i: number): number =>
+    hasReal
+      ? Math.max(clampX8(histogram![i].bin_max) - clampX8(histogram![i].bin_min), 0.5)
+      : VIEWBOX_W / GAUSS_BARS;
+
   const markers: [string, number][] = [
     ["P10", p10],
     ["P25", p25],
@@ -94,16 +123,19 @@ export default function PercentileChart({
     ["P90", p90],
   ];
 
+  const hoverBin = hoverIdx !== null && hasReal ? histogram![hoverIdx] : null;
   const hoverBarPrice =
-    hoverIdx !== null
-      ? Math.round(min + ((hoverIdx + 0.5) / BARS) * (max - min))
-      : null;
+    hoverIdx === null
+      ? null
+      : hasReal
+        ? Math.round((histogram![hoverIdx].bin_min + histogram![hoverIdx].bin_max) / 2)
+        : Math.round(min + ((hoverIdx + 0.5) / GAUSS_BARS) * span);
   const hoverBarPercentile =
     hoverBarPrice !== null
       ? computePercentileForPrice(hoverBarPrice, p10, p25, p50, p75, p90)
       : null;
 
-  const hoverXFraction = hoverIdx !== null ? (hoverIdx + 0.5) / BARS : 0;
+  const hoverXFraction = hoverIdx !== null ? (hoverIdx + 0.5) / nBars : 0;
   const hoverTransform =
     hoverXFraction > 0.78
       ? "translate(-100%, 0)"
@@ -127,10 +159,7 @@ export default function PercentileChart({
         {chartHint}
       </p>
 
-      <div
-        className="relative h-48"
-        onMouseLeave={() => setHoverIdx(null)}
-      >
+      <div className="relative h-48" onMouseLeave={() => setHoverIdx(null)}>
         <svg
           viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}
           className="w-full h-full"
@@ -139,8 +168,8 @@ export default function PercentileChart({
             const rect = e.currentTarget.getBoundingClientRect();
             const relativeX = (e.clientX - rect.left) / rect.width;
             if (relativeX < 0 || relativeX > 1) return;
-            const idx = Math.floor(relativeX * BARS);
-            setHoverIdx(Math.max(0, Math.min(BARS - 1, idx)));
+            const idx = Math.floor(relativeX * nBars);
+            setHoverIdx(Math.max(0, Math.min(nBars - 1, idx)));
           }}
           style={{ cursor: "crosshair" }}
         >
@@ -154,15 +183,15 @@ export default function PercentileChart({
               <stop offset="1" stopColor="#3B82F6" stopOpacity="0.2" />
             </linearGradient>
           </defs>
-          {points.map((y, i) => {
+          {counts.map((y, i) => {
             const h = (y / ymax) * PLOT_H;
             const isHovered = hoverIdx === i;
             return (
               <rect
                 key={i}
-                x={i * (VIEWBOX_W / BARS) + 1}
+                x={barX(i) + 1}
                 y={TOP_PAD + (PLOT_H - h)}
-                width={VIEWBOX_W / BARS - 2}
+                width={Math.max(barW(i) - 2, 0.5)}
                 height={h}
                 fill={isHovered ? "url(#dist-grad-hover)" : "url(#dist-grad)"}
               />
@@ -171,8 +200,8 @@ export default function PercentileChart({
           {markers.map(([lbl, v]) => (
             <g key={lbl}>
               <line
-                x1={X(v) * 8}
-                x2={X(v) * 8}
+                x1={clampX8(v)}
+                x2={clampX8(v)}
                 y1={TOP_PAD - 4}
                 y2={VIEWBOX_H - BOTTOM_PAD + 4}
                 stroke="#fafafa"
@@ -181,7 +210,7 @@ export default function PercentileChart({
                 strokeDasharray="2 2"
               />
               <text
-                x={X(v) * 8}
+                x={clampX8(v)}
                 y={TOP_PAD - 10}
                 textAnchor="middle"
                 fontSize="11"
@@ -195,19 +224,19 @@ export default function PercentileChart({
           {askPrice !== undefined && (
             <>
               <line
-                x1={X(askPrice) * 8}
-                x2={X(askPrice) * 8}
+                x1={clampX8(askPrice)}
+                x2={clampX8(askPrice)}
                 y1={TOP_PAD - 18}
                 y2={VIEWBOX_H - BOTTOM_PAD + 8}
                 stroke={color}
                 strokeWidth="1.8"
               />
-              <circle cx={X(askPrice) * 8} cy={TOP_PAD - 18} r="4.5" fill={color} />
+              <circle cx={clampX8(askPrice)} cy={TOP_PAD - 18} r="4.5" fill={color} />
             </>
           )}
         </svg>
 
-        {hoverIdx !== null && hoverBarPrice !== null && hoverBarPercentile !== null && (
+        {hoverIdx !== null && hoverBarPrice !== null && (
           <div
             className="absolute pointer-events-none rounded-md px-2.5 py-1.5"
             style={{
@@ -221,20 +250,34 @@ export default function PercentileChart({
               zIndex: 20,
             }}
           >
-            <span className="text-[10px] text-zinc-500">autour de </span>
-            <span className="text-[11px] text-zinc-100 font-medium">
-              {hoverBarPrice} €
-            </span>
-            <span className="text-[10px] text-zinc-500"> · </span>
-            <span className="text-[11px]" style={{ color }}>
-              P{hoverBarPercentile}
-            </span>
+            {hasReal && hoverBin ? (
+              <>
+                <span className="text-[11px] text-zinc-100 font-medium">
+                  {hoverBin.count} {hoverBin.count > 1 ? "ventes" : "vente"}
+                </span>
+                <span className="text-[10px] text-zinc-500"> · </span>
+                <span className="text-[10px] text-zinc-400">
+                  {Math.round(hoverBin.bin_min)}–{Math.round(hoverBin.bin_max)} €
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="text-[10px] text-zinc-500">autour de </span>
+                <span className="text-[11px] text-zinc-100 font-medium">
+                  {hoverBarPrice} €
+                </span>
+                <span className="text-[10px] text-zinc-500"> · </span>
+                <span className="text-[11px]" style={{ color }}>
+                  P{hoverBarPercentile}
+                </span>
+              </>
+            )}
           </div>
         )}
       </div>
 
       <div className="mt-2 flex items-center justify-between font-mono text-[10px] text-zinc-500">
-        <span>{p10} €</span>
+        <span>{hasReal ? Math.round(min) : p10} €</span>
         {askPrice !== undefined ? (
           <span className="flex items-center gap-2" style={{ color }}>
             prix demandé · {askPrice} €
@@ -254,7 +297,7 @@ export default function PercentileChart({
         ) : (
           <span className="text-zinc-500">médiane · {p50} €</span>
         )}
-        <span>{p90} €</span>
+        <span>{hasReal ? Math.round(max) : p90} €</span>
       </div>
     </div>
   );

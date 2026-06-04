@@ -68,6 +68,12 @@ export type PercentileDistribution = {
   p90: number;
 };
 
+export type SoldHistogramBin = {
+  bin_min: number;
+  bin_max: number;
+  count: number;
+};
+
 export type CompositeScore = {
   margin: number;
   liquidity: number;
@@ -230,6 +236,8 @@ export type EstimatorResult = {
   fair_price_eur: number;
   net_margin_eur: number;
   percentile_distribution: PercentileDistribution;
+  /** Histogramme réel des ventes sold (24 bins). Présent en flow=buy ; null sinon. */
+  sold_histogram?: SoldHistogramBin[] | null;
   composite_score: CompositeScore;
   modifiers: VerdictModifiers;
   platform_fees_pct: number;

@@ -76,6 +76,8 @@ export default function EstimatorPositioning({
             color={verdictColor}
             observationsLabel={`${result.data_quality.observations_count} obs · 180 j`}
             percentilePosition={result.percentile_position_pct}
+            histogram={result.sold_histogram}
+            chartHint="Densité réelle des ventes sold — chaque barre = nombre de transactions dans cette tranche de prix. Les queues révèlent deals et prix au-dessus du marché."
           />
           <p className="text-[13px] text-zinc-300 mt-4 leading-relaxed">
             Votre prix de{" "}
