@@ -536,6 +536,7 @@ function mapResponse(inputs: EstimatorInputs, resp: ApiEvaluateResponse): Estima
     fair_price_eur: fair,
     net_margin_eur,
     percentile_distribution: distribution,
+    sold_histogram: resp.market?.sold_histogram ?? null,
     composite_score: {
       margin: Math.round(Math.max(0, Math.min(100, 50 + (ask > 0 ? (net_margin_eur / ask) * 100 : 0) * 2.5))),
       liquidity: Math.round(liqScore * 100),
