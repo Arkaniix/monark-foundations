@@ -207,6 +207,30 @@ interface ApiEvaluateResponse {
     vinted_excluded?: boolean;
     platforms?: Record<string, ApiSellPlatform>;
   };
+  decay_schedule?: {
+    day?: number;
+    strategy?: "patient" | "optimal" | "rapide";
+    price?: number;
+  }[];
+  projection?: {
+    timing?: "good" | "neutral" | "cautious" | "bad";
+    trend_30d_pct?: number | null;
+    projected_patient_value?: number | null;
+    narrative?: string;
+  };
+  presentation?: {
+    completeness?: string[];
+    terms_to_avoid?: string[];
+    terms_to_favor?: string[];
+    condition_framing?: string;
+    category_tip?: string;
+  };
+  pricing_basis?: {
+    platform?: string;
+    data_source_tier?: 1 | 2 | 3;
+    data_confidence?: "high" | "medium" | "low";
+    data_source?: string;
+  };
 }
 
 interface ApiSellStrategy {

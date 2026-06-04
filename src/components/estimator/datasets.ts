@@ -298,6 +298,38 @@ export type SellResult = {
   platforms: SellPlatform[];
   best_platform: Platform;
   evaluated_at: string;
+  decay?: DecayStep[];
+  projection?: SellProjection;
+  presentation?: SellPresentation;
+  pricing_basis?: PricingBasis;
+};
+
+// F2b — Vente : décote / projection / présentation / basis
+
+export type DecayStep = {
+  day: number;
+  strategy: "patient" | "optimal" | "rapide";
+  price: number;
+};
+
+export type SellProjection = {
+  timing: "good" | "neutral" | "cautious" | "bad";
+  trend_30d_pct: number | null;
+  projected_patient_value: number | null;
+  narrative: string;
+};
+
+export type SellPresentation = {
+  completeness: string[];
+  terms_to_avoid: string[];
+  terms_to_favor: string[];
+  condition_framing: string;
+  category_tip?: string;
+};
+
+export type PricingBasis = {
+  data_source_tier: 1 | 2 | 3;
+  data_confidence: "high" | "medium" | "low";
 };
 
 export type AnyEstimatorResult = EstimatorResult | SellResult;
