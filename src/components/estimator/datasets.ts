@@ -68,6 +68,12 @@ export type PercentileDistribution = {
   p90: number;
 };
 
+export type SoldHistogramBin = {
+  bin_min: number;
+  bin_max: number;
+  count: number;
+};
+
 export type CompositeScore = {
   margin: number;
   liquidity: number;
