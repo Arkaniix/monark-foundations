@@ -863,7 +863,9 @@ export async function fetchEstimatorHistory(limit = 50): Promise<EstimatorHistor
   const data = await apiFetch<unknown>(`${ENDPOINTS.ESTIMATOR_HISTORY}?limit=${limit}&offset=0`, { method: "GET" });
   const d = data as Record<string, unknown>;
   const items = (Array.isArray(data) ? data : (d.items ?? d.runs ?? d.results ?? d.data ?? [])) as ApiHistoryItem[];
-  return items.map(mapHistoryItem);
+  return items
+    .map(mapHistoryItem)
+    .filter((e): e is EstimatorHistoryEntry => e !== null);
 }
 
 export async function deleteEstimatorRun(runId: string): Promise<void> {
