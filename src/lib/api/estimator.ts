@@ -201,7 +201,17 @@ interface ApiEvaluateResponse {
     optimal?: ApiScenario;
     patient?: ApiScenario;
   };
-  warnings?: { code: string; severity: "danger" | "warning"; message: string }[];
+  warnings?: {
+    code: string;
+    severity: "danger" | "warning";
+    message: string;
+    headline?: string;
+    delta_vs_market_pct?: number;
+    scam_signals?: string[];
+    verification_steps?: string[];
+    recommended_action?: "buy_now" | "verify_then_buy" | "avoid";
+    action_rationale?: string;
+  }[];
   primary_risk?: unknown;
   // F2a — Mode VENTE
   flow?: string;
@@ -596,7 +606,21 @@ function mapResponse(inputs: EstimatorInputs, resp: ApiEvaluateResponse): Estima
     ),
     resale_where: mapResaleWhere(resp, ask),
     resale_when: mapResaleWhen(resp),
-    warnings: Array.isArray(resp.warnings) ? resp.warnings : [],
+    warnings: Array.isArray(resp.warnings)
+      ? resp.warnings.map((w) => ({
+          code: w.code,
+          severity: w.severity,
+          message: w.message,
+          headline: w.headline,
+          delta_vs_market_pct: w.delta_vs_market_pct,
+          scam_signals: Array.isArray(w.scam_signals) ? w.scam_signals : undefined,
+          verification_steps: Array.isArray(w.verification_steps)
+            ? w.verification_steps
+            : undefined,
+          recommended_action: w.recommended_action,
+          action_rationale: w.action_rationale,
+        }))
+      : [],
     positioning_basis: resp.market?.positioning_basis,
   };
 }

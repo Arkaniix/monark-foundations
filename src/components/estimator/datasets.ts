@@ -269,6 +269,13 @@ export type EstimatorResult = {
     code: string;
     severity: "danger" | "warning";
     message: string;
+    /** Champs enrichis Phase 2 (présents sur price_anomaly_low). */
+    headline?: string;
+    delta_vs_market_pct?: number;
+    scam_signals?: string[];
+    verification_steps?: string[];
+    recommended_action?: "buy_now" | "verify_then_buy" | "avoid";
+    action_rationale?: string;
   }[];
   positioning_basis?: string;
 };
