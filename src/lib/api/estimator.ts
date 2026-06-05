@@ -837,10 +837,26 @@ function reconstructInputs(item: ApiHistoryItem): EstimatorInputs {
   };
 }
 
-export function mapHistoryItem(item: ApiHistoryItem): EstimatorHistoryEntry {
-  const inputs = reconstructInputs(item);
-  const result = mapResponse(inputs, item.result_snapshot);
-  return { id: String(item.id), ts: Date.parse(item.created_at), inputs, result };
+export function mapHistoryItem(item: ApiHistoryItem): EstimatorHistoryEntry | null {
+  try {
+    const snapshot = item.result_snapshot;
+
+    // On n'affiche que les évaluations ACHAT mappables. Les runs VENTE (flow=sell,
+    // sans bloc `score`) et les snapshots legacy sans `score` sont ignorés — un
+    // snapshot non mappable ne doit JAMAIS faire planter (et vider) tout le tiroir.
+    const hasScore = Boolean(
+      (snapshot as { score?: { verdict?: unknown } }).score?.verdict,
+    );
+
+    if (!hasScore || (snapshot as { flow?: string }).flow === "sell") return null;
+
+    const inputs = reconstructInputs(item);
+    const result = mapResponse(inputs, snapshot);
+
+    return { id: String(item.id), ts: Date.parse(item.created_at), inputs, result };
+  } catch {
+    return null;
+  }
 }
 
 export async function fetchEstimatorHistory(limit = 50): Promise<EstimatorHistoryEntry[]> {
