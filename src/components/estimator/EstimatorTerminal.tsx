@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import useReducedMotion from "@/lib/useReducedMotion";
 import type { EstimatorInputs } from "./datasets";
 
-const CHARS_PER_TICK = 2;
-const TICK_MS = 18;
+const CHARS_PER_TICK = 4;
+const TICK_MS = 16;
 
 type Tone = "prompt" | "dim" | "ok" | "accent";
 
@@ -17,10 +17,22 @@ export default function EstimatorTerminal({ inputs }: { inputs?: EstimatorInputs
   const script: { text: string; tone: Tone }[] = [
     { text: `$ monark estimate --mode ${mode}`, tone: "prompt" },
     { text: `  ↳ ${model} · ${itemState} · ${platform}`, tone: "dim" },
-    { text: "fetch sold composite · 180 j …", tone: "dim" },
+    { text: "[init] session estimator · v3.2", tone: "dim" },
+    { text: "→ connexion à l'index marché …", tone: "dim" },
+    { text: "✓ index prêt", tone: "ok" },
+    { text: "→ pull ventes sold composite · 180 j", tone: "dim" },
+    { text: "→ dédup listing_hash", tone: "dim" },
     { text: "✓ comparables appariés", tone: "ok" },
-    { text: "compute médiane · IQR · trend 14 j …", tone: "dim" },
-    { text: "score → composition du verdict …", tone: "accent" },
+    { text: "→ exclusion ebay_active · asking ≠ sold", tone: "dim" },
+    { text: "→ médiane · IQR · dispersion", tone: "dim" },
+    { text: "→ trend 14 j · pente", tone: "dim" },
+    { text: "→ liquidité catégorie · 30 j", tone: "dim" },
+    { text: "→ modificateur état · décote vs neuf", tone: "dim" },
+    { text: "→ frais plateforme · marge nette", tone: "dim" },
+    { text: "→ scoring composite /100", tone: "accent" },
+    { text: "→ repères · plafond · optimal · plancher", tone: "dim" },
+    { text: "→ ranking plateformes revente", tone: "dim" },
+    { text: "✓ verdict prêt", tone: "ok" },
   ];
 
   const total = script.reduce((n, l) => n + l.text.length, 0);
