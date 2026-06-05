@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import useReducedMotion from "@/lib/useReducedMotion";
 import type { EstimatorInputs } from "./datasets";
 
-const LINE_DELAY_MS = 260;
+const CHARS_PER_TICK = 2;
+const TICK_MS = 18;
 
-type TermLine = { text: string; tone: "prompt" | "dim" | "ok" | "accent" };
+type Tone = "prompt" | "dim" | "ok" | "accent";
 
 export default function EstimatorTerminal({ inputs }: { inputs?: EstimatorInputs }) {
   const reduced = useReducedMotion();
@@ -13,55 +14,77 @@ export default function EstimatorTerminal({ inputs }: { inputs?: EstimatorInputs
   const platform = inputs?.platform ?? "—";
   const mode = inputs?.flow === "sell" ? "sell" : "buy";
 
-  const lines: TermLine[] = [
-    { text: `monark@estimator:~$ evaluate --mode ${mode} --model "${model}"`, tone: "prompt" },
-    { text: `→ état: ${itemState} · plateforme: ${platform}`, tone: "dim" },
-    { text: "→ récupération des ventes sold composite (180j)…", tone: "dim" },
+  const script: { text: string; tone: Tone }[] = [
+    { text: `$ monark estimate --mode ${mode}`, tone: "prompt" },
+    { text: `  ↳ ${model} · ${itemState} · ${platform}`, tone: "dim" },
+    { text: "fetch sold composite · 180 j …", tone: "dim" },
     { text: "✓ comparables appariés", tone: "ok" },
-    { text: "→ médiane · IQR · trend 14j…", tone: "dim" },
-    { text: "→ modificateurs état · liquidité · décote…", tone: "dim" },
-    { text: "→ composition du verdict…", tone: "accent" },
+    { text: "compute médiane · IQR · trend 14 j …", tone: "dim" },
+    { text: "score → composition du verdict …", tone: "accent" },
   ];
 
-  const [shown, setShown] = useState(reduced ? lines.length : 0);
+  const total = script.reduce((n, l) => n + l.text.length, 0);
+  const [typed, setTyped] = useState(reduced ? total : 0);
 
   useEffect(() => {
     if (reduced) {
-      setShown(lines.length);
+      setTyped(total);
       return;
     }
-    setShown(0);
-    let count = 0;
+    setTyped(0);
     const id = setInterval(() => {
-      count += 1;
-      setShown((s) => Math.min(s + 1, lines.length));
-      if (count >= lines.length) clearInterval(id);
-    }, LINE_DELAY_MS);
+      setTyped((t) => {
+        const next = t + CHARS_PER_TICK;
+        if (next >= total) {
+          clearInterval(id);
+          return total;
+        }
+        return next;
+      });
+    }, TICK_MS);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reduced, model, itemState, platform, mode]);
 
-  const toneClass = (tone: TermLine["tone"]) => {
-    if (tone === "prompt" || tone === "ok") return "text-emerald-400";
-    if (tone === "accent") return "text-blue-400";
-    return "text-zinc-500";
-  };
+  const starts: number[] = [];
+  let acc = 0;
+  for (const l of script) {
+    starts.push(acc);
+    acc += l.text.length;
+  }
+  const doneTyping = typed >= total;
+  let cursorIdx = -1;
+  for (let i = 0; i < script.length; i++) {
+    if (typed > starts[i]) cursorIdx = i;
+  }
+  if (doneTyping) cursorIdx = script.length - 1;
+
+  const toneClass = (tone: Tone) =>
+    tone === "prompt" || tone === "ok"
+      ? "text-emerald-400"
+      : tone === "accent"
+        ? "text-blue-400"
+        : "text-zinc-500";
 
   return (
-    <div className="mk-card p-6 flex flex-col min-h-[420px]">
-      <div className="flex items-center justify-between mb-5">
-        <div className="font-mono text-[10px] tracking-wider text-zinc-500">
-          estimator — analyse en cours
-        </div>
+    <div className="mk-card p-0 overflow-hidden min-h-[420px] flex flex-col">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot" aria-hidden="true" />
+        <span className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-500">
+          ESTIMATOR · ANALYSE
+        </span>
       </div>
-
-      <div className="flex-1 font-mono text-[12.5px] leading-[1.7]">
-        {lines.slice(0, shown).map((line, idx) => (
-          <div key={idx} className={toneClass(line.tone)}>
-            {line.text}
-            {idx === shown - 1 && <span className="inline-block w-2 h-[1.1em] ml-1 bg-blue-400/80 align-text-bottom animate-pulse" />}
-          </div>
-        ))}
+      <div className="flex-1 p-5 font-mono text-[12.5px] leading-relaxed">
+        {script.map((l, idx) => {
+          if (idx > cursorIdx) return null;
+          const visible = Math.min(l.text.length, Math.max(0, typed - starts[idx]));
+          return (
+            <div key={idx} className={toneClass(l.tone)}>
+              <span>{l.text.slice(0, visible)}</span>
+              {idx === cursorIdx && <span className="caret" />}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
