@@ -23,6 +23,7 @@ type EstimatorFormProps = {
   initial?: Partial<EstimatorInputs>;
   disabled?: boolean;
   onSubmit: (inputs: EstimatorInputs) => void;
+  onModeChange?: () => void;
   feesPctByPlatform?: Partial<Record<Platform, number>>;
 };
 
@@ -30,6 +31,7 @@ export default function EstimatorForm({
   initial,
   disabled = false,
   onSubmit,
+  onModeChange,
   feesPctByPlatform,
 }: EstimatorFormProps) {
   const [selectedModel, setSelectedModel] = useState<CatalogModel | null>(null);
@@ -129,7 +131,11 @@ export default function EstimatorForm({
                 key={f.value}
                 type="button"
                 disabled={disabled}
-                onClick={() => setFlow(f.value)}
+                onClick={() => {
+                  if (f.value === flow) return;
+                  setFlow(f.value);
+                  onModeChange?.();
+                }}
                 className={
                   "chip py-2 text-[11px] text-zinc-500 disabled:opacity-50 " +
                   (flow === f.value ? "on" : "")
