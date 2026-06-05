@@ -235,11 +235,7 @@ export default function Estimator({
 
       {buyResult && buyResult.resale_where && (
         <FadeInSection delay={180}>
-          <EstimatorResaleWhere
-            result={buyResult}
-            selectedPlatform={effectivePlatform ?? buyResult.inputs.platform}
-            onSelect={setSelectedPlatform}
-          />
+          <EstimatorResaleWhere result={buyResult} />
         </FadeInSection>
       )}
 
