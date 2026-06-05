@@ -74,7 +74,7 @@ export default function Estimator({
       setSelectedPlatform(null);
       setState({ status: "evaluating", inputs });
       const evalStartedAt = Date.now();
-      const MIN_TERMINAL_MS = 2000;
+      const MIN_TERMINAL_MS = 2400;
       try {
         const result = await estimatorApi.evaluate(inputs);
         const elapsed = Date.now() - evalStartedAt;
