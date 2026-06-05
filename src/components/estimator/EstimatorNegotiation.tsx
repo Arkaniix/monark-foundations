@@ -4,6 +4,7 @@ import {
   type NegotiationKeywords,
   type NegotiationOffer,
   type Likelihood,
+  type StrategyMode,
 } from "./datasets";
 import GlossaryTooltip from "@/components/ui/GlossaryTooltip";
 import AnimatedCounter from "@/components/ui/AnimatedCounter";
@@ -13,6 +14,25 @@ const LIKELIHOOD_COLOR: Record<Likelihood, string> = {
   "modérée": "#F59E0B",
   "faible": "#71717A",
 };
+
+const STRATEGY_MODE_META: Record<StrategyMode, { label: string; color: string }> = {
+  secure_deal: { label: "ACHETER DIRECT", color: "#10B981" },
+  negotiate: { label: "NÉGOCIER", color: "#3B82F6" },
+  lowball: { label: "OFFRE BASSE", color: "#F59E0B" },
+  walk: { label: "PASSER TON TOUR", color: "#EF4444" },
+};
+
+function StrategyModeBadge({ mode }: { mode: StrategyMode }) {
+  const meta = STRATEGY_MODE_META[mode];
+  return (
+    <span
+      className="px-2 py-0.5 rounded-md font-mono text-[10px] tracking-wider border"
+      style={{ color: meta.color, borderColor: `${meta.color}55`, background: `${meta.color}12` }}
+    >
+      {meta.label}
+    </span>
+  );
+}
 
 type EstimatorNegotiationProps = {
   result: EstimatorResult;
@@ -49,7 +69,12 @@ export default function EstimatorNegotiation({ result }: EstimatorNegotiationPro
           </div>
 
           <div className="mt-2 pt-4 border-t border-white/5 flex flex-col gap-2">
-            <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500">STRATÉGIE</div>
+            <div className="flex items-center gap-2.5">
+              <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500">STRATÉGIE</div>
+              {negotiation.strategy_mode && (
+                <StrategyModeBadge mode={negotiation.strategy_mode} />
+              )}
+            </div>
             <p className="text-sm text-zinc-300 leading-relaxed">
               {negotiation.strategy_narrative}
             </p>
@@ -84,7 +109,10 @@ export default function EstimatorNegotiation({ result }: EstimatorNegotiationPro
             </div>
           </div>
 
-          <KeywordsBlock keywords={negotiation.keywords} />
+          <KeywordsBlock
+            keywords={negotiation.reflexes ?? negotiation.keywords}
+            contextual={Boolean(negotiation.reflexes)}
+          />
         </div>
       </div>
     </section>
@@ -146,14 +174,22 @@ function ArgumentRow({ argument }: { argument: NegotiationArgument }) {
   );
 }
 
-function KeywordsBlock({ keywords }: { keywords: NegotiationKeywords }) {
+function KeywordsBlock({
+  keywords,
+  contextual = false,
+}: {
+  keywords: NegotiationKeywords;
+  contextual?: boolean;
+}) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 flex flex-col gap-4">
       <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500">
         RÉFLEXES DE NÉGO
       </div>
       <p className="text-[11px] text-zinc-500 leading-relaxed">
-        Checklist générique — termes à repérer dans n'importe quelle annonce.
+        {contextual
+          ? "Points à vérifier pour cette annonce précise."
+          : "Checklist générique — termes à repérer dans n'importe quelle annonce."}
       </p>
 
       <div className="flex flex-col gap-3">

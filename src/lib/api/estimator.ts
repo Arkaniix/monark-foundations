@@ -42,6 +42,7 @@ import type {
   NegotiationOffer,
   NegotiationArgument,
   NegotiationPlan,
+  StrategyMode,
   CategoryMarketStats,
   TrendStatus,
   LiquidityStatus,
@@ -64,6 +65,8 @@ import type {
 } from "../../components/estimator/datasets";
 
 // ── Maps front → API ────────────────────────────────────────────────────────
+
+const VALID_STRATEGY_MODES: StrategyMode[] = ["secure_deal", "negotiate", "lowball", "walk"];
 
 const STATE_TO_CONDITION: Record<ItemState, string> = {
   Neuf: "new",
@@ -184,6 +187,8 @@ interface ApiEvaluateResponse {
     savings_compromise_eur?: number;
     arguments?: string[];
     tip?: string;
+    reflexes?: { opportunity?: string[]; red_flag?: string[] };
+    strategy_mode?: string;
   };
   resale?: {
     best_platform?: string | null;
@@ -523,6 +528,20 @@ function mapResponse(inputs: EstimatorInputs, resp: ApiEvaluateResponse): Estima
       weight: "modéré" as const,
     })),
     keywords: NEGOTIATION_KEYWORDS,
+    reflexes:
+      neg.reflexes &&
+      ((neg.reflexes.opportunity?.length ?? 0) > 0 ||
+        (neg.reflexes.red_flag?.length ?? 0) > 0)
+        ? {
+            opportunity: neg.reflexes.opportunity ?? [],
+            red_flag: neg.reflexes.red_flag ?? [],
+          }
+        : undefined,
+    strategy_mode:
+      typeof neg.strategy_mode === "string" &&
+      VALID_STRATEGY_MODES.includes(neg.strategy_mode as StrategyMode)
+        ? (neg.strategy_mode as StrategyMode)
+        : undefined,
     strategy_narrative:
       neg.tip ?? "Proposez sous le prix affiché : la négociation est la norme.",
     seller_motivation: neg.seller_motivation,

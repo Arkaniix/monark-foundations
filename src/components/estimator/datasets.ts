@@ -172,10 +172,16 @@ export type NegotiationKeywords = {
   red_flag: string[];
 };
 
+export type StrategyMode = "secure_deal" | "negotiate" | "lowball" | "walk";
+
 export type NegotiationPlan = {
   offers: NegotiationOffer[];
   arguments: NegotiationArgument[];
   keywords: NegotiationKeywords;
+  /** Réflexes contextuels calculés par le back (Phase 2). Fallback : keywords statiques. */
+  reflexes?: NegotiationKeywords;
+  /** Posture recommandée pour ce cas (Phase 2). */
+  strategy_mode?: StrategyMode;
   strategy_narrative: string;
   seller_motivation?: {
     level: string;
