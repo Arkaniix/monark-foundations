@@ -73,8 +73,16 @@ export default function Estimator({
       }
       setSelectedPlatform(null);
       setState({ status: "evaluating", inputs });
+      const evalStartedAt = Date.now();
+      const MIN_TERMINAL_MS = 2000;
       try {
         const result = await estimatorApi.evaluate(inputs);
+        const elapsed = Date.now() - evalStartedAt;
+        if (elapsed < MIN_TERMINAL_MS) {
+          await new Promise((resolve) =>
+            setTimeout(resolve, MIN_TERMINAL_MS - elapsed),
+          );
+        }
         setState({ status: "success", result });
         if (result.flow !== "sell") {
           history.add(inputs, result as EstimatorResult);
