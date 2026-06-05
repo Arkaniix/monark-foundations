@@ -4,6 +4,7 @@ import { ApiException } from "@/lib/api/client";
 import { EstimatorForm } from "@/components/estimator/EstimatorForm";
 import { EstimatorVerdict } from "@/components/estimator/EstimatorVerdict";
 import { EstimatorIdle } from "@/components/estimator/EstimatorIdle";
+import { EstimatorTerminal } from "@/components/estimator/EstimatorTerminal";
 import { EstimatorError } from "@/components/estimator/EstimatorError";
 import { EstimatorPositioning } from "@/components/estimator/EstimatorPositioning";
 import { EstimatorScoreBreakdown } from "@/components/estimator/EstimatorScoreBreakdown";
@@ -87,6 +88,12 @@ export default function Estimator({
     },
     [__devForceState, history],
   );
+
+  const handleModeChange = useCallback(() => {
+    if (__devForceState) return;
+    setState({ status: "idle" });
+    setSelectedPlatform(null);
+  }, [__devForceState]);
 
   const handleRetry = useCallback(() => {
     if (state.status === "error" && state.lastInputs) {
@@ -174,11 +181,14 @@ export default function Estimator({
             initial={initialInputs}
             disabled={formDisabled}
             onSubmit={handleSubmit}
+            onModeChange={handleModeChange}
             feesPctByPlatform={feesPctByPlatform}
           />
 
           {state.status === "idle" && <EstimatorIdle />}
-          {state.status === "evaluating" && <EstimatorIdle pending />}
+          {state.status === "evaluating" && (
+            <EstimatorTerminal inputs={state.inputs} />
+          )}
           {buyResult && <EstimatorVerdict result={buyResult} />}
           {sellResult && <EstimatorSellRecommendation result={sellResult} />}
           {state.status === "error" && (
