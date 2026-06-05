@@ -316,6 +316,7 @@ function parseDataQuality(factors: string[] | undefined): DataQuality {
 
 const RESALE_API_TO_FRONT: Record<string, Platform> = {
   leboncoin: "LBC",
+  vinted: "Vinted",
   ebay: "eBay",
 };
 
