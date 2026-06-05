@@ -19,6 +19,22 @@ const FLOWS: { value: "buy" | "sell"; label: string }[] = [
   { value: "sell", label: "Vente" },
 ];
 
+const MS_PER_DAY = 86_400_000;
+
+function todayISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function isoDaysAgo(days: number): string {
+  return new Date(Date.now() - days * MS_PER_DAY).toISOString().slice(0, 10);
+}
+
+function daysSinceISO(iso: string): number | undefined {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return undefined;
+  return Math.max(0, Math.floor((Date.now() - t) / MS_PER_DAY));
+}
+
 type EstimatorFormProps = {
   initial?: Partial<EstimatorInputs>;
   disabled?: boolean;
@@ -43,9 +59,9 @@ export default function EstimatorForm({
   const [platform, setPlatform] = useState<Platform>(
     initial?.platform ?? "LBC",
   );
-  const [listingAgeDays, setListingAgeDays] = useState<string>(
+  const [listingDate, setListingDate] = useState<string>(() =>
     typeof initial?.listing_age_days === "number"
-      ? String(initial.listing_age_days)
+      ? isoDaysAgo(initial.listing_age_days)
       : "",
   );
   const [acquisitionCost, setAcquisitionCost] = useState<string>(
@@ -102,9 +118,8 @@ export default function EstimatorForm({
       });
       return;
     }
-    const parsedAge = listingAgeDays.trim() === ""
-      ? undefined
-      : Number.parseInt(listingAgeDays, 10);
+    const parsedAge =
+      listingDate.trim() === "" ? undefined : daysSinceISO(listingDate);
     onSubmit({
       model: modelName,
       state,
@@ -183,18 +198,19 @@ export default function EstimatorForm({
         )}
 
         {flow === "buy" && (
-        <Field label="Âge de l'annonce (jours)">
+        <Field label="Date de mise en ligne">
           <input
-            type="number"
-            min={0}
-            value={listingAgeDays}
+            type="date"
+            max={todayISO()}
+            value={listingDate}
             disabled={disabled}
-            placeholder="optionnel"
-            onChange={(e) => setListingAgeDays(e.target.value)}
-            className="font-mono w-full bg-zinc-950 border border-white/10 rounded-md px-3 py-2.5 text-[14px] focus:outline-none focus:border-blue-500/60 ease-expo transition-colors disabled:opacity-50"
+            onChange={(e) => setListingDate(e.target.value)}
+            className="font-mono w-full bg-zinc-950 border border-white/10 rounded-md px-3 py-2.5 text-[14px] [color-scheme:dark] focus:outline-none focus:border-blue-500/60 ease-expo transition-colors disabled:opacity-50"
           />
           <div className="font-mono text-[10px] text-zinc-600 mt-1.5">
-            affine la marge de négociation
+            {listingDate
+              ? `en ligne depuis ${daysSinceISO(listingDate) ?? 0} j · affine la négociation`
+              : "optionnel · affine la marge de négociation"}
           </div>
         </Field>
         )}
