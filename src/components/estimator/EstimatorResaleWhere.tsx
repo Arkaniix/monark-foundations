@@ -21,14 +21,10 @@ const DELAY_SLOW = "#EF4444";
 
 type EstimatorResaleWhereProps = {
   result: EstimatorResult;
-  selectedPlatform: Platform;
-  onSelect: (platform: Platform) => void;
 };
 
 export default function EstimatorResaleWhere({
   result,
-  selectedPlatform,
-  onSelect,
 }: EstimatorResaleWhereProps) {
   const { resale_where } = result;
   if (!resale_where) return null;
@@ -50,9 +46,7 @@ export default function EstimatorResaleWhere({
           <PlatformCard
             key={p.platform}
             platform={p}
-            isCurrent={p.platform === selectedPlatform}
             isTopPick={p.is_top_pick}
-            onClick={() => onSelect(p.platform)}
           />
         ))}
       </div>
@@ -68,14 +62,10 @@ export default function EstimatorResaleWhere({
 
 function PlatformCard({
   platform,
-  isCurrent,
   isTopPick,
-  onClick,
 }: {
   platform: PlatformResaleStats;
-  isCurrent: boolean;
   isTopPick: boolean;
-  onClick: () => void;
 }) {
   const brandColor = PLATFORM_BRAND_COLORS[platform.platform];
   const marginSign = platform.net_margin_eur >= 0 ? "+" : "";
@@ -89,13 +79,9 @@ function PlatformCard({
         : DELAY_SLOW;
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={isCurrent}
-      aria-label={`Sélectionner la plateforme ${platform.platform}`}
+    <div
       className={
-        "mk-platform-card-button mk-card-flat-soft p-5 flex flex-col gap-4 text-left focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/50" +
+        "mk-card-flat-soft p-5 flex flex-col gap-4 text-left" +
         (isTopPick ? " best-ring" : "")
       }
     >
@@ -108,11 +94,7 @@ function PlatformCard({
           />
           <span
             className="font-mono text-[10.5px] tracking-[0.2em] truncate"
-            style={{
-              color: isCurrent ? "#d4d4d8" : "#a1a1aa",
-              borderBottom: isCurrent ? `1px solid ${brandColor}` : undefined,
-              paddingBottom: isCurrent ? 1 : 0,
-            }}
+            style={{ color: "#a1a1aa" }}
           >
             {platform.platform.toUpperCase()}
           </span>
@@ -189,7 +171,7 @@ function PlatformCard({
           {platform.narrative}
         </p>
       </div>
-    </button>
+    </div>
   );
 }
 
