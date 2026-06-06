@@ -140,6 +140,11 @@ export const DEFAULT_FILTERS: CatalogFilters = {
 
 export type DataQuality = "excellent" | "good" | "limited" | "insufficient";
 
+/** État de suffisance des données (Enrichissement #1 / 1a), dérivé backend de la médiane
+ *  confirmée-sold : reliable = médiane réelle ; insufficient = données mais pas de médiane
+ *  fiable ; no_data = aucune stat marché. Arbitre hasMarketData (prioritaire sur data_quality). */
+export type DataState = "reliable" | "insufficient" | "no_data";
+
 export type CatalogModel = {
   id: string;
   name: string;
@@ -163,6 +168,8 @@ export type CatalogModel = {
   // ── Signaux marché Phase 2 (optionnels ; null si pas de CMS) ──────────────
   /** Qualité de données. null = aucune stat marché. Pilote l'état "insuffisant". */
   data_quality?: DataQuality | null;
+  /** État confirmé-sold (1a). Prioritaire sur data_quality pour hasMarketData. */
+  state?: DataState | null;
   composite_price?: number | null;
   price_confidence?: number | null;
   sold_count_30d?: number | null;
@@ -171,8 +178,28 @@ export type CatalogModel = {
 };
 
 /** True si le modèle a des données marché exploitables (≠ absence / insuffisant). */
-export function hasMarketData(model: Pick<CatalogModel, "data_quality">): boolean {
+export function hasMarketData(
+  model: Pick<CatalogModel, "data_quality" | "state">,
+): boolean {
+  // 1a : on arbitre sur le state confirmé-sold quand il est présent.
+  if (model.state != null) return model.state === "reliable";
+  // Fallback (state absent — payload ancien/caché) : comportement data_quality d'origine.
   return model.data_quality != null && model.data_quality !== "insufficient";
+}
+
+/** Bande de confiance d'un modèle FIABLE, dérivée de price_confidence (C = volume +
+ *  fraîcheur + diversité des sources confirmées) et du volume confirmé 90 j. null si pas
+ *  de données fiables. Miroir des bandes backend : high (n≥8 & C≥0.70) / medium (n≥5 &
+ *  C≥0.50) / low. Seul "low" justifie un badge "confiance faible" ; high/medium = normal. */
+export function priceConfidenceLevel(
+  model: Pick<CatalogModel, "data_quality" | "state" | "price_confidence" | "sold_count_90d">,
+): "high" | "medium" | "low" | null {
+  if (!hasMarketData(model)) return null;
+  const c = model.price_confidence ?? 0;
+  const n = model.sold_count_90d ?? 0;
+  if (n >= 8 && c >= 0.7) return "high";
+  if (n >= 5 && c >= 0.5) return "medium";
+  return "low";
 }
 
 export type CatalogListResponse = {

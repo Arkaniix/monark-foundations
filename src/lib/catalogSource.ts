@@ -57,6 +57,7 @@ interface ApiModelListItem {
   sold_count_30d: number | null;
   sold_count_90d: number | null;
   data_quality: "excellent" | "good" | "limited" | "insufficient" | null;
+  state: "reliable" | "insufficient" | "no_data" | null;
 }
 
 interface ApiModelPage {
@@ -127,6 +128,7 @@ function mapApiModel(item: ApiModelListItem): CatalogModel {
     image_url: item.image_url ?? null,
     // Signaux Phase 2 (passe-plat)
     data_quality: item.data_quality ?? null,
+    state: item.state ?? null,
     composite_price: item.composite_price ?? null,
     price_confidence: item.price_confidence ?? null,
     sold_count_30d: item.sold_count_30d ?? null,

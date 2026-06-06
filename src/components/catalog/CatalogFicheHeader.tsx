@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ArrowLeft, Star, Calculator } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import type { CatalogModelDetail } from "./modelDetail";
-import { MANUFACTURER_DOT_COLOR, getScoreColor, hasMarketData } from "./datasets";
+import { MANUFACTURER_DOT_COLOR, getScoreColor, hasMarketData, priceConfidenceLevel } from "./datasets";
 
 type Props = {
   detail: CatalogModelDetail;
@@ -59,6 +59,14 @@ export default function CatalogFicheHeader({
           >
             SCORE {detail.score}
           </div>
+        )}
+        {priceConfidenceLevel(detail) === "low" && (
+          <span
+            className="font-mono text-[9.5px] tracking-wider text-zinc-500 border border-white/10 rounded px-1.5 py-0.5"
+            title="Confiance réduite : peu de ventes confirmées récentes"
+          >
+            CONFIANCE FAIBLE
+          </span>
         )}
         <div className="min-w-0">
           <div className="truncate text-[14px] font-medium leading-tight text-zinc-100">

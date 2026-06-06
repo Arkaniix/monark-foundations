@@ -55,6 +55,8 @@ interface ApiMarketSummary {
   price_p75: number | null;
   price_p90: number | null;
   median_days_to_sell: number | null;
+  // 1a : état de suffisance renvoyé par le backend (la fiche arbitre via le modèle liste).
+  state?: "reliable" | "insufficient" | "no_data" | null;
 }
 interface ApiHistoryPoint {
   date: string;
