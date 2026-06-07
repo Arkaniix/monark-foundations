@@ -212,6 +212,17 @@ export default function Estimator({
           </FadeInSection>
         )}
 
+      {buyResult && (
+        <FadeInSection delay={90}>
+          <div className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/[0.02] px-4 py-3">
+            <div className="font-mono text-[9.5px] tracking-[0.2em] text-zinc-500 mt-0.5 shrink-0">RAPPEL</div>
+            <p className="text-[12.5px] text-zinc-400 leading-relaxed">
+              Paie toujours via le paiement protégé de la plateforme. Tout virement, PayPal entre particuliers ou acompte hors plateforme est le scénario d'arnaque classique — refuse.
+            </p>
+          </div>
+        </FadeInSection>
+      )}
+
       {buyResult && buyResult.has_market_detail === false && (
         <FadeInSection delay={120}>
           <div className="mk-card p-6 flex flex-col gap-2">
