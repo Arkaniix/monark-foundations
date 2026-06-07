@@ -44,6 +44,8 @@ type EstimatorNegotiationProps = {
 export default function EstimatorNegotiation({ result }: EstimatorNegotiationProps) {
   const { negotiation } = result;
 
+  const isSecureDeal = negotiation.strategy_mode === "secure_deal";
+
   return (
     <section className="flex flex-col gap-5">
       <div className="flex items-center gap-3">
@@ -55,18 +57,26 @@ export default function EstimatorNegotiation({ result }: EstimatorNegotiationPro
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
         {/* Colonne gauche : offres tarifées */}
         <div className="lg:col-span-3 flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-6">
-          <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500">OFFRES TARIFÉES</div>
+          {isSecureDeal ? (
+            <p className="text-sm text-zinc-300 leading-relaxed">
+              Le prix tient face au marché — achète directement plutôt que de marchander. Sur un bon deal, négocier te fait surtout courir le risque de le perdre.
+            </p>
+          ) : (
+            <>
+              <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500">OFFRES TARIFÉES</div>
 
-          <div className="flex flex-col gap-3">
-            {negotiation.offers.length === 0 && (
-              <div className="text-[12.5px] text-zinc-500">
-                Aucune offre suggérée pour ce cas.
+              <div className="flex flex-col gap-3">
+                {negotiation.offers.length === 0 && (
+                  <div className="text-[12.5px] text-zinc-500">
+                    Aucune offre suggérée pour ce cas.
+                  </div>
+                )}
+                {negotiation.offers.map((offer, i) => (
+                  <OfferRow key={`${offer.type}-${i}`} offer={offer} />
+                ))}
               </div>
-            )}
-            {negotiation.offers.map((offer, i) => (
-              <OfferRow key={`${offer.type}-${i}`} offer={offer} />
-            ))}
-          </div>
+            </>
+          )}
 
           <div className="mt-2 pt-4 border-t border-white/5 flex flex-col gap-2">
             <div className="flex items-center gap-2.5">
@@ -100,14 +110,16 @@ export default function EstimatorNegotiation({ result }: EstimatorNegotiationPro
 
         {/* Colonne droite : arguments + mots-clés */}
         <div className="lg:col-span-2 flex flex-col gap-6">
-          <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 flex flex-col gap-4">
-            <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500">ARGUMENTS</div>
-            <div className="flex flex-col gap-3">
-              {negotiation.arguments.map((arg, i) => (
-                <ArgumentRow key={i} argument={arg} />
-              ))}
+          {!isSecureDeal && (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 flex flex-col gap-4">
+              <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500">ARGUMENTS</div>
+              <div className="flex flex-col gap-3">
+                {negotiation.arguments.map((arg, i) => (
+                  <ArgumentRow key={i} argument={arg} />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <KeywordsBlock
             keywords={negotiation.reflexes ?? negotiation.keywords}
@@ -193,22 +205,26 @@ function KeywordsBlock({
       </p>
 
       <div className="flex flex-col gap-3">
-        <div className="flex flex-col gap-2">
-          <div className="font-mono text-[9.5px] tracking-[0.2em] text-zinc-600">OPPORTUNITÉS</div>
-          <div className="flex flex-wrap gap-1.5">
-            {keywords.opportunity.map((kw) => (
-              <KeywordChip key={kw} word={kw} type="opportunity" />
-            ))}
+        {keywords.opportunity.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <div className="font-mono text-[9.5px] tracking-[0.2em] text-zinc-600">OPPORTUNITÉS</div>
+            <div className="flex flex-wrap gap-1.5">
+              {keywords.opportunity.map((kw) => (
+                <KeywordChip key={kw} word={kw} type="opportunity" />
+              ))}
+            </div>
           </div>
-        </div>
-        <div className="flex flex-col gap-2">
-          <div className="font-mono text-[9.5px] tracking-[0.2em] text-zinc-600">RED FLAGS</div>
-          <div className="flex flex-wrap gap-1.5">
-            {keywords.red_flag.map((kw) => (
-              <KeywordChip key={kw} word={kw} type="red_flag" />
-            ))}
+        )}
+        {keywords.red_flag.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <div className="font-mono text-[9.5px] tracking-[0.2em] text-zinc-600">RED FLAGS</div>
+            <div className="flex flex-wrap gap-1.5">
+              {keywords.red_flag.map((kw) => (
+                <KeywordChip key={kw} word={kw} type="red_flag" />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
