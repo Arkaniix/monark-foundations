@@ -147,31 +147,13 @@ export default function EstimatorPositioning({
               </div>
             )}
           </div>
-          <div className="mt-4 grid grid-cols-3 gap-3">
+          <div className="mt-4 grid grid-cols-2 gap-3">
             <div>
               <div className="font-mono text-[9.5px] tracking-wider text-zinc-600 mb-0.5">
                 MÉDIANE
               </div>
               <div className="font-mono text-[14px] text-zinc-100">
                 <AnimatedCounter value={result.percentile_distribution.p50} suffix=" €" decimals={0} />
-              </div>
-            </div>
-            <div>
-              <div className="font-mono text-[9.5px] tracking-wider text-zinc-600 mb-0.5">
-                7 J
-              </div>
-              <div
-                className="font-mono text-[14px]"
-                style={{
-                  color: trend.delta_7d_pct >= 0 ? "#10B981" : "#EF4444",
-                }}
-              >
-                <AnimatedCounter
-                  value={trend.delta_7d_pct}
-                  prefix={trend.delta_7d_pct >= 0 ? "+" : ""}
-                  suffix=" %"
-                  decimals={1}
-                />
               </div>
             </div>
             <div>
@@ -209,14 +191,17 @@ export default function EstimatorPositioning({
           statusTone={trendTone}
           datapoints={[
             {
-              label: "7 J",
-              value: `${trend.delta_7d_pct >= 0 ? "+" : ""}${trend.delta_7d_pct.toFixed(1)} %`,
-              tone: trend.delta_7d_pct >= 0 ? "positive" : "negative",
-            },
-            {
-              label: "30 J",
-              value: `${trend.delta_30d_pct >= 0 ? "+" : ""}${trend.delta_30d_pct.toFixed(1)} %`,
-              tone: trend.delta_30d_pct >= 0 ? "positive" : "negative",
+              label: "30 J · vs M-1",
+              value:
+                trend.status === "Indéterminée"
+                  ? "—"
+                  : `${trend.delta_30d_pct >= 0 ? "+" : ""}${trend.delta_30d_pct.toFixed(1)} %`,
+              tone:
+                trend.status === "Indéterminée"
+                  ? "muted"
+                  : trend.delta_30d_pct >= 0
+                    ? "positive"
+                    : "negative",
             },
           ]}
           narrative={trend.narrative}
@@ -248,12 +233,10 @@ export default function EstimatorPositioning({
                   : `${value_vs_new.decote_pct.toFixed(0)} %`,
               tone:
                 value_vs_new.decote_pct == null
-                  ? "neutral"
-                  : value_vs_new.decote_pct <= -20
+                  ? "muted"
+                  : value_vs_new.decote_pct > 0
                     ? "positive"
-                    : value_vs_new.decote_pct <= -10
-                      ? "neutral"
-                      : "negative",
+                    : "negative",
             },
             { label: "ÉTAT", value: result.inputs.state },
           ]}
