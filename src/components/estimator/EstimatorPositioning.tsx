@@ -1,5 +1,5 @@
 import { PercentileChart, Sparkline } from "@/components/ui";
-import { MarketStatCard } from "./MarketStatCard";
+import { MarketStatCard, type MarketStatusTone } from "./MarketStatCard";
 import GlossaryTooltip from "@/components/ui/GlossaryTooltip";
 import AnimatedCounter from "@/components/ui/AnimatedCounter";
 import { VERDICT_COLORS, type EstimatorResult } from "./datasets";
@@ -24,12 +24,14 @@ export default function EstimatorPositioning({
   const { trend, liquidity, value_vs_new } = result.category_market_stats;
   const position = result.percentile_position_pct;
 
-  const trendTone: "positive" | "neutral" | "negative" =
-    trend.delta_30d_pct >= 2
-      ? "positive"
-      : trend.delta_30d_pct <= -2
-        ? "negative"
-        : "neutral";
+  const trendTone: MarketStatusTone =
+    trend.status === "Indéterminée"
+      ? "muted"
+      : trend.delta_30d_pct >= 2
+        ? "positive"
+        : trend.delta_30d_pct <= -2
+          ? "negative"
+          : "neutral";
 
   const liquidityTone: "positive" | "neutral" | "negative" =
     liquidity.status === "Élevée"
@@ -38,11 +40,11 @@ export default function EstimatorPositioning({
         ? "neutral"
         : "negative";
 
-  const valueVsNewTone: "positive" | "neutral" | "negative" =
-    value_vs_new.status === "Forte"
-      ? "positive"
-      : value_vs_new.status === "Modérée"
-        ? "neutral"
+  const valueVsNewTone: MarketStatusTone =
+    value_vs_new.status === "Indisponible" || value_vs_new.decote_pct == null
+      ? "muted"
+      : value_vs_new.decote_pct > 0
+        ? "positive"
         : "negative";
 
   return (
@@ -65,6 +67,19 @@ export default function EstimatorPositioning({
           </div>
         )}
 
+      {value_vs_new.shortage_signal && (
+        <div
+          className="-mt-2 inline-flex items-center gap-1.5 self-start rounded border px-2 py-1 font-mono text-[9.5px] tracking-wider"
+          style={{ color: "#F59E0B", borderColor: "rgba(245,158,11,0.3)" }}
+        >
+          <span
+            className="w-1.5 h-1.5 rounded-full"
+            style={{ background: "#F59E0B" }}
+            aria-hidden="true"
+          />
+          PÉNURIE · OCCASION ≥ NEUF
+        </div>
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <div className="mk-card-flat-soft lg:col-span-3 p-5">
           <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500 mb-4">
@@ -74,7 +89,7 @@ export default function EstimatorPositioning({
             distribution={result.percentile_distribution}
             askPrice={result.inputs.ask_price_eur}
             color={verdictColor}
-            observationsLabel={`${result.data_quality.observations_count} obs · 180 j`}
+            observationsLabel={`${result.data_quality.observations_count} obs`}
             percentilePosition={result.percentile_position_pct}
             histogram={result.sold_histogram}
             chartHint="Densité réelle des ventes sold — chaque barre = nombre de transactions dans cette tranche de prix. Les queues révèlent deals et prix au-dessus du marché."
@@ -132,31 +147,13 @@ export default function EstimatorPositioning({
               </div>
             )}
           </div>
-          <div className="mt-4 grid grid-cols-3 gap-3">
+          <div className="mt-4 grid grid-cols-2 gap-3">
             <div>
               <div className="font-mono text-[9.5px] tracking-wider text-zinc-600 mb-0.5">
                 MÉDIANE
               </div>
               <div className="font-mono text-[14px] text-zinc-100">
                 <AnimatedCounter value={result.percentile_distribution.p50} suffix=" €" decimals={0} />
-              </div>
-            </div>
-            <div>
-              <div className="font-mono text-[9.5px] tracking-wider text-zinc-600 mb-0.5">
-                7 J
-              </div>
-              <div
-                className="font-mono text-[14px]"
-                style={{
-                  color: trend.delta_7d_pct >= 0 ? "#10B981" : "#EF4444",
-                }}
-              >
-                <AnimatedCounter
-                  value={trend.delta_7d_pct}
-                  prefix={trend.delta_7d_pct >= 0 ? "+" : ""}
-                  suffix=" %"
-                  decimals={1}
-                />
               </div>
             </div>
             <div>
@@ -194,14 +191,17 @@ export default function EstimatorPositioning({
           statusTone={trendTone}
           datapoints={[
             {
-              label: "7 J",
-              value: `${trend.delta_7d_pct >= 0 ? "+" : ""}${trend.delta_7d_pct.toFixed(1)} %`,
-              tone: trend.delta_7d_pct >= 0 ? "positive" : "negative",
-            },
-            {
-              label: "30 J",
-              value: `${trend.delta_30d_pct >= 0 ? "+" : ""}${trend.delta_30d_pct.toFixed(1)} %`,
-              tone: trend.delta_30d_pct >= 0 ? "positive" : "negative",
+              label: "30 J · vs M-1",
+              value:
+                trend.status === "Indéterminée"
+                  ? "—"
+                  : `${trend.delta_30d_pct >= 0 ? "+" : ""}${trend.delta_30d_pct.toFixed(1)} %`,
+              tone:
+                trend.status === "Indéterminée"
+                  ? "muted"
+                  : trend.delta_30d_pct >= 0
+                    ? "positive"
+                    : "negative",
             },
           ]}
           narrative={trend.narrative}
@@ -233,12 +233,10 @@ export default function EstimatorPositioning({
                   : `${value_vs_new.decote_pct.toFixed(0)} %`,
               tone:
                 value_vs_new.decote_pct == null
-                  ? "neutral"
-                  : value_vs_new.decote_pct <= -20
+                  ? "muted"
+                  : value_vs_new.decote_pct > 0
                     ? "positive"
-                    : value_vs_new.decote_pct <= -10
-                      ? "neutral"
-                      : "negative",
+                    : "negative",
             },
             { label: "ÉTAT", value: result.inputs.state },
           ]}
