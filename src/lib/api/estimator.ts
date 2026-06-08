@@ -174,7 +174,11 @@ interface ApiEvaluateResponse {
     sold_histogram?: { bin_min: number; bin_max: number; count: number }[] | null;
     positioning_basis?: string;
     new_price?: number | null;
+    new_price_reliable?: boolean;
+    used_to_new_ratio?: number | null;
+    shortage_signal?: boolean;
     discount_vs_new_pct?: number | null;
+    trend_30d_pct?: number | null;
   };
   trends?: { trend_7d_pct?: number | null; trend_30d_pct?: number | null; momentum?: string; momentum_label?: string; interpretation?: string };
   liquidity?: { score?: number; sold_30d?: number; active_listings?: number; interpretation?: string };
