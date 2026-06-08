@@ -1,7 +1,7 @@
 import GlossaryTooltip from "@/components/ui/GlossaryTooltip";
 import type { GlossaryKey } from "@/lib/glossary";
 
-export type MarketStatusTone = "positive" | "neutral" | "negative";
+export type MarketStatusTone = "positive" | "neutral" | "negative" | "muted";
 
 export type MarketStatDatapoint = {
   label: string;
@@ -22,6 +22,7 @@ const TONE_COLORS: Record<MarketStatusTone, string> = {
   positive: "#10B981",
   neutral: "#F59E0B",
   negative: "#EF4444",
+  muted: "#71717a",
 };
 
 /**
