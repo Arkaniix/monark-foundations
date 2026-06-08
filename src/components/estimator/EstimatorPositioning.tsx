@@ -227,13 +227,18 @@ export default function EstimatorPositioning({
           datapoints={[
             {
               label: "DÉCOTE",
-              value: `${value_vs_new.decote_pct.toFixed(0)} %`,
+              value:
+                value_vs_new.decote_pct == null
+                  ? "—"
+                  : `${value_vs_new.decote_pct.toFixed(0)} %`,
               tone:
-                value_vs_new.decote_pct <= -20
-                  ? "positive"
-                  : value_vs_new.decote_pct <= -10
-                    ? "neutral"
-                    : "negative",
+                value_vs_new.decote_pct == null
+                  ? "neutral"
+                  : value_vs_new.decote_pct <= -20
+                    ? "positive"
+                    : value_vs_new.decote_pct <= -10
+                      ? "neutral"
+                      : "negative",
             },
             { label: "ÉTAT", value: result.inputs.state },
           ]}
