@@ -235,6 +235,7 @@ export type ResaleWhenRecommendation = {
 };
 
 export type EstimatorResult = {
+  raw?: unknown;
   inputs: EstimatorInputs;
   flow?: "buy" | "sell";
   model_name: string;
