@@ -1,5 +1,5 @@
 import { PercentileChart, Sparkline } from "@/components/ui";
-import { MarketStatCard } from "./MarketStatCard";
+import { MarketStatCard, type MarketStatusTone } from "./MarketStatCard";
 import GlossaryTooltip from "@/components/ui/GlossaryTooltip";
 import AnimatedCounter from "@/components/ui/AnimatedCounter";
 import { VERDICT_COLORS, type EstimatorResult } from "./datasets";
@@ -24,12 +24,14 @@ export default function EstimatorPositioning({
   const { trend, liquidity, value_vs_new } = result.category_market_stats;
   const position = result.percentile_position_pct;
 
-  const trendTone: "positive" | "neutral" | "negative" =
-    trend.delta_30d_pct >= 2
-      ? "positive"
-      : trend.delta_30d_pct <= -2
-        ? "negative"
-        : "neutral";
+  const trendTone: MarketStatusTone =
+    trend.status === "Indéterminée"
+      ? "muted"
+      : trend.delta_30d_pct >= 2
+        ? "positive"
+        : trend.delta_30d_pct <= -2
+          ? "negative"
+          : "neutral";
 
   const liquidityTone: "positive" | "neutral" | "negative" =
     liquidity.status === "Élevée"
@@ -38,11 +40,11 @@ export default function EstimatorPositioning({
         ? "neutral"
         : "negative";
 
-  const valueVsNewTone: "positive" | "neutral" | "negative" =
-    value_vs_new.status === "Forte"
-      ? "positive"
-      : value_vs_new.status === "Modérée"
-        ? "neutral"
+  const valueVsNewTone: MarketStatusTone =
+    value_vs_new.status === "Indisponible" || value_vs_new.decote_pct == null
+      ? "muted"
+      : value_vs_new.decote_pct > 0
+        ? "positive"
         : "negative";
 
   return (
@@ -74,7 +76,7 @@ export default function EstimatorPositioning({
             distribution={result.percentile_distribution}
             askPrice={result.inputs.ask_price_eur}
             color={verdictColor}
-            observationsLabel={`${result.data_quality.observations_count} obs · 180 j`}
+            observationsLabel={`${result.data_quality.observations_count} obs`}
             percentilePosition={result.percentile_position_pct}
             histogram={result.sold_histogram}
             chartHint="Densité réelle des ventes sold — chaque barre = nombre de transactions dans cette tranche de prix. Les queues révèlent deals et prix au-dessus du marché."
