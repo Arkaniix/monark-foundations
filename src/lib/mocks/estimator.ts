@@ -185,7 +185,7 @@ function buildArguments(marketStats: CategoryMarketStats, state: ItemState, perc
   else if (delta30 >= 3) args.push({ category: "marché", label: `Marché ${category} en hausse (+${delta30.toFixed(1)} %) — peu d'argument prix, joue plutôt la rapidité.`, weight: "faible" });
   else args.push({ category: "marché", label: `Marché ${category} stable — pas d'argument tendance, oriente la négo sur l'état ou le timing.`, weight: "faible" });
 
-  const decoteVsNew = Math.abs(marketStats.value_vs_new.decote_pct);
+  const decoteVsNew = Math.abs(marketStats.value_vs_new.decote_pct ?? 0);
   if (state === "Pour pièces" || state === "Acceptable") args.push({ category: "état", label: `État ${state} (-${decoteVsNew.toFixed(0)} % vs neuf) — décote justifiée, base ta négo sur l'usure et les imperfections visibles.`, weight: "fort" });
   else if (state === "Bon") args.push({ category: "état", label: `État ${state} (-${decoteVsNew.toFixed(0)} % vs neuf) — argument modéré, mentionne les traces d'usage usuelles.`, weight: "modéré" });
   else args.push({ category: "état", label: `État ${state} — peu d'argument sur l'usure, oriente sur la concurrence ou le marché.`, weight: "faible" });
