@@ -17,6 +17,7 @@ import { EstimatorHistoryDrawer } from "@/components/estimator/EstimatorHistoryD
 import { EstimatorCapBlockModal } from "@/components/estimator/EstimatorCapBlockModal";
 import { useEstimatorHistory } from "@/lib/estimatorHistory";
 import FadeInSection from "@/components/ui/FadeInSection";
+import { downloadEstimationCsv } from "@/lib/exportEstimation";
 import type {
   EstimatorInputs,
   EstimatorResult,
