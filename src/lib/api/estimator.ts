@@ -131,6 +131,7 @@ interface ApiResalePlatform {
   margin_eur?: number;
   net_margin_pct?: number;
   est_sell_days?: number;
+  est_sell_days_basis?: string;
   composite_score?: number;
   is_recommended?: boolean;
   note?: string | null;
