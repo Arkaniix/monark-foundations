@@ -53,12 +53,9 @@ function PlatformCard({
   hasProfit: boolean;
 }) {
   const brandColor = PLATFORM_BRAND_COLORS[platform.platform];
+  const sellDays = platform.est_sell_days ?? 0;
   const delayColor =
-    platform.est_sell_days <= 7
-      ? DELAY_FAST
-      : platform.est_sell_days <= 14
-        ? DELAY_MEDIUM
-        : DELAY_SLOW;
+    sellDays <= 7 ? DELAY_FAST : sellDays <= 14 ? DELAY_MEDIUM : DELAY_SLOW;
   const margin = platform.net_margin_eur ?? 0;
   const marginColor = margin >= 0 ? MARGIN_POSITIVE : MARGIN_NEGATIVE;
   const marginSign = margin >= 0 ? "+" : "";
@@ -123,7 +120,7 @@ function PlatformCard({
             className="font-mono text-[15px] font-medium tabular-nums"
             style={{ color: delayColor }}
           >
-            ~<AnimatedCounter value={platform.est_sell_days} suffix=" j" decimals={0} />
+            ~<AnimatedCounter value={sellDays} suffix=" j" decimals={0} />
           </div>
         </div>
         {hasProfit && (
