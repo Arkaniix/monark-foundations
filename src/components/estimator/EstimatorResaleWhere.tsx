@@ -151,12 +151,23 @@ function PlatformCard({
           <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">
             DÉLAI
           </div>
-          <div
-            className="font-mono text-[15px] font-medium tabular-nums"
-            style={{ color: delayColor }}
-          >
-            ~<AnimatedCounter value={delayDays} suffix=" j" decimals={0} />
-          </div>
+          {platform.expected_delay_days == null ||
+          platform.est_sell_days_basis === "unavailable" ? (
+            <div
+              className="font-mono text-[15px] font-medium tabular-nums"
+              style={{ color: "#71717a" }}
+              title="Pas de donnée de délai pour cette plateforme"
+            >
+              —
+            </div>
+          ) : (
+            <div
+              className="font-mono text-[15px] font-medium tabular-nums"
+              style={{ color: delayColor }}
+            >
+              ~<AnimatedCounter value={delayDays} suffix=" j" decimals={0} />
+            </div>
+          )}
         </div>
       </div>
 
