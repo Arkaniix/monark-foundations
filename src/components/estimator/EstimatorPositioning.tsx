@@ -67,6 +67,19 @@ export default function EstimatorPositioning({
           </div>
         )}
 
+      {value_vs_new.shortage_signal && (
+        <div
+          className="-mt-2 inline-flex items-center gap-1.5 self-start rounded border px-2 py-1 font-mono text-[9.5px] tracking-wider"
+          style={{ color: "#F59E0B", borderColor: "rgba(245,158,11,0.3)" }}
+        >
+          <span
+            className="w-1.5 h-1.5 rounded-full"
+            style={{ background: "#F59E0B" }}
+            aria-hidden="true"
+          />
+          PÉNURIE · OCCASION ≥ NEUF
+        </div>
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <div className="mk-card-flat-soft lg:col-span-3 p-5">
           <div className="font-mono text-[10px] tracking-[0.2em] text-zinc-500 mb-4">
