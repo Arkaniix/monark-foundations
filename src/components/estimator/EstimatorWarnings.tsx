@@ -100,8 +100,9 @@ function AntiScamCard({ warning: w }: { warning: EstimatorWarning }) {
             </p>
             {typeof w.delta_vs_market_pct === "number" && (
               <div className="font-mono text-[11px] text-zinc-400 tabular-nums">
-                {w.delta_vs_market_pct > 0 ? "+" : ""}
-                {w.delta_vs_market_pct}% vs marché
+                {w.delta_vs_market_pct < 0
+                  ? `${Math.abs(w.delta_vs_market_pct)}% sous le marché`
+                  : `${w.delta_vs_market_pct}% au-dessus du marché`}
               </div>
             )}
           </div>
