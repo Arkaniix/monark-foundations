@@ -270,6 +270,7 @@ interface ApiSellPlatform {
   net_margin_pct?: number;
   is_recommended?: boolean;
   est_sell_days?: number;
+  est_sell_days_basis?: string;
   data_confidence?: "low" | "medium" | "high";
   note?: string | null;
   tip?: string | null;
