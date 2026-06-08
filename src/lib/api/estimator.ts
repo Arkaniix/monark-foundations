@@ -176,7 +176,7 @@ interface ApiEvaluateResponse {
     new_price?: number | null;
     discount_vs_new_pct?: number | null;
   };
-  trends?: { trend_7d_pct?: number; trend_30d_pct?: number; momentum?: string; interpretation?: string };
+  trends?: { trend_7d_pct?: number | null; trend_30d_pct?: number | null; momentum?: string; momentum_label?: string; interpretation?: string };
   liquidity?: { score?: number; sold_30d?: number; active_listings?: number; interpretation?: string };
   negotiation?: {
     offers?: ApiNegotiationOffer[];
