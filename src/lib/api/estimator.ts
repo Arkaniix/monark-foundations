@@ -768,10 +768,14 @@ function mapSellResponse(
   const sold = resp.market?.sold_distribution;
   const median = Math.round(sold?.p50 ?? resp.market?.median_price ?? 0);
 
-  const delta30 = resp.trends?.trend_30d_pct ?? 0;
-  const trend_status = trendStatus(delta30, resp.trends?.momentum);
+  const sellDelta30raw =
+    resp.market?.trend_30d_pct ?? resp.projection?.trend_30d_pct;
+  const sellDelta30 =
+    typeof sellDelta30raw === "number" ? sellDelta30raw : 0;
+  const trend_status: TrendStatus =
+    sellDelta30raw == null ? "Indéterminée" : trendStatus(sellDelta30);
   const trend_narrative =
-    resp.trends?.interpretation ?? "Tendance marché récente.";
+    resp.projection?.narrative ?? "Tendance marché récente.";
 
   const strategies: SellStrategy[] = SELL_TIERS.map((t) =>
     mapSellStrategy(t, resp.strategies?.[t]),
@@ -794,7 +798,9 @@ function mapSellResponse(
         typeof p.net_margin_eur === "number"
           ? Math.round(p.net_margin_eur)
           : undefined,
-      est_sell_days: p.est_sell_days ?? 0,
+      est_sell_days:
+        typeof p.est_sell_days === "number" ? p.est_sell_days : null,
+      est_sell_days_basis: p.est_sell_days_basis,
       is_recommended: Boolean(p.is_recommended),
       data_confidence: p.data_confidence,
       narrative: p.tip ?? p.note ?? "",
