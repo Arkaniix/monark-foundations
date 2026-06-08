@@ -310,6 +310,7 @@ export type SellPlatform = {
 };
 
 export type SellResult = {
+  raw?: unknown;
   flow: "sell";
   inputs: EstimatorInputs;
   model_name: string;
