@@ -86,7 +86,7 @@ export type VerdictModifiers = {
   value_vs_new: number;
 };
 
-export type TrendStatus = "En hausse" | "Stable" | "En baisse";
+export type TrendStatus = "En hausse" | "Stable" | "En baisse" | "Indéterminée";
 
 export type MarketTrendStats = {
   delta_7d_pct: number;
@@ -104,11 +104,12 @@ export type MarketLiquidityStats = {
   narrative: string;
 };
 
-export type ValueVsNewStatus = "Forte" | "Modérée" | "Faible";
+export type ValueVsNewStatus = "Forte" | "Modérée" | "Faible" | "Indisponible";
 
 export type MarketValueVsNewStats = {
-  decote_pct: number;
+  decote_pct: number | null;
   status: ValueVsNewStatus;
+  shortage_signal?: boolean;
   narrative: string;
 };
 
@@ -197,7 +198,8 @@ export type PlatformResaleStats = {
   estimated_price_eur: number;
   fees_pct: number;
   net_margin_eur: number;
-  expected_delay_days: number;
+  expected_delay_days: number | null;
+  est_sell_days_basis?: string;
   recommendation_score: number;
   is_top_pick: boolean;
   narrative: string;
@@ -299,7 +301,8 @@ export type SellPlatform = {
   seller_net_price: number;
   fees_pct: number;
   net_margin_eur?: number;
-  est_sell_days: number;
+  est_sell_days: number | null;
+  est_sell_days_basis?: string;
   is_recommended: boolean;
   data_confidence?: "low" | "medium" | "high";
   narrative: string;

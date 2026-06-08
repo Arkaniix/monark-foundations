@@ -131,6 +131,7 @@ interface ApiResalePlatform {
   margin_eur?: number;
   net_margin_pct?: number;
   est_sell_days?: number;
+  est_sell_days_basis?: string;
   composite_score?: number;
   is_recommended?: boolean;
   note?: string | null;
@@ -173,9 +174,13 @@ interface ApiEvaluateResponse {
     sold_histogram?: { bin_min: number; bin_max: number; count: number }[] | null;
     positioning_basis?: string;
     new_price?: number | null;
+    new_price_reliable?: boolean;
+    used_to_new_ratio?: number | null;
+    shortage_signal?: boolean;
     discount_vs_new_pct?: number | null;
+    trend_30d_pct?: number | null;
   };
-  trends?: { trend_7d_pct?: number; trend_30d_pct?: number; momentum?: string; interpretation?: string };
+  trends?: { trend_7d_pct?: number | null; trend_30d_pct?: number | null; momentum?: string; momentum_label?: string; interpretation?: string };
   liquidity?: { score?: number; sold_30d?: number; active_listings?: number; interpretation?: string };
   negotiation?: {
     offers?: ApiNegotiationOffer[];
@@ -269,6 +274,7 @@ interface ApiSellPlatform {
   net_margin_pct?: number;
   is_recommended?: boolean;
   est_sell_days?: number;
+  est_sell_days_basis?: string;
   data_confidence?: "low" | "medium" | "high";
   note?: string | null;
   tip?: string | null;
@@ -285,6 +291,7 @@ interface AutocompleteItem {
 function trendStatus(delta30: number, momentum?: string): TrendStatus {
   if (momentum) {
     const m = momentum.toLowerCase();
+    if (m.includes("indetermin")) return "Indéterminée";
     if (m.includes("up") || m.includes("haus") || m.includes("rising")) return "En hausse";
     if (m.includes("down") || m.includes("bais") || m.includes("fall")) return "En baisse";
     if (m.includes("stable")) return "Stable";
@@ -352,7 +359,9 @@ function mapResaleWhere(
       estimated_price_eur: Math.round(p.listing_price ?? p.recommended_price ?? 0),
       fees_pct: p.seller_fees_pct ?? 0,
       net_margin_eur: Math.round(p.net_margin_eur ?? p.margin_eur ?? 0),
-      expected_delay_days: p.est_sell_days ?? 0,
+      expected_delay_days:
+        typeof p.est_sell_days === "number" ? p.est_sell_days : null,
+      est_sell_days_basis: p.est_sell_days_basis,
       recommendation_score: Math.round(p.composite_score ?? 0),
       is_top_pick: Boolean(p.is_recommended),
       narrative: p.tip ?? p.note ?? "",
@@ -472,16 +481,32 @@ function mapResponse(inputs: EstimatorInputs, resp: ApiEvaluateResponse): Estima
     };
 
   const liqScore = resp.liquidity?.score ?? 0;
-  const delta30 = resp.trends?.trend_30d_pct ?? 0;
+  const delta30raw = resp.trends?.trend_30d_pct;
+  const delta30 = typeof delta30raw === "number" ? delta30raw : 0;
+  const trendIndeterminate =
+    resp.trends?.momentum === "indeterminate" || delta30raw == null;
   const delta7 = resp.trends?.trend_7d_pct ?? 0;
-  const decote = resp.market?.discount_vs_new_pct ?? 0;
+  const newReliable =
+    resp.market?.new_price_reliable === true &&
+    resp.market?.discount_vs_new_pct != null;
+  const decote =
+    typeof resp.market?.discount_vs_new_pct === "number"
+      ? resp.market.discount_vs_new_pct
+      : null;
+  const shortageSignal = resp.market?.shortage_signal === true;
 
   const category_market_stats: CategoryMarketStats = {
     trend: {
       delta_7d_pct: delta7,
       delta_30d_pct: delta30,
-      status: trendStatus(delta30, resp.trends?.momentum),
-      narrative: resp.trends?.interpretation ?? "Tendance marché récente.",
+      status: trendIndeterminate
+        ? "Indéterminée"
+        : trendStatus(delta30, resp.trends?.momentum),
+      narrative:
+        resp.trends?.interpretation ??
+        (trendIndeterminate
+          ? "Tendance indéterminée."
+          : "Tendance marché récente."),
     },
     liquidity: {
       sales_30d: resp.liquidity?.sold_30d ?? 0,
@@ -491,11 +516,13 @@ function mapResponse(inputs: EstimatorInputs, resp: ApiEvaluateResponse): Estima
     },
     value_vs_new: {
       decote_pct: decote,
-      status: valueVsNewStatus(decote),
-      narrative:
-        decote > 0
-          ? `Décote de ${Math.abs(Math.round(decote))}% vs le neuf.`
-          : "Pas de référence neuve fiable.",
+      status: newReliable ? valueVsNewStatus(decote as number) : "Indisponible",
+      shortage_signal: shortageSignal,
+      narrative: !newReliable
+        ? "Pas de référence neuve fiable."
+        : (decote as number) >= 0
+          ? `Décote de ${Math.round(decote as number)}% vs le neuf.`
+          : `Prix ${Math.abs(Math.round(decote as number))}% au-dessus du neuf.`,
     },
   };
 
@@ -741,10 +768,14 @@ function mapSellResponse(
   const sold = resp.market?.sold_distribution;
   const median = Math.round(sold?.p50 ?? resp.market?.median_price ?? 0);
 
-  const delta30 = resp.trends?.trend_30d_pct ?? 0;
-  const trend_status = trendStatus(delta30, resp.trends?.momentum);
+  const sellDelta30raw =
+    resp.market?.trend_30d_pct ?? resp.projection?.trend_30d_pct;
+  const sellDelta30 =
+    typeof sellDelta30raw === "number" ? sellDelta30raw : 0;
+  const trend_status: TrendStatus =
+    sellDelta30raw == null ? "Indéterminée" : trendStatus(sellDelta30);
   const trend_narrative =
-    resp.trends?.interpretation ?? "Tendance marché récente.";
+    resp.projection?.narrative ?? "Tendance marché récente.";
 
   const strategies: SellStrategy[] = SELL_TIERS.map((t) =>
     mapSellStrategy(t, resp.strategies?.[t]),
@@ -767,7 +798,9 @@ function mapSellResponse(
         typeof p.net_margin_eur === "number"
           ? Math.round(p.net_margin_eur)
           : undefined,
-      est_sell_days: p.est_sell_days ?? 0,
+      est_sell_days:
+        typeof p.est_sell_days === "number" ? p.est_sell_days : null,
+      est_sell_days_basis: p.est_sell_days_basis,
       is_recommended: Boolean(p.is_recommended),
       data_confidence: p.data_confidence,
       narrative: p.tip ?? p.note ?? "",
