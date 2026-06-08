@@ -71,12 +71,9 @@ function PlatformCard({
   const marginSign = platform.net_margin_eur >= 0 ? "+" : "";
   const marginColor =
     platform.net_margin_eur >= 0 ? MARGIN_POSITIVE : MARGIN_NEGATIVE;
+  const delayDays = platform.expected_delay_days ?? 0;
   const delayColor =
-    platform.expected_delay_days <= 7
-      ? DELAY_FAST
-      : platform.expected_delay_days <= 14
-        ? DELAY_MEDIUM
-        : DELAY_SLOW;
+    delayDays <= 7 ? DELAY_FAST : delayDays <= 14 ? DELAY_MEDIUM : DELAY_SLOW;
 
   return (
     <div
@@ -158,7 +155,7 @@ function PlatformCard({
             className="font-mono text-[15px] font-medium tabular-nums"
             style={{ color: delayColor }}
           >
-            ~<AnimatedCounter value={platform.expected_delay_days} suffix=" j" decimals={0} />
+            ~<AnimatedCounter value={delayDays} suffix=" j" decimals={0} />
           </div>
         </div>
       </div>
