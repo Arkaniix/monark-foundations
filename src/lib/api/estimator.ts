@@ -713,7 +713,9 @@ export async function evaluate(
         throw err;
       }
     }
-    return mapSellResponse(inputs, resp);
+    const sellResult = mapSellResponse(inputs, resp);
+    sellResult.raw = resp;
+    return sellResult;
   }
 
   const body: Record<string, unknown> = {
@@ -737,6 +739,7 @@ export async function evaluate(
   const result = mapResponse(inputs, resp);
   result.flow = "buy";
   result.price_history_30d = history;
+  result.raw = resp;
   return result;
 }
 

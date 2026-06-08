@@ -17,6 +17,7 @@ import { EstimatorHistoryDrawer } from "@/components/estimator/EstimatorHistoryD
 import { EstimatorCapBlockModal } from "@/components/estimator/EstimatorCapBlockModal";
 import { useEstimatorHistory } from "@/lib/estimatorHistory";
 import FadeInSection from "@/components/ui/FadeInSection";
+import { downloadEstimationCsv } from "@/lib/exportEstimation";
 import type {
   EstimatorInputs,
   EstimatorResult,
@@ -166,7 +167,16 @@ export default function Estimator({
   return (
     <>
     <div className="flex flex-col gap-10">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-3">
+        {state.status === "success" && (
+          <button
+            type="button"
+            onClick={() => downloadEstimationCsv(state.result)}
+            className="inline-flex items-center gap-2 rounded-md border border-white/10 px-3 py-2 font-mono text-[10.5px] tracking-wider text-zinc-400 hover:text-zinc-200 hover:border-white/20 ease-expo transition-colors"
+          >
+            EXPORT CSV
+          </button>
+        )}
         <EstimatorHistoryButton
           count={history.count}
           onClick={() => setIsDrawerOpen(true)}
