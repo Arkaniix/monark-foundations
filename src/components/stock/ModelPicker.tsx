@@ -68,7 +68,8 @@ export default function ModelPicker({ value, onChange, onSwitchToCustom, showMed
           <div className="min-w-0 flex-1 text-left">
             <div className="truncate text-[13px] text-zinc-100">{value.name}</div>
             <div className="font-mono text-[10px] tracking-[0.1em] text-zinc-500">
-              {value.category} · médiane {value.median_eur} €
+              {value.category}
+              {showMedian ? ` · médiane ${value.median_eur} €` : ""}
             </div>
           </div>
           <span className="flex-shrink-0 font-mono text-[10px] text-zinc-500">CHANGER</span>
