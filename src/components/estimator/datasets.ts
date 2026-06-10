@@ -132,6 +132,8 @@ export type BuyResaleLandmarks = {
   ceiling_buy_eur: number;
   optimal_buy_eur: number;
   floor_resale_eur: number;
+  /** Origine du repère achat : "marge" (cible R/1.30) ou "marché" (fallback percentile). */
+  basis?: "marge" | "marché" | null;
 };
 
 export type DataQuality = {
@@ -242,6 +244,8 @@ export type EstimatorResult = {
   category: HardwareCategory;
   verdict: Verdict;
   confidence_pct: number;
+  /** État de suffisance des données renvoyé par le moteur. */
+  confidence_state?: "sufficient" | "insufficient" | null;
   fair_price_eur: number;
   net_margin_eur: number;
   percentile_distribution: PercentileDistribution;
