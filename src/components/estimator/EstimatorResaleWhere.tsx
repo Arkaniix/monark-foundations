@@ -98,12 +98,11 @@ function PlatformCard({
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
         {platform.data_confidence === "low" && (
-          <span
-            className="font-mono text-[9.5px] tracking-wider text-zinc-500 border border-white/10 rounded px-1.5 py-0.5"
-            title="Marge dérivée d'un proxy, fiabilité réduite"
-          >
-            DONNÉE ESTIMÉE
-          </span>
+          <GlossaryTooltip term="donneeEstimee">
+            <span className="font-mono text-[9.5px] tracking-wider text-zinc-500 border border-white/10 rounded px-1.5 py-0.5">
+              DONNÉE ESTIMÉE
+            </span>
+          </GlossaryTooltip>
         )}
         {isTopPick && (
           <div className="flex items-center gap-1.5 flex-shrink-0">
