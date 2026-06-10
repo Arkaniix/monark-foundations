@@ -138,7 +138,13 @@ export default function EstimatorVerdict({ result }: EstimatorVerdictProps) {
         <LandmarkCell
           label="ACHAT OPTIMAL"
           value={<AnimatedCounter value={landmarks.optimal_buy_eur} suffix=" €" />}
-          hint="prix idéal"
+          hint={
+            landmarks.basis === "marché"
+              ? "repère marché"
+              : landmarks.basis === "marge"
+                ? "cible marge"
+                : "prix idéal"
+          }
           color="#10B981"
           termKey="optimal"
         />

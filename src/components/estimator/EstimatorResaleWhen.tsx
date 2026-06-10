@@ -139,9 +139,13 @@ function TimingRow({
         </div>
         <div
           className="font-mono text-[14px] font-medium tabular-nums"
-          style={{ color: delayColor }}
+          style={{ color: option.delay_available === false ? "#71717A" : delayColor }}
         >
-          ~<AnimatedCounter value={option.expected_delay_days} suffix=" j" decimals={0} />
+          {option.delay_available === false ? (
+            <span className="text-zinc-500">indispo.</span>
+          ) : (
+            <>~<AnimatedCounter value={option.expected_delay_days} suffix=" j" decimals={0} /></>
+          )}
         </div>
         <div
           className="font-mono text-[14px] font-medium tabular-nums"
@@ -211,9 +215,13 @@ function TimingRow({
             <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">DÉLAI</div>
             <div
               className="font-mono text-[14px] font-medium tabular-nums"
-              style={{ color: delayColor }}
+              style={{ color: option.delay_available === false ? "#71717A" : delayColor }}
             >
-              ~<AnimatedCounter value={option.expected_delay_days} suffix=" j" decimals={0} />
+              {option.delay_available === false ? (
+                <span className="text-zinc-500">indispo.</span>
+              ) : (
+                <>~<AnimatedCounter value={option.expected_delay_days} suffix=" j" decimals={0} /></>
+              )}
             </div>
           </div>
           <div className="flex flex-col gap-1">

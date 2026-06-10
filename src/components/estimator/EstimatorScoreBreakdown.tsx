@@ -17,7 +17,7 @@ type EstimatorScoreBreakdownProps = {
 export default function EstimatorScoreBreakdown({
   result,
 }: EstimatorScoreBreakdownProps) {
-  const { score_breakdown, data_quality, confidence_pct, inputs } = result;
+  const { score_breakdown, data_quality, confidence_pct, confidence_state, inputs } = result;
   const { base, trend, liquidity, value_vs_new, total_adjusted, total } = score_breakdown;
   const isClamped = base + total_adjusted !== total;
   const scoreColor = getScoreColor(total);
@@ -134,6 +134,14 @@ export default function EstimatorScoreBreakdown({
                 </span>
                 <span className="font-mono text-[14px] text-zinc-500">%</span>
               </div>
+              {confidence_state === "insufficient" && (
+                <div
+                  className="mt-1.5 font-mono text-[10px] leading-relaxed"
+                  style={{ color: "#F59E0B" }}
+                >
+                  Données insuffisantes — estimation à confiance réduite.
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -407,6 +407,7 @@ function mapResaleWhen(
     timing,
     expected_price_eur: Math.round(sc?.sell_price ?? 0),
     expected_delay_days: sc?.est_days ?? 0,
+    delay_available: typeof sc?.est_days === "number",
     likelihood: mapLikelihood(sc?.likelihood),
     net_margin_eur: Math.round(sc?.margin_eur ?? 0),
     is_top_pick: isTop,
