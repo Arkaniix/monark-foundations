@@ -36,7 +36,7 @@ type EstimatorHistoryDrawerProps = {
   onClose: () => void;
   entries: EstimatorHistoryEntry[];
   cap: number;
-  onLoad: (inputs: EstimatorInputs) => void;
+  onLoad: (entry: EstimatorHistoryEntry) => void;
   onReevaluate: (inputs: EstimatorInputs) => void;
   onDelete: (id: string) => void;
   onClearAll: () => void;
@@ -152,9 +152,10 @@ export default function EstimatorHistoryDrawer({
                 key={entry.id}
                 entry={entry}
                 onLoad={() => {
-                  onLoad(entry.inputs);
+                  onLoad(entry);
                   onClose();
                 }}
+
                 onReevaluate={() => {
                   onReevaluate(entry.inputs);
                   onClose();
