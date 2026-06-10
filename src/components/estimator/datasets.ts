@@ -14,7 +14,7 @@ export type Platform = "LBC" | "Vinted" | "eBay";
 export const PLATFORMS: Platform[] = ["LBC", "Vinted", "eBay"];
 
 export const PLATFORM_FEES_PCT: Record<Platform, number> = {
-  LBC: 12,
+  LBC: 0,
   Vinted: 0,
   eBay: 10.42,
 };
@@ -58,6 +58,7 @@ export type EstimatorInputs = {
   listing_age_days?: number;
   flow?: "buy" | "sell";
   acquisition_cost?: number;
+  fee_overrides?: Partial<Record<Platform, number>>;
 };
 
 export type PercentileDistribution = {

@@ -757,6 +757,15 @@ export async function evaluate(
   if (typeof inputs.listing_age_days === "number") {
     body.listing_age_days = inputs.listing_age_days;
   }
+  if (inputs.fee_overrides) {
+    const fo: Record<string, { seller_fees_pct: number }> = {};
+    for (const [p, pct] of Object.entries(inputs.fee_overrides)) {
+      if (typeof pct === "number") {
+        fo[PLATFORM_TO_API[p as Platform]] = { seller_fees_pct: pct };
+      }
+    }
+    if (Object.keys(fo).length > 0) body.fee_overrides = fo;
+  }
   const [resp, history] = await Promise.all([
     apiFetch<ApiEvaluateResponse>(ENDPOINTS.ESTIMATOR_EVALUATE, {
       method: "POST",
