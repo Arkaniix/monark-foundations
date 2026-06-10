@@ -257,7 +257,15 @@ interface ApiEvaluateResponse {
     data_source?: string;
   };
 }
-
+  what_if?: {
+    reference_prices?: {
+      basis?: "margin" | "percentile";
+      buy_ceiling?: number;
+      optimal_buy?: number;
+      sell_floor?: number;
+    };
+  };
+}
 
 interface ApiSellStrategy {
   listing_price?: number;
