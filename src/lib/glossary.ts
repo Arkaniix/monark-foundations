@@ -148,7 +148,7 @@ export const GLOSSARY = {
   frais: {
     title: "Frais de plateforme",
     body: "% prélevé par la plateforme sur le prix de vente. Inclut commission + service paiement quand applicable.",
-    example: "LBC 12 % · Vinted 0 % · eBay 10,42 %.",
+    example: "LBC 0 % · Vinted 0 % · eBay 10,42 %.",
   },
   timingRapide: {
     title: "Timing rapide",
