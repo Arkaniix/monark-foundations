@@ -225,6 +225,8 @@ export type ResaleWhenOption = {
   timing: ResaleTiming;
   expected_price_eur: number;
   expected_delay_days: number;
+  /** false si le moteur n'a pas de délai fiable pour ce timing. */
+  delay_available?: boolean;
   likelihood: Likelihood;
   net_margin_eur: number;
   is_top_pick: boolean;

@@ -143,7 +143,7 @@ export default function EstimatorPositioning({
               </div>
             ) : (
               <div className="w-full text-center font-mono text-[10.5px] text-zinc-600">
-                Données sold insuffisantes sur 30 j
+                Données sold insuffisantes sur 90 j
               </div>
             )}
           </div>
