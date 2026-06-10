@@ -256,7 +256,6 @@ interface ApiEvaluateResponse {
     data_confidence?: "high" | "medium" | "low";
     data_source?: string;
   };
-}
   what_if?: {
     reference_prices?: {
       basis?: "margin" | "percentile";
