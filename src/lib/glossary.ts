@@ -148,7 +148,7 @@ export const GLOSSARY = {
   frais: {
     title: "Frais de plateforme",
     body: "% prélevé par la plateforme sur le prix de vente. Inclut commission + service paiement quand applicable.",
-    example: "LBC 12% · Vinted 5% · eBay 18%.",
+    example: "LBC 12 % · Vinted 0 % · eBay 10,42 %.",
   },
   timingRapide: {
     title: "Timing rapide",
@@ -169,6 +169,28 @@ export const GLOSSARY = {
   scoreBase: {
     title: "Score base",
     body: "Composante du score liée à la marge potentielle absolue. Plus le delta entre prix d'achat et prix de revente est élevé, plus la base est haute.",
+  },
+  fairPrice: {
+    title: "Fair · juste prix",
+    body: "Le prix « juste » du modèle d'après les ventes réelles observées : ce que ça vaut vraiment aujourd'hui. C'est la référence à partir de laquelle la marge et les seuils d'achat sont calculés.",
+    example: "Acheter sous le fair = potentiel de marge. Au-dessus = tu paies trop cher.",
+  },
+  confiance: {
+    title: "Confiance · 0–100 %",
+    body: "À quel point l'estimation est fiable, selon la quantité et la fraîcheur des ventes observées. Plus il y a de données récentes et propres, plus la confiance monte.",
+    example: "95 % = beaucoup de ventes récentes. Sous ~60 % = peu de données, à prendre avec prudence.",
+  },
+  donneeEstimee: {
+    title: "Donnée estimée",
+    body: "Cette marge n'a pas été mesurée directement sur la plateforme : elle est déduite d'un repère proche (autre plateforme ou modèle voisin). Fiabilité plus faible qu'une donnée native — à confirmer avant de t'engager.",
+  },
+  ajustementNet: {
+    title: "Ajustement net",
+    body: "Somme des trois signaux (tendance + liquidité + décote) une fois pondérée par la confiance. Quand les données sont faibles, l'impact des signaux est réduit pour ne pas sur-réagir. C'est ce qui s'ajoute au score de base.",
+  },
+  fiabilite: {
+    title: "Fiabilité de la vente",
+    body: "Probabilité que la vente aboutisse dans le délai indiqué, à ce prix. Élevée = quasi sûr. Modérée = plausible mais pas garanti. Faible = pari.",
   },
 } as const satisfies Record<string, GlossaryEntry>;
 
