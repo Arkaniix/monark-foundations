@@ -159,7 +159,7 @@ interface ApiEvaluateResponse {
   score: {
     overall: number;
     verdict: string;
-    confidence: { score: number; factors?: string[] };
+    confidence: { score: number; level?: string; factors?: string[]; state?: "sufficient" | "insufficient" };
     base_score?: number;
     percentile_rank?: number;
     modifiers?: { trend?: number; liquidity?: number; value_vs_new?: number; total_raw?: number; total_adjusted?: number };
@@ -257,6 +257,7 @@ interface ApiEvaluateResponse {
     data_source?: string;
   };
 }
+
 
 interface ApiSellStrategy {
   listing_price?: number;
