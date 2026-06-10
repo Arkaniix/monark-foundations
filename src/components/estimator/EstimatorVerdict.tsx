@@ -21,6 +21,7 @@ export default function EstimatorVerdict({ result }: EstimatorVerdictProps) {
   const label = VERDICT_DISPLAY_LABELS[result.verdict];
   const glow = VERDICT_GLOW_CLASS[result.verdict];
   const {
+    inputs,
     net_margin_eur,
     fair_price_eur,
     modifiers,
@@ -29,6 +30,11 @@ export default function EstimatorVerdict({ result }: EstimatorVerdictProps) {
     landmarks,
     platform_fees_pct,
   } = result;
+
+  const askBelowOptimal =
+    typeof inputs.ask_price_eur === "number" &&
+    inputs.ask_price_eur > 0 &&
+    inputs.ask_price_eur < landmarks.optimal_buy_eur;
 
   const marginSign = net_margin_eur >= 0 ? "+" : "";
   const marginColor = net_margin_eur >= 0 ? "#10B981" : "#EF4444";
@@ -139,11 +145,13 @@ export default function EstimatorVerdict({ result }: EstimatorVerdictProps) {
           label="ACHAT OPTIMAL"
           value={<AnimatedCounter value={landmarks.optimal_buy_eur} suffix=" €" />}
           hint={
-            landmarks.basis === "marché"
-              ? "repère marché"
-              : landmarks.basis === "marge"
-                ? "cible marge"
-                : "prix idéal"
+            askBelowOptimal
+              ? "✓ prix demandé déjà dessous"
+              : landmarks.basis === "marché"
+                ? "repère marché"
+                : landmarks.basis === "marge"
+                  ? "cible marge"
+                  : "prix idéal"
           }
           color="#10B981"
           termKey="optimal"
@@ -156,6 +164,16 @@ export default function EstimatorVerdict({ result }: EstimatorVerdictProps) {
           termKey="plancherEstimator"
         />
       </div>
+      {askBelowOptimal && (
+        <div
+          className="font-mono text-[11px] leading-relaxed -mt-2"
+          style={{ color: "#10B981" }}
+        >
+          Le prix demandé ({inputs.ask_price_eur} €) est déjà sous l'achat optimal —
+          c'est l'affaire. Ces trois repères sont les seuils de marge du modèle, pas un
+          prix à viser sur cette annonce.
+        </div>
+      )}
     </div>
   );
 }
