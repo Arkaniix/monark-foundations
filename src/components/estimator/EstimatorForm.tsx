@@ -69,6 +69,16 @@ export default function EstimatorForm({
       ? String(initial.acquisition_cost)
       : "",
   );
+  const [feesOpen, setFeesOpen] = useState<boolean>(false);
+  const [feeOverrides, setFeeOverrides] = useState<Record<Platform, string>>(() =>
+    PLATFORMS.reduce(
+      (acc, p) => {
+        acc[p] = String(PLATFORM_FEES_PCT[p]);
+        return acc;
+      },
+      {} as Record<Platform, string>,
+    ),
+  );
 
   // Pré-remplissage (re-load depuis l'historique) : retrouve le modèle dans le catalogue.
   useEffect(() => {
@@ -120,6 +130,13 @@ export default function EstimatorForm({
     }
     const parsedAge =
       listingDate.trim() === "" ? undefined : daysSinceISO(listingDate);
+    const feeOv: Partial<Record<Platform, number>> = {};
+    for (const p of PLATFORMS) {
+      const v = Number.parseFloat(feeOverrides[p]);
+      if (Number.isFinite(v) && v >= 0 && v !== PLATFORM_FEES_PCT[p]) {
+        feeOv[p] = v;
+      }
+    }
     onSubmit({
       model: modelName,
       state,
@@ -129,6 +146,7 @@ export default function EstimatorForm({
       ...(typeof parsedAge === "number" && Number.isFinite(parsedAge) && parsedAge >= 0
         ? { listing_age_days: parsedAge }
         : {}),
+      ...(Object.keys(feeOv).length > 0 ? { fee_overrides: feeOv } : {}),
     });
   };
 
@@ -250,6 +268,49 @@ export default function EstimatorForm({
             ))}
           </div>
         </Field>
+
+        {flow === "buy" && (
+          <div>
+            <button
+              type="button"
+              onClick={() => setFeesOpen((v) => !v)}
+              className="flex w-full items-center justify-between font-mono text-[10px] tracking-wider text-zinc-500 hover:text-zinc-300 ease-expo transition-colors"
+            >
+              <span>FRAIS DE REVENTE (AVANCÉ)</span>
+              <span className="text-zinc-600">{feesOpen ? "−" : "+"}</span>
+            </button>
+            {feesOpen && (
+              <div className="mt-3 flex flex-col gap-2">
+                {PLATFORMS.map((p) => (
+                  <div key={p} className="flex items-center gap-3">
+                    <span className="font-mono text-[11px] text-zinc-400 w-16">{p}</span>
+                    <div className="relative flex-1">
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        inputMode="decimal"
+                        value={feeOverrides[p]}
+                        disabled={disabled}
+                        onChange={(e) =>
+                          setFeeOverrides((prev) => ({ ...prev, [p]: e.target.value }))
+                        }
+                        className="font-mono w-full bg-zinc-950 border border-white/10 rounded-md pl-3 pr-7 py-2 text-[13px] focus:outline-none focus:border-blue-500/60 ease-expo transition-colors disabled:opacity-50"
+                      />
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[11px] text-zinc-600">
+                        %
+                      </span>
+                    </div>
+                  </div>
+                ))}
+                <div className="font-mono text-[10px] text-zinc-600 mt-0.5">
+                  Tes frais vendeur réels par plateforme — recalcule marges et verdict.
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <button
           type="button"
