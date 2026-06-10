@@ -16,7 +16,7 @@ export const PLATFORMS: Platform[] = ["LBC", "Vinted", "eBay"];
 export const PLATFORM_FEES_PCT: Record<Platform, number> = {
   LBC: 12,
   Vinted: 0,
-  eBay: 18,
+  eBay: 10.42,
 };
 
 export type ItemState =

@@ -127,7 +127,7 @@ function PlatformCard({
 
       <div className="font-mono text-[10px] text-zinc-600 -mt-2">
         <AnimatedCounter value={platform.estimated_price_eur} suffix=" €" decimals={0} /> brut ·{" "}
-        <AnimatedCounter value={platform.fees_pct} suffix=" %" decimals={0} /> frais
+        <AnimatedCounter value={platform.fees_pct} suffix=" %" decimals={Number.isInteger(platform.fees_pct) ? 0 : 2} /> frais
       </div>
 
       <div className="grid grid-cols-2 gap-3">
