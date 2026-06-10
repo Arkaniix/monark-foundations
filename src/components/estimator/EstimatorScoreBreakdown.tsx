@@ -44,7 +44,7 @@ export default function EstimatorScoreBreakdown({
             </div>
 
             <div className="flex flex-col gap-2.5">
-              <BreakdownRow label="Tendance" hint="14 j" value={trend} signed termKey="trend30d" />
+              <BreakdownRow label="Tendance" hint="30 j" value={trend} signed termKey="trend30d" />
               <BreakdownRow label="Liquidité" hint="rotation marché" value={liquidity} signed termKey="liquidity" />
               <BreakdownRow label="Décote vs neuf" hint="état" value={value_vs_new} signed termKey="decoteVsNeuf" />
               <div className="h-px bg-white/10 my-1" />

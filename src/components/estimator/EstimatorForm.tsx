@@ -163,7 +163,7 @@ export default function EstimatorForm({
         </Field>
 
         <Field label="Modèle">
-          <ModelPicker value={selectedModel} onChange={setSelectedModel} />
+          <ModelPicker value={selectedModel} onChange={setSelectedModel} showMedian={false} />
         </Field>
 
         <Field label="État">

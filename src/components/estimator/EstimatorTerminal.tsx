@@ -25,7 +25,7 @@ export default function EstimatorTerminal({ inputs }: { inputs?: EstimatorInputs
     { text: "✓ comparables appariés", tone: "ok" },
     { text: "→ exclusion ebay_active · asking ≠ sold", tone: "dim" },
     { text: "→ médiane · IQR · dispersion", tone: "dim" },
-    { text: "→ trend 14 j · pente", tone: "dim" },
+    { text: "→ trend 30 j · pente", tone: "dim" },
     { text: "→ liquidité catégorie · 30 j", tone: "dim" },
     { text: "→ modificateur état · décote vs neuf", tone: "dim" },
     { text: "→ frais plateforme · marge nette", tone: "dim" },
