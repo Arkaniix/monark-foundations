@@ -8,9 +8,10 @@ type Props = {
   value: CatalogModel | null;
   onChange: (next: CatalogModel | null) => void;
   onSwitchToCustom?: (initialName: string) => void;
+  showMedian?: boolean;
 };
 
-export default function ModelPicker({ value, onChange, onSwitchToCustom }: Props) {
+export default function ModelPicker({ value, onChange, onSwitchToCustom, showMedian = true }: Props) {
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
   const [allModels, setAllModels] = useState<CatalogModel[]>([]);
