@@ -15,7 +15,7 @@ import { EstimatorWarnings } from "@/components/estimator/EstimatorWarnings";
 import { EstimatorHistoryButton } from "@/components/estimator/EstimatorHistoryButton";
 import { EstimatorHistoryDrawer } from "@/components/estimator/EstimatorHistoryDrawer";
 import { EstimatorCapBlockModal } from "@/components/estimator/EstimatorCapBlockModal";
-import { useEstimatorHistory } from "@/lib/estimatorHistory";
+import { useEstimatorHistory, type EstimatorHistoryEntry } from "@/lib/estimatorHistory";
 import FadeInSection from "@/components/ui/FadeInSection";
 import { downloadEstimationCsv } from "@/lib/exportEstimation";
 import type {
@@ -112,10 +112,12 @@ export default function Estimator({
     }
   }, [state, handleSubmit]);
 
-  const handleLoadFromHistory = useCallback((inputs: EstimatorInputs) => {
-    setPrefilledInputs(inputs);
-    setState({ status: "idle" });
+  const handleLoadFromHistory = useCallback((entry: EstimatorHistoryEntry) => {
+    setSelectedPlatform(null);
+    setPrefilledInputs(undefined);
+    setState({ status: "success", result: entry.result });
   }, []);
+
 
   const handleReevaluateFromHistory = useCallback(
     (inputs: EstimatorInputs) => {
