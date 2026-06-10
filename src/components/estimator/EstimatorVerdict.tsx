@@ -104,31 +104,43 @@ export default function EstimatorVerdict({ result }: EstimatorVerdictProps) {
           <span className="font-mono font-medium" style={{ color: marginColor }}>
             <AnimatedCounter value={net_margin_eur} prefix={marginSign} suffix=" €" />
           </span>
-          {" · Fair "}
+          {" · "}
+          <GlossaryTooltip term="fairPrice"><span>Fair</span></GlossaryTooltip>{" "}
           <span className="font-mono text-zinc-200">
             <AnimatedCounter value={fair_price_eur} suffix=" €" />
           </span>
-          {" · Frais "}
+          {" · "}
+          <GlossaryTooltip term="frais"><span>Frais</span></GlossaryTooltip>{" "}
           <span className="font-mono text-zinc-200">
             <AnimatedCounter value={platform_fees_pct} suffix=" %" />
           </span>
         </div>
 
-        <ConfidenceGauge value={confidence_pct} color={color} />
+        <GlossaryTooltip term="confiance">
+          <span className="inline-flex">
+            <ConfidenceGauge value={confidence_pct} color={color} />
+          </span>
+        </GlossaryTooltip>
 
         <div className="flex flex-wrap justify-center gap-1.5 mt-2">
-          <Pill
-            label={`Trend ${modifiers.trend_14d >= 0 ? "+" : ""}${modifiers.trend_14d}`}
-            color={modifiers.trend_14d >= 0 ? "#10B981" : "#EF4444"}
-          />
-          <Pill
-            label={`Liquidité ${modifiers.liquidity_mod >= 0 ? "+" : ""}${modifiers.liquidity_mod}`}
-            color={modifiers.liquidity_mod >= 0 ? "#10B981" : "#EF4444"}
-          />
-          <Pill
-            label={`Décote ${modifiers.value_vs_new >= 0 ? "+" : ""}${modifiers.value_vs_new}`}
-            color={modifiers.value_vs_new >= 0 ? "#10B981" : "#EF4444"}
-          />
+          <GlossaryTooltip term="trend30d">
+            <Pill
+              label={`Trend ${modifiers.trend_14d >= 0 ? "+" : ""}${modifiers.trend_14d}`}
+              color={modifiers.trend_14d >= 0 ? "#10B981" : "#EF4444"}
+            />
+          </GlossaryTooltip>
+          <GlossaryTooltip term="liquidity">
+            <Pill
+              label={`Liquidité ${modifiers.liquidity_mod >= 0 ? "+" : ""}${modifiers.liquidity_mod}`}
+              color={modifiers.liquidity_mod >= 0 ? "#10B981" : "#EF4444"}
+            />
+          </GlossaryTooltip>
+          <GlossaryTooltip term="decoteVsNeuf">
+            <Pill
+              label={`Décote ${modifiers.value_vs_new >= 0 ? "+" : ""}${modifiers.value_vs_new}`}
+              color={modifiers.value_vs_new >= 0 ? "#10B981" : "#EF4444"}
+            />
+          </GlossaryTooltip>
         </div>
       </div>
 

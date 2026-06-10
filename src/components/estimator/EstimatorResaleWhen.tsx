@@ -65,7 +65,9 @@ export default function EstimatorResaleWhen({
           <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">
             <GlossaryTooltip term="margeNette" position="bottom"><span>MARGE NETTE</span></GlossaryTooltip>
           </div>
-          <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">FIABILITÉ</div>
+          <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">
+            <GlossaryTooltip term="fiabilite"><span>FIABILITÉ</span></GlossaryTooltip>
+          </div>
           <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">STRATÉGIE</div>
         </div>
 
@@ -241,7 +243,9 @@ function TimingRow({
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">FIABILITÉ</div>
+            <div className="font-mono text-[9.5px] tracking-wider text-zinc-600">
+              <GlossaryTooltip term="fiabilite"><span>FIABILITÉ</span></GlossaryTooltip>
+            </div>
             <div>
               <span
                 className="px-1.5 py-0.5 rounded font-mono text-[10.5px] tracking-wider border"

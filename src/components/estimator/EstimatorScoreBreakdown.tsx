@@ -49,7 +49,7 @@ export default function EstimatorScoreBreakdown({
               <BreakdownRow label="Décote vs neuf" hint="état" value={value_vs_new} signed termKey="decoteVsNeuf" />
               <div className="h-px bg-white/10 my-1" />
               <BreakdownRow label="Score de base" hint="position prix" value={base} termKey="scoreBase" />
-              <BreakdownRow label="Ajustement net" hint="pondéré confiance" value={total_adjusted} signed />
+              <BreakdownRow label="Ajustement net" hint="pondéré confiance" value={total_adjusted} signed termKey="ajustementNet" />
               <BreakdownRow label="Score final" value={total} final termKey="score" />
             </div>
 
@@ -91,7 +91,7 @@ export default function EstimatorScoreBreakdown({
                   <span className="font-mono text-zinc-100">
                     {data_quality.observations_count}
                   </span>{" "}
-                  observations sold composite ·{" "}
+                  <GlossaryTooltip term="observations"><span>observations sold composite</span></GlossaryTooltip> ·{" "}
                   <span className="text-zinc-500">180 j</span>
                 </span>
               </div>
@@ -123,7 +123,7 @@ export default function EstimatorScoreBreakdown({
 
             <div className="mt-4 pt-4 border-t border-white/5">
               <div className="font-mono text-[9.5px] tracking-wider text-zinc-500 mb-2">
-                CONFIANCE GLOBALE
+                <GlossaryTooltip term="confiance"><span>CONFIANCE GLOBALE</span></GlossaryTooltip>
               </div>
               <div className="flex items-baseline gap-1">
                 <span
