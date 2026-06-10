@@ -598,6 +598,12 @@ function mapResponse(inputs: EstimatorInputs, resp: ApiEvaluateResponse): Estima
     category: API_CAT_TO_FRONT[resp.model?.category ?? ""] ?? "GPU",
     verdict,
     confidence_pct: Math.round((resp.score.confidence?.score ?? 0) * 100),
+    confidence_state:
+      resp.score.confidence?.state === "insufficient"
+        ? "insufficient"
+        : resp.score.confidence?.state === "sufficient"
+          ? "sufficient"
+          : null,
     fair_price_eur: fair,
     net_margin_eur,
     percentile_distribution: distribution,
@@ -625,13 +631,26 @@ function mapResponse(inputs: EstimatorInputs, resp: ApiEvaluateResponse): Estima
       total: score_total,
     },
     landmarks: {
-      ceiling_buy_eur: Math.round(neg.max_price ?? ask),
-      optimal_buy_eur: Math.round(neg.compromise_offer ?? ask * 0.91),
-      floor_resale_eur: Math.round(
-        typeof selectedResale?.seller_net_price === "number"
-          ? selectedResale.seller_net_price
-          : fairNet,
+      ceiling_buy_eur: Math.round(
+        resp.what_if?.reference_prices?.buy_ceiling ?? neg.max_price ?? ask,
       ),
+      optimal_buy_eur: Math.round(
+        resp.what_if?.reference_prices?.optimal_buy ??
+          neg.compromise_offer ??
+          ask * 0.91,
+      ),
+      floor_resale_eur: Math.round(
+        resp.what_if?.reference_prices?.sell_floor ??
+          (typeof selectedResale?.seller_net_price === "number"
+            ? selectedResale.seller_net_price
+            : fairNet),
+      ),
+      basis:
+        resp.what_if?.reference_prices?.basis === "margin"
+          ? "marge"
+          : resp.what_if?.reference_prices?.basis === "percentile"
+            ? "marché"
+            : null,
     },
     data_quality: parseDataQuality(resp.score.confidence?.factors),
 
