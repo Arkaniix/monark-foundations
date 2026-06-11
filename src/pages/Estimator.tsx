@@ -41,11 +41,17 @@ export type EstimatorState =
 type EstimatorPageProps = {
   __devForceState?: EstimatorState;
   initialModelFromQuery?: string;
+  initialPriceFromQuery?: number;
+  initialConditionFromQuery?: string;
+  initialPlatformFromQuery?: string;
 };
 
 export default function Estimator({
   __devForceState,
   initialModelFromQuery,
+  initialPriceFromQuery,
+  initialConditionFromQuery,
+  initialPlatformFromQuery,
 }: EstimatorPageProps = {}) {
   const [state, setState] = useState<EstimatorState>(
     __devForceState ?? { status: "idle" },
@@ -59,7 +65,31 @@ export default function Estimator({
     EstimatorInputs | undefined
   >(
     initialModelFromQuery
-      ? { model: initialModelFromQuery, state: "Bon", ask_price_eur: 0, platform: "LBC" }
+      ? {
+          model: initialModelFromQuery,
+          state:
+            initialConditionFromQuery === "neuf"
+              ? "Neuf"
+              : initialConditionFromQuery === "comme-neuf"
+                ? "Comme neuf"
+                : initialConditionFromQuery === "correct"
+                  ? "Acceptable"
+                  : initialConditionFromQuery === "a-reparer"
+                    ? "Pour pièces"
+                    : "Bon",
+          ask_price_eur:
+            typeof initialPriceFromQuery === "number" &&
+            Number.isFinite(initialPriceFromQuery) &&
+            initialPriceFromQuery > 0
+              ? Math.round(initialPriceFromQuery)
+              : 0,
+          platform:
+            initialPlatformFromQuery === "vinted"
+              ? "Vinted"
+              : initialPlatformFromQuery === "ebay"
+                ? "eBay"
+                : "LBC",
+        }
       : undefined,
   );
 
