@@ -24,7 +24,7 @@ export default function FooterSection() {
           <ul className="space-y-2 text-[12.5px] text-zinc-400">
             <li><a className="hover:text-zinc-100" href="#">Mentions légales</a></li>
             <li><a className="hover:text-zinc-100" href="#">CGU</a></li>
-            <li><a className="hover:text-zinc-100" href="#">Confidentialité</a></li>
+            <li><a className="hover:text-zinc-100" href="/confidentialite">Confidentialité</a></li>
             <li><a className="hover:text-zinc-100" href="#">Contact</a></li>
           </ul>
         </div>

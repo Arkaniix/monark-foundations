@@ -400,7 +400,7 @@ export default function AuthCard() {
                     </span>
                   </span>
                   <span className="text-[12.5px] text-zinc-400 leading-snug">
-                    J'accepte les <span className="text-blue-400 hover:text-blue-300 underline-offset-2 hover:underline cursor-pointer">CGU</span> et la <span className="text-blue-400 hover:text-blue-300 underline-offset-2 hover:underline cursor-pointer">politique de confidentialité</span>.
+                    J'accepte les <span className="text-blue-400 hover:text-blue-300 underline-offset-2 hover:underline cursor-pointer">CGU</span> et la <a href="/confidentialite" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline-offset-2 hover:underline">politique de confidentialité</a>.
                   </span>
                 </label>
                 {errAccept && (
