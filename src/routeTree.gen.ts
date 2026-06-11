@@ -15,6 +15,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RepairRouteImport } from './routes/repair'
 import { Route as EstimatorRouteImport } from './routes/estimator'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CreditsRouteImport } from './routes/credits'
 import { Route as ConfidentialiteRouteImport } from './routes/confidentialite'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -61,6 +62,11 @@ const EstimatorRoute = EstimatorRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreditsRoute = CreditsRouteImport.update({
+  id: '/credits',
+  path: '/credits',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConfidentialiteRoute = ConfidentialiteRouteImport.update({
@@ -157,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/catalogue': typeof CatalogueRoute
   '/confidentialite': typeof ConfidentialiteRoute
+  '/credits': typeof CreditsRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
   '/repair': typeof RepairRoute
@@ -182,6 +189,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/catalogue': typeof CatalogueRoute
   '/confidentialite': typeof ConfidentialiteRoute
+  '/credits': typeof CreditsRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
   '/repair': typeof RepairRoute
@@ -208,6 +216,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/catalogue': typeof CatalogueRoute
   '/confidentialite': typeof ConfidentialiteRoute
+  '/credits': typeof CreditsRoute
   '/dashboard': typeof DashboardRoute
   '/estimator': typeof EstimatorRoute
   '/repair': typeof RepairRoute
@@ -235,6 +244,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/catalogue'
     | '/confidentialite'
+    | '/credits'
     | '/dashboard'
     | '/estimator'
     | '/repair'
@@ -260,6 +270,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/catalogue'
     | '/confidentialite'
+    | '/credits'
     | '/dashboard'
     | '/estimator'
     | '/repair'
@@ -285,6 +296,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/catalogue'
     | '/confidentialite'
+    | '/credits'
     | '/dashboard'
     | '/estimator'
     | '/repair'
@@ -311,6 +323,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CatalogueRoute: typeof CatalogueRoute
   ConfidentialiteRoute: typeof ConfidentialiteRoute
+  CreditsRoute: typeof CreditsRoute
   DashboardRoute: typeof DashboardRoute
   EstimatorRoute: typeof EstimatorRoute
   RepairRoute: typeof RepairRoute
@@ -374,6 +387,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/credits': {
+      id: '/credits'
+      path: '/credits'
+      fullPath: '/credits'
+      preLoaderRoute: typeof CreditsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/confidentialite': {
@@ -503,6 +523,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CatalogueRoute: CatalogueRoute,
   ConfidentialiteRoute: ConfidentialiteRoute,
+  CreditsRoute: CreditsRoute,
   DashboardRoute: DashboardRoute,
   EstimatorRoute: EstimatorRoute,
   RepairRoute: RepairRoute,
@@ -526,12 +547,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
