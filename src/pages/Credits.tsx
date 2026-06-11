@@ -1,131 +1,43 @@
-import { useCallback, useEffect, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { fetchCreditPacks, createTopup, type CreditPack } from "@/lib/api/billing";
 import { ApiException } from "@/lib/api/client";
 
-const sectionLabelStyle: CSSProperties = {
-  fontFamily: "'JetBrains Mono', monospace",
-  fontSize: 11,
-  letterSpacing: "0.20em",
-  color: "#52525B",
-  marginBottom: 16,
+// Prix d'affichage temporaires (pré-Stripe). Au branchement Stripe → remplacer par le Price Stripe
+// (ou une colonne backend price_cents). Clé = code du pack.
+const PACK_PRICE_CENTS: Record<string, number> = {
+  pack_50: 499,
+  pack_120: 1099,
+  pack_300: 2399,
 };
 
-const balanceLabelStyle: CSSProperties = {
-  fontFamily: "'JetBrains Mono', monospace",
-  fontSize: 10,
-  letterSpacing: "0.20em",
-  color: "#71717A",
-  marginBottom: 12,
-};
+const eur = (cents: number) =>
+  (cents / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
 
-const balanceNumberStyle: CSSProperties = {
-  fontFamily: "'JetBrains Mono', monospace",
-  fontSize: 48,
-  fontWeight: 500,
-  color: "#10B981",
-  lineHeight: 1,
-  letterSpacing: "-0.02em",
-};
+// baseline = pire €/crédit (le plus petit pack) ; réduction = écart vs baseline, recalculé sur les packs visibles
+function baselineUnit(packs: CreditPack[]): number {
+  let worst = 0;
+  for (const p of packs) {
+    const c = PACK_PRICE_CENTS[p.code];
+    if (c == null || p.credits_per_cycle <= 0) continue;
+    worst = Math.max(worst, c / p.credits_per_cycle);
+  }
+  return worst;
+}
 
-const balanceSuffixStyle: CSSProperties = {
-  fontFamily: "'JetBrains Mono', monospace",
-  fontSize: 13,
-  color: "#71717A",
-  marginLeft: 10,
-  letterSpacing: "0.12em",
-  textTransform: "uppercase",
-};
+function savingsPct(pack: CreditPack, base: number): number {
+  const c = PACK_PRICE_CENTS[pack.code];
+  if (c == null || pack.credits_per_cycle <= 0 || base <= 0) return 0;
+  return Math.max(0, Math.round((1 - c / pack.credits_per_cycle / base) * 100));
+}
 
-const infoBannerStyle: CSSProperties = {
-  background: "rgba(255,255,255,0.015)",
-  border: "1px solid rgba(255,255,255,0.06)",
-  borderRadius: 8,
-  padding: "12px 16px",
-  fontSize: 12,
-  color: "#A1A1AA",
-  lineHeight: 1.5,
-};
-
-const packCardStyle: CSSProperties = {
-  background: "rgba(255,255,255,0.02)",
-  border: "1px solid rgba(255,255,255,0.06)",
-  borderRadius: 10,
-  padding: 22,
-  display: "flex",
-  flexDirection: "column",
-  gap: 14,
-};
-
-const packCreditsStyle: CSSProperties = {
-  fontFamily: "'JetBrains Mono', monospace",
-  fontSize: 36,
-  fontWeight: 500,
-  color: "#10B981",
-  lineHeight: 1,
-  letterSpacing: "-0.02em",
-};
-
-const packNameStyle: CSSProperties = {
-  fontSize: 13,
-  fontWeight: 500,
-  color: "#FAFAFA",
-  marginBottom: 4,
-};
-
-const packDescStyle: CSSProperties = {
-  fontSize: 12,
-  color: "#A1A1AA",
-  lineHeight: 1.5,
-};
-
-const badgeStyle: CSSProperties = {
-  display: "inline-block",
-  fontFamily: "'JetBrains Mono', monospace",
-  fontSize: 10,
-  letterSpacing: "0.12em",
-  color: "#10B981",
-  background: "rgba(16,185,129,0.10)",
-  border: "1px solid rgba(16,185,129,0.25)",
-  borderRadius: 4,
-  padding: "3px 8px",
-  alignSelf: "flex-start",
-};
-
-const primaryBtn: CSSProperties = {
-  width: "100%",
-  background: "#3B82F6",
-  border: "1px solid #3B82F6",
-  borderRadius: 6,
-  padding: "10px 16px",
-  fontFamily: "'JetBrains Mono', monospace",
-  fontSize: 11,
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
-  color: "#FAFAFA",
-  cursor: "pointer",
-  transition: "opacity 200ms cubic-bezier(0.16,1,0.3,1)",
-};
-
-const disabledBtn: CSSProperties = {
-  ...primaryBtn,
-  opacity: 0.5,
-  cursor: "not-allowed",
-};
-
-const successMsgStyle: CSSProperties = {
-  fontFamily: "'JetBrains Mono', monospace",
-  fontSize: 11,
-  color: "#10B981",
-  marginTop: 2,
-};
-
-const errorMsgStyle: CSSProperties = {
-  fontFamily: "'JetBrains Mono', monospace",
-  fontSize: 11,
-  color: "#EF4444",
-  marginTop: 2,
-};
+const unitEurPerCredit = (cents: number, credits: number) =>
+  (cents / 100 / credits).toLocaleString("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3,
+  });
 
 type PackState = {
   status: "idle" | "loading" | "success" | "error";
@@ -204,54 +116,74 @@ export default function Credits() {
 
   const currentBalance = user?.credits_remaining ?? 0;
 
+  const packs = fetchState.kind === "ready" ? fetchState.packs : [];
+  const base = baselineUnit(packs);
+  let highlightId: number | null = null;
+  let bestPct = 0;
+  for (const p of packs) {
+    const pct = savingsPct(p, base);
+    if (pct > bestPct) {
+      bestPct = pct;
+      highlightId = p.id;
+    }
+  }
+
   return (
-    <div className="flex flex-col gap-8">
-      <div style={sectionLabelStyle}>§ 01 — RECHARGER</div>
+    <div className="flex flex-col gap-6">
+      <div className="font-mono text-[11px] tracking-[0.20em] text-zinc-600">
+        § 01 — RECHARGER
+      </div>
 
       {/* Solde courant */}
-      <div
-        style={{
-          background: "rgba(255,255,255,0.015)",
-          border: "1px solid rgba(255,255,255,0.06)",
-          borderRadius: 10,
-          padding: 24,
-        }}
-      >
-        <div style={balanceLabelStyle}>SOLDE ACTUEL</div>
-        <div className="flex items-baseline">
-          <span style={balanceNumberStyle} className="tabular-nums">
+      <div className="mk-card p-6">
+        <div className="font-mono text-[10px] tracking-[0.20em] text-zinc-500">
+          SOLDE ACTUEL
+        </div>
+        <div className="mt-3 flex items-baseline">
+          <span
+            className="font-mono tabular-nums"
+            style={{
+              fontSize: 48,
+              fontWeight: 500,
+              color: "#10B981",
+              lineHeight: 1,
+              letterSpacing: "-0.02em",
+            }}
+          >
             {currentBalance}
           </span>
-          <span style={balanceSuffixStyle}>crédits</span>
+          <span className="ml-3 font-mono text-[12px] uppercase tracking-[0.12em] text-zinc-500">
+            crédits
+          </span>
         </div>
       </div>
 
       {/* Bandeau d'info */}
-      <div style={infoBannerStyle}>
+      <div className="mk-subcard-soft px-4 py-3 text-[12px] leading-relaxed text-zinc-400">
         Recharge gratuite — paiement Stripe bientôt.
       </div>
 
       {/* Grille de packs */}
       {fetchState.kind === "loading" && (
-        <div
-          style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 11,
-            color: "#71717A",
-            letterSpacing: "0.08em",
-          }}
-        >
+        <div className="font-mono text-[11px] tracking-[0.08em] text-zinc-500">
           CHARGEMENT…
         </div>
       )}
 
       {fetchState.kind === "error" && (
-        <div style={packCardStyle}>
-          <div style={packDescStyle}>{fetchState.message}</div>
+        <div className="mk-card flex flex-col gap-4 p-5">
+          <div className="text-[12px] leading-relaxed text-zinc-400">
+            {fetchState.message}
+          </div>
           <button
             type="button"
-            style={primaryBtn}
             onClick={() => void loadPacks()}
+            className="ease-expo self-start rounded-md border px-4 py-2 font-mono text-[11px] uppercase tracking-[0.10em] transition-colors"
+            style={{
+              borderColor: "rgba(59,130,246,0.30)",
+              color: "#3B82F6",
+              background: "transparent",
+            }}
           >
             Réessayer
           </button>
@@ -259,8 +191,8 @@ export default function Credits() {
       )}
 
       {fetchState.kind === "ready" && fetchState.packs.length === 0 && (
-        <div style={packCardStyle}>
-          <div style={packDescStyle}>Aucun pack disponible pour le moment.</div>
+        <div className="mk-card p-5 text-[12px] leading-relaxed text-zinc-400">
+          Aucun pack disponible pour le moment.
         </div>
       )}
 
@@ -269,44 +201,173 @@ export default function Credits() {
           {fetchState.packs.map((pack) => {
             const st = packStates[pack.id] ?? { status: "idle" as const };
             const loading = st.status === "loading";
+            const cents = PACK_PRICE_CENTS[pack.code];
+            const pct = savingsPct(pack, base);
+            const isHighlight = pack.id === highlightId && bestPct >= 1;
+
             return (
-              <div key={pack.id} style={packCardStyle}>
-                <div className="flex items-baseline gap-2">
-                  <span style={packCreditsStyle} className="tabular-nums">
-                    {pack.credits_per_cycle}
-                  </span>
-                  <span
+              <div
+                key={pack.id}
+                className="mk-card relative flex flex-col p-5"
+                style={
+                  isHighlight
+                    ? { background: "var(--mk-surface-2)" }
+                    : undefined
+                }
+              >
+                {/* Tag meilleur rapport */}
+                {isHighlight && (
+                  <div
+                    className="absolute left-5 top-0 -translate-y-1/2 rounded px-2 py-0.5 font-mono text-[9px] tracking-[0.14em]"
                     style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 11,
-                      color: "#71717A",
-                      letterSpacing: "0.12em",
-                      textTransform: "uppercase",
+                      background: "#0A0A0B",
+                      border: "1px solid rgba(59,130,246,0.30)",
+                      color: "#3B82F6",
                     }}
                   >
-                    crédits
-                  </span>
-                </div>
-                <div>
-                  <div style={packNameStyle}>{pack.name}</div>
-                  {pack.description && (
-                    <div style={packDescStyle}>{pack.description}</div>
+                    MEILLEUR RAPPORT
+                  </div>
+                )}
+
+                {/* 1. Crédits + pill réduction */}
+                <div className="flex items-start justify-between">
+                  <div className="flex items-baseline gap-2">
+                    <span
+                      className="font-mono tabular-nums"
+                      style={{
+                        fontSize: 32,
+                        fontWeight: 500,
+                        color: "#10B981",
+                        lineHeight: 1,
+                        letterSpacing: "-0.02em",
+                      }}
+                    >
+                      {pack.credits_per_cycle}
+                    </span>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-500">
+                      crédits
+                    </span>
+                  </div>
+                  {pct >= 1 && (
+                    <span
+                      className="font-mono text-[10px] tracking-[0.06em] tabular-nums"
+                      style={{
+                        color: "#10B981",
+                        background: "rgba(16,185,129,0.08)",
+                        borderRadius: 4,
+                        padding: "3px 7px",
+                      }}
+                    >
+                      −{pct} %
+                    </span>
                   )}
                 </div>
-                <span style={badgeStyle}>GRATUIT</span>
+
+                {/* 2. Nom + desc */}
+                <div className="mt-4">
+                  <div className="text-[13px] font-medium text-zinc-200">
+                    {pack.name}
+                  </div>
+                  {pack.description && (
+                    <div className="mt-1 line-clamp-1 text-[12px] text-zinc-500">
+                      {pack.description}
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. Prix */}
+                <div className="mt-4">
+                  {cents != null ? (
+                    <>
+                      <div className="flex items-baseline gap-2">
+                        <span
+                          className="font-mono tabular-nums text-zinc-500 line-through"
+                          style={{ fontSize: 18 }}
+                        >
+                          {eur(cents)}
+                        </span>
+                        <span
+                          className="font-mono tabular-nums"
+                          style={{ fontSize: 18, color: "#10B981" }}
+                        >
+                          Gratuit
+                        </span>
+                      </div>
+                      <div className="mt-1 font-mono text-[10px] tabular-nums text-zinc-500">
+                        {unitEurPerCredit(cents, pack.credits_per_cycle)}/crédit
+                      </div>
+                    </>
+                  ) : (
+                    <div
+                      className="font-mono tabular-nums"
+                      style={{ fontSize: 18, color: "#10B981" }}
+                    >
+                      Gratuit
+                    </div>
+                  )}
+                </div>
+
+                {/* 4. Séparateur fin */}
+                <div
+                  className="mt-5"
+                  style={{
+                    height: 1,
+                    background: "var(--mk-divider-soft)",
+                  }}
+                />
+
+                {/* 5. CTA */}
                 <button
                   type="button"
-                  style={loading ? disabledBtn : primaryBtn}
                   disabled={loading}
                   onClick={() => void handleTopup(pack)}
+                  className="ease-expo mt-4 w-full rounded-md py-2.5 font-mono text-[11px] uppercase tracking-[0.10em] transition-colors"
+                  style={
+                    isHighlight
+                      ? {
+                          background: "#3B82F6",
+                          border: "1px solid #3B82F6",
+                          color: "#FAFAFA",
+                          opacity: loading ? 0.5 : 1,
+                          cursor: loading ? "not-allowed" : "pointer",
+                        }
+                      : {
+                          background: "transparent",
+                          border: "1px solid rgba(59,130,246,0.25)",
+                          color: "#3B82F6",
+                          opacity: loading ? 0.5 : 1,
+                          cursor: loading ? "not-allowed" : "pointer",
+                        }
+                  }
+                  onMouseEnter={(e) => {
+                    if (loading || isHighlight) return;
+                    (e.currentTarget as HTMLButtonElement).style.background =
+                      "rgba(59,130,246,0.08)";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (loading || isHighlight) return;
+                    (e.currentTarget as HTMLButtonElement).style.background =
+                      "transparent";
+                  }}
                 >
                   {loading ? "Recharge…" : "Recharger"}
                 </button>
+
                 {st.status === "success" && st.message && (
-                  <div style={successMsgStyle}>{st.message}</div>
+                  <div
+                    className="mt-3 font-mono text-[11px]"
+                    style={{ color: "#10B981" }}
+                  >
+                    {st.message}
+                  </div>
                 )}
                 {st.status === "error" && st.message && (
-                  <div style={errorMsgStyle}>{st.message}</div>
+                  <div
+                    className="mt-3 font-mono text-[11px]"
+                    style={{ color: "#EF4444" }}
+                  >
+                    {st.message}
+                  </div>
                 )}
               </div>
             );
