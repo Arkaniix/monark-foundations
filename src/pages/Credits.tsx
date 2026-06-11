@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { fetchCreditPacks, createTopup, type CreditPack } from "@/lib/api/billing";
 import { ApiException } from "@/lib/api/client";
