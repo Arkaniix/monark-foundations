@@ -102,11 +102,10 @@ export default function Credits() {
   const currentBalance = user?.credits_remaining ?? 0;
 
   const packs = fetchState.kind === "ready" ? fetchState.packs : [];
-  const base = baselineUnit(packs);
   let highlightId: number | null = null;
   let bestPct = 0;
   for (const p of packs) {
-    const pct = savingsPct(p, base);
+    const pct = discountPct(PACK_PRICING[p.code]);
     if (pct > bestPct) {
       bestPct = pct;
       highlightId = p.id;
@@ -186,8 +185,8 @@ export default function Credits() {
           {fetchState.packs.map((pack) => {
             const st = packStates[pack.id] ?? { status: "idle" as const };
             const loading = st.status === "loading";
-            const cents = PACK_PRICE_CENTS[pack.code];
-            const pct = savingsPct(pack, base);
+            const pricing = PACK_PRICING[pack.code];
+            const pct = discountPct(pricing);
             const isHighlight = pack.id === highlightId && bestPct >= 1;
 
             return (
@@ -200,17 +199,20 @@ export default function Credits() {
                     : undefined
                 }
               >
-                {/* Tag meilleur rapport */}
+                {/* Tag meilleur rapport (en flux normal) */}
                 {isHighlight && (
-                  <div
-                    className="absolute left-5 top-0 -translate-y-1/2 rounded px-2 py-0.5 font-mono text-[9px] tracking-[0.14em]"
-                    style={{
-                      background: "#0A0A0B",
-                      border: "1px solid rgba(59,130,246,0.30)",
-                      color: "#3B82F6",
-                    }}
-                  >
-                    MEILLEUR RAPPORT
+                  <div className="mb-3">
+                    <span
+                      className="inline-block font-mono text-[9px] uppercase tracking-[0.14em]"
+                      style={{
+                        color: "#3B82F6",
+                        background: "rgba(59,130,246,0.08)",
+                        borderRadius: 4,
+                        padding: "3px 7px",
+                      }}
+                    >
+                      MEILLEUR RAPPORT
+                    </span>
                   </div>
                 )}
 
@@ -262,33 +264,28 @@ export default function Credits() {
 
                 {/* 3. Prix */}
                 <div className="mt-4">
-                  {cents != null ? (
+                  {pricing && (
                     <>
                       <div className="flex items-baseline gap-2">
+                        {pricing.original_cents && (
+                          <span
+                            className="font-mono tabular-nums text-zinc-600 line-through"
+                            style={{ fontSize: 14 }}
+                          >
+                            {eur(pricing.original_cents)}
+                          </span>
+                        )}
                         <span
-                          className="font-mono tabular-nums text-zinc-500 line-through"
-                          style={{ fontSize: 18 }}
+                          className="font-mono tabular-nums text-zinc-100"
+                          style={{ fontSize: 22, fontWeight: 500 }}
                         >
-                          {eur(cents)}
-                        </span>
-                        <span
-                          className="font-mono tabular-nums"
-                          style={{ fontSize: 18, color: "#10B981" }}
-                        >
-                          Gratuit
+                          {eur(pricing.price_cents)}
                         </span>
                       </div>
                       <div className="mt-1 font-mono text-[10px] tabular-nums text-zinc-500">
-                        {unitEurPerCredit(cents, pack.credits_per_cycle)}/crédit
+                        {eurPerCredit(pricing.price_cents, pack.credits_per_cycle)} /crédit
                       </div>
                     </>
-                  ) : (
-                    <div
-                      className="font-mono tabular-nums"
-                      style={{ fontSize: 18, color: "#10B981" }}
-                    >
-                      Gratuit
-                    </div>
                   )}
                 </div>
 
