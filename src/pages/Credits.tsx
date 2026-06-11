@@ -181,7 +181,7 @@ export default function Credits() {
       )}
 
       {fetchState.kind === "ready" && fetchState.packs.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-3">
           {fetchState.packs.map((pack) => {
             const st = packStates[pack.id] ?? { status: "idle" as const };
             const loading = st.status === "loading";
@@ -192,16 +192,16 @@ export default function Credits() {
             return (
               <div
                 key={pack.id}
-                className="mk-card relative flex flex-col p-5"
+                className="mk-card relative flex h-full flex-col p-5"
                 style={
                   isHighlight
                     ? { background: "var(--mk-surface-2)" }
                     : undefined
                 }
               >
-                {/* Tag meilleur rapport (en flux normal) */}
-                {isHighlight && (
-                  <div className="mb-3">
+                {/* Slot badge — hauteur fixe sur toutes les cartes pour aligner les lignes suivantes */}
+                <div className="mb-3 flex h-6 items-center">
+                  {isHighlight && (
                     <span
                       className="inline-block font-mono text-[9px] uppercase tracking-[0.14em]"
                       style={{
@@ -213,8 +213,8 @@ export default function Credits() {
                     >
                       MEILLEUR RAPPORT
                     </span>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* 1. Crédits + pill réduction */}
                 <div className="flex items-start justify-between">
@@ -289,17 +289,16 @@ export default function Credits() {
                   )}
                 </div>
 
-                {/* 4. Séparateur fin */}
-                <div
-                  className="mt-5"
-                  style={{
-                    height: 1,
-                    background: "var(--mk-divider-soft)",
-                  }}
-                />
-
-                {/* 5. CTA */}
-                <button
+                {/* Pied de carte — épinglé en bas */}
+                <div className="mt-auto">
+                  <div
+                    className="mt-5"
+                    style={{
+                      height: 1,
+                      background: "var(--mk-divider-soft)",
+                    }}
+                  />
+                  <button
                   type="button"
                   disabled={loading}
                   onClick={() => void handleTopup(pack)}
@@ -333,24 +332,25 @@ export default function Credits() {
                   }}
                 >
                   {loading ? "Recharge…" : "Recharger"}
-                </button>
+                  </button>
 
-                {st.status === "success" && st.message && (
-                  <div
-                    className="mt-3 font-mono text-[11px]"
-                    style={{ color: "#10B981" }}
-                  >
-                    {st.message}
-                  </div>
-                )}
-                {st.status === "error" && st.message && (
-                  <div
-                    className="mt-3 font-mono text-[11px]"
-                    style={{ color: "#EF4444" }}
-                  >
-                    {st.message}
-                  </div>
-                )}
+                  {st.status === "success" && st.message && (
+                    <div
+                      className="mt-3 font-mono text-[11px]"
+                      style={{ color: "#10B981" }}
+                    >
+                      {st.message}
+                    </div>
+                  )}
+                  {st.status === "error" && st.message && (
+                    <div
+                      className="mt-3 font-mono text-[11px]"
+                      style={{ color: "#EF4444" }}
+                    >
+                      {st.message}
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })}
