@@ -50,6 +50,7 @@ export const VERDICT_GLOW_CLASS: Record<Verdict, string> = {
 
 export type EstimatorInputs = {
   model: string;
+  component?: number;
   state: ItemState;
   ask_price_eur: number;
   platform: Platform;

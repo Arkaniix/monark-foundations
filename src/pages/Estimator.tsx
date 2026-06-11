@@ -31,6 +31,7 @@ import EstimatorSellWhere from "@/components/estimator/EstimatorSellWhere";
 import EstimatorSellProjection from "@/components/estimator/EstimatorSellProjection";
 import EstimatorSellDecay from "@/components/estimator/EstimatorSellDecay";
 import EstimatorSellPresentation from "@/components/estimator/EstimatorSellPresentation";
+import { daysSinceISO } from "@/components/estimator/EstimatorForm";
 
 export type EstimatorState =
   | { status: "idle" }
@@ -44,6 +45,8 @@ type EstimatorPageProps = {
   initialPriceFromQuery?: number;
   initialConditionFromQuery?: string;
   initialPlatformFromQuery?: string;
+  initialComponentFromQuery?: number;
+  initialDateFromQuery?: string;
 };
 
 export default function Estimator({
@@ -52,6 +55,8 @@ export default function Estimator({
   initialPriceFromQuery,
   initialConditionFromQuery,
   initialPlatformFromQuery,
+  initialComponentFromQuery,
+  initialDateFromQuery,
 }: EstimatorPageProps = {}) {
   const [state, setState] = useState<EstimatorState>(
     __devForceState ?? { status: "idle" },
@@ -64,9 +69,10 @@ export default function Estimator({
   const [prefilledInputs, setPrefilledInputs] = useState<
     EstimatorInputs | undefined
   >(
-    initialModelFromQuery
+    initialModelFromQuery || initialComponentFromQuery != null
       ? {
           model: initialModelFromQuery,
+          component: initialComponentFromQuery,
           state:
             initialConditionFromQuery === "neuf"
               ? "Neuf"
@@ -89,6 +95,14 @@ export default function Estimator({
               : initialPlatformFromQuery === "ebay"
                 ? "eBay"
                 : "LBC",
+          ...(initialDateFromQuery
+            ? (() => {
+                const d = daysSinceISO(initialDateFromQuery);
+                return typeof d === "number" && Number.isFinite(d) && d >= 0
+                  ? { listing_age_days: d }
+                  : {};
+              })()
+            : {}),
         }
       : undefined,
   );

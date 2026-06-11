@@ -29,7 +29,7 @@ function isoDaysAgo(days: number): string {
   return new Date(Date.now() - days * MS_PER_DAY).toISOString().slice(0, 10);
 }
 
-function daysSinceISO(iso: string): number | undefined {
+export function daysSinceISO(iso: string): number | undefined {
   const t = Date.parse(iso);
   if (Number.isNaN(t)) return undefined;
   return Math.max(0, Math.floor((Date.now() - t) / MS_PER_DAY));
@@ -82,13 +82,30 @@ export default function EstimatorForm({
 
   // Pré-remplissage (re-load depuis l'historique) : retrouve le modèle dans le catalogue.
   useEffect(() => {
-    if (!initial?.model) return;
+    if (!initial?.model && initial?.component == null) return;
     let cancelled = false;
+    const norm = (s: string) =>
+      s
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
     catalogApi
       .getAllModels()
       .then((all) => {
         if (!cancelled) {
-          const m = all.find((x) => x.name === initial.model);
+          const byId =
+            initial?.component != null
+              ? all.find((x) => String(x.id) === String(initial.component))
+              : undefined;
+          const exact = initial?.model
+            ? all.find((x) => x.name === initial.model)
+            : undefined;
+          const fuzzy = initial?.model
+            ? all.find((x) => norm(x.name) === norm(initial.model!))
+            : undefined;
+          const m = byId ?? exact ?? fuzzy;
           if (m) setSelectedModel(m);
         }
       })
@@ -96,7 +113,7 @@ export default function EstimatorForm({
     return () => {
       cancelled = true;
     };
-  }, [initial?.model]);
+  }, [initial?.model, initial?.component]);
 
   const modelName = selectedModel?.name ?? "";
 
