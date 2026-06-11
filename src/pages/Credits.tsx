@@ -3,41 +3,26 @@ import { useAuth } from "@/context/AuthContext";
 import { fetchCreditPacks, createTopup, type CreditPack } from "@/lib/api/billing";
 import { ApiException } from "@/lib/api/client";
 
-// Prix d'affichage temporaires (pré-Stripe). Au branchement Stripe → remplacer par le Price Stripe
-// (ou une colonne backend price_cents). Clé = code du pack.
-const PACK_PRICE_CENTS: Record<string, number> = {
-  pack_50: 499,
-  pack_120: 1099,
-  pack_300: 2399,
+// Tarifs d'affichage prod-ready. price_cents = prix réel facturé ; original_cents = prix d'ancrage barré.
+const PACK_PRICING: Record<string, { price_cents: number; original_cents?: number }> = {
+  pack_50: { price_cents: 499 },
+  pack_120: { price_cents: 1099, original_cents: 1199 },
+  pack_300: { price_cents: 2399, original_cents: 2999 },
 };
 
 const eur = (cents: number) =>
   (cents / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
 
-// baseline = pire €/crédit (le plus petit pack) ; réduction = écart vs baseline, recalculé sur les packs visibles
-function baselineUnit(packs: CreditPack[]): number {
-  let worst = 0;
-  for (const p of packs) {
-    const c = PACK_PRICE_CENTS[p.code];
-    if (c == null || p.credits_per_cycle <= 0) continue;
-    worst = Math.max(worst, c / p.credits_per_cycle);
-  }
-  return worst;
-}
-
-function savingsPct(pack: CreditPack, base: number): number {
-  const c = PACK_PRICE_CENTS[pack.code];
-  if (c == null || pack.credits_per_cycle <= 0 || base <= 0) return 0;
-  return Math.max(0, Math.round((1 - c / pack.credits_per_cycle / base) * 100));
-}
-
-const unitEurPerCredit = (cents: number, credits: number) =>
-  (cents / 100 / credits).toLocaleString("fr-FR", {
+const eurPerCredit = (priceCents: number, credits: number) =>
+  (priceCents / 100 / credits).toLocaleString("fr-FR", {
     style: "currency",
     currency: "EUR",
     minimumFractionDigits: 3,
     maximumFractionDigits: 3,
   });
+
+const discountPct = (p?: { price_cents: number; original_cents?: number }) =>
+  p?.original_cents ? Math.round((1 - p.price_cents / p.original_cents) * 100) : 0;
 
 type PackState = {
   status: "idle" | "loading" | "success" | "error";
