@@ -3,41 +3,26 @@ import { useAuth } from "@/context/AuthContext";
 import { fetchCreditPacks, createTopup, type CreditPack } from "@/lib/api/billing";
 import { ApiException } from "@/lib/api/client";
 
-// Prix d'affichage temporaires (pré-Stripe). Au branchement Stripe → remplacer par le Price Stripe
-// (ou une colonne backend price_cents). Clé = code du pack.
-const PACK_PRICE_CENTS: Record<string, number> = {
-  pack_50: 499,
-  pack_120: 1099,
-  pack_300: 2399,
+// Tarifs d'affichage prod-ready. price_cents = prix réel facturé ; original_cents = prix d'ancrage barré.
+const PACK_PRICING: Record<string, { price_cents: number; original_cents?: number }> = {
+  pack_50: { price_cents: 499 },
+  pack_120: { price_cents: 1099, original_cents: 1199 },
+  pack_300: { price_cents: 2399, original_cents: 2999 },
 };
 
 const eur = (cents: number) =>
   (cents / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
 
-// baseline = pire €/crédit (le plus petit pack) ; réduction = écart vs baseline, recalculé sur les packs visibles
-function baselineUnit(packs: CreditPack[]): number {
-  let worst = 0;
-  for (const p of packs) {
-    const c = PACK_PRICE_CENTS[p.code];
-    if (c == null || p.credits_per_cycle <= 0) continue;
-    worst = Math.max(worst, c / p.credits_per_cycle);
-  }
-  return worst;
-}
-
-function savingsPct(pack: CreditPack, base: number): number {
-  const c = PACK_PRICE_CENTS[pack.code];
-  if (c == null || pack.credits_per_cycle <= 0 || base <= 0) return 0;
-  return Math.max(0, Math.round((1 - c / pack.credits_per_cycle / base) * 100));
-}
-
-const unitEurPerCredit = (cents: number, credits: number) =>
-  (cents / 100 / credits).toLocaleString("fr-FR", {
+const eurPerCredit = (priceCents: number, credits: number) =>
+  (priceCents / 100 / credits).toLocaleString("fr-FR", {
     style: "currency",
     currency: "EUR",
     minimumFractionDigits: 3,
     maximumFractionDigits: 3,
   });
+
+const discountPct = (p?: { price_cents: number; original_cents?: number }) =>
+  p?.original_cents ? Math.round((1 - p.price_cents / p.original_cents) * 100) : 0;
 
 type PackState = {
   status: "idle" | "loading" | "success" | "error";
@@ -117,11 +102,10 @@ export default function Credits() {
   const currentBalance = user?.credits_remaining ?? 0;
 
   const packs = fetchState.kind === "ready" ? fetchState.packs : [];
-  const base = baselineUnit(packs);
   let highlightId: number | null = null;
   let bestPct = 0;
   for (const p of packs) {
-    const pct = savingsPct(p, base);
+    const pct = discountPct(PACK_PRICING[p.code]);
     if (pct > bestPct) {
       bestPct = pct;
       highlightId = p.id;
@@ -201,8 +185,8 @@ export default function Credits() {
           {fetchState.packs.map((pack) => {
             const st = packStates[pack.id] ?? { status: "idle" as const };
             const loading = st.status === "loading";
-            const cents = PACK_PRICE_CENTS[pack.code];
-            const pct = savingsPct(pack, base);
+            const pricing = PACK_PRICING[pack.code];
+            const pct = discountPct(pricing);
             const isHighlight = pack.id === highlightId && bestPct >= 1;
 
             return (
@@ -215,17 +199,20 @@ export default function Credits() {
                     : undefined
                 }
               >
-                {/* Tag meilleur rapport */}
+                {/* Tag meilleur rapport (en flux normal) */}
                 {isHighlight && (
-                  <div
-                    className="absolute left-5 top-0 -translate-y-1/2 rounded px-2 py-0.5 font-mono text-[9px] tracking-[0.14em]"
-                    style={{
-                      background: "#0A0A0B",
-                      border: "1px solid rgba(59,130,246,0.30)",
-                      color: "#3B82F6",
-                    }}
-                  >
-                    MEILLEUR RAPPORT
+                  <div className="mb-3">
+                    <span
+                      className="inline-block font-mono text-[9px] uppercase tracking-[0.14em]"
+                      style={{
+                        color: "#3B82F6",
+                        background: "rgba(59,130,246,0.08)",
+                        borderRadius: 4,
+                        padding: "3px 7px",
+                      }}
+                    >
+                      MEILLEUR RAPPORT
+                    </span>
                   </div>
                 )}
 
@@ -277,33 +264,28 @@ export default function Credits() {
 
                 {/* 3. Prix */}
                 <div className="mt-4">
-                  {cents != null ? (
+                  {pricing && (
                     <>
                       <div className="flex items-baseline gap-2">
+                        {pricing.original_cents && (
+                          <span
+                            className="font-mono tabular-nums text-zinc-600 line-through"
+                            style={{ fontSize: 14 }}
+                          >
+                            {eur(pricing.original_cents)}
+                          </span>
+                        )}
                         <span
-                          className="font-mono tabular-nums text-zinc-500 line-through"
-                          style={{ fontSize: 18 }}
+                          className="font-mono tabular-nums text-zinc-100"
+                          style={{ fontSize: 22, fontWeight: 500 }}
                         >
-                          {eur(cents)}
-                        </span>
-                        <span
-                          className="font-mono tabular-nums"
-                          style={{ fontSize: 18, color: "#10B981" }}
-                        >
-                          Gratuit
+                          {eur(pricing.price_cents)}
                         </span>
                       </div>
                       <div className="mt-1 font-mono text-[10px] tabular-nums text-zinc-500">
-                        {unitEurPerCredit(cents, pack.credits_per_cycle)}/crédit
+                        {eurPerCredit(pricing.price_cents, pack.credits_per_cycle)} /crédit
                       </div>
                     </>
-                  ) : (
-                    <div
-                      className="font-mono tabular-nums"
-                      style={{ fontSize: 18, color: "#10B981" }}
-                    >
-                      Gratuit
-                    </div>
                   )}
                 </div>
 
