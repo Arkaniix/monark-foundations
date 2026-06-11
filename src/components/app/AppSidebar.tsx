@@ -124,12 +124,12 @@ export default function AppSidebar({
               }}
             />
           </div>
-          <button
-            type="button"
-            className="ease-expo mt-3 w-full text-left font-mono text-[11px] text-zinc-400 transition-colors hover:text-zinc-100"
+          <Link
+            to="/credits"
+            className="ease-expo mt-3 block w-full text-left font-mono text-[11px] text-zinc-400 transition-colors hover:text-zinc-100"
           >
             Recharger →
-          </button>
+          </Link>
         </div>
       </div>
     </aside>

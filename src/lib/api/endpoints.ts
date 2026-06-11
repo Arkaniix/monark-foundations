@@ -74,4 +74,8 @@ export const ENDPOINTS = {
   // ── Watchlist (JWT) ──────────────────────────────────────────────────────
   WATCHLIST: "/v1/watchlist",
   WATCHLIST_ITEM: (id: string) => `/v1/watchlist/${id}`,
+
+  // ── Billing / Crédits (JWT) ──────────────────────────────────────────────
+  BILLING_PLANS: "/v1/billing/plans",
+  BILLING_TOPUP: "/v1/billing/topup",
 } as const;
