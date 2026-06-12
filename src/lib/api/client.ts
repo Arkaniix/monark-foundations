@@ -75,19 +75,30 @@ function buildHeaders(init: RequestInit | undefined, token: string | null): Head
 async function tryRefresh(): Promise<boolean> {
   const refresh = getRefreshToken();
   if (!refresh) return false;
-  try {
-    const res = await fetch(`${BASE_URL}/v1/auth/refresh`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refresh_token: refresh }),
-    });
-    if (!res.ok) return false;
-    const body = (await res.json()) as { access_token: string; refresh_token: string };
-    setTokens(body.access_token, body.refresh_token);
-    return true;
-  } catch {
-    return false;
+  const attemptRefresh = async (token: string): Promise<boolean> => {
+    try {
+      const res = await fetch(`${BASE_URL}/v1/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: token }),
+      });
+      if (!res.ok) return false;
+      const body = (await res.json()) as { access_token: string; refresh_token: string };
+      setTokens(body.access_token, body.refresh_token);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  const ok = await attemptRefresh(refresh);
+  if (ok) return true;
+  // Guérison : si un autre onglet / flow a écrit un nouveau refresh token
+  // entre-temps, retenter UNE SEULE fois avec cette nouvelle valeur.
+  const latest = typeof window !== "undefined" ? window.localStorage.getItem(REFRESH_KEY) : null;
+  if (latest && latest !== refresh) {
+    return await attemptRefresh(latest);
   }
+  return false;
 }
 const MAX_RETRIES_429 = 3;
 
