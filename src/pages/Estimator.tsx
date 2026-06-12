@@ -71,7 +71,7 @@ export default function Estimator({
   >(
     initialModelFromQuery || initialComponentFromQuery != null
       ? {
-          model: initialModelFromQuery,
+          model: initialModelFromQuery ?? "",
           component: initialComponentFromQuery,
           state:
             initialConditionFromQuery === "neuf"
