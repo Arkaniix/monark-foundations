@@ -99,6 +99,20 @@ export default function Dashboard({ __devForceState }: DashboardProps = {}) {
 
   return (
     <div className="flex flex-col gap-10">
+      {/* §00 — Marché */}
+      <section className="flex flex-col gap-5">
+        <div className="flex items-center gap-3">
+          <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-600">
+            § 00
+          </div>
+          <div className="h-px w-10 bg-white/10" />
+          <div className="font-mono text-[10.5px] tracking-[0.2em] text-zinc-500">
+            MARCHÉ
+          </div>
+        </div>
+        <MarketPulse />
+      </section>
+
       {/* §01 — Vue d'ensemble */}
       <section className="flex flex-col gap-5">
         <div className="flex items-center gap-3">
