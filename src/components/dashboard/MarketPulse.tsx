@@ -1,29 +1,40 @@
 import { useEffect, useRef } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import Tooltip from "@/components/ui/Tooltip";
+import { fetchAllCatalogModels } from "@/lib/catalogSource";
+import type { CatalogModel } from "@/components/catalog/datasets";
 
 const CSS = `
-.mp-seg{display:inline-flex;border:0.5px solid rgba(255,255,255,0.1);border-radius:9px;overflow:hidden;background:var(--mk-surface-2)}
+.mp-seg{display:inline-flex;border:0.5px solid var(--mk-divider);border-radius:9px;overflow:hidden;background:var(--mk-surface-1)}
 .mp-seg>div{font-family:var(--font-mono);font-size:12px;padding:6px 15px;color:var(--mk-fg-dim);cursor:pointer;transition:color .2s ease,background .25s ease;user-select:none}
-.mp-seg>div:hover{color:#c4c4cb}
-.mp-seg>div.on{color:#06080A;background:#09B1BA}
-.mp-tf .tfc{font-family:var(--font-mono);font-size:11px;padding:4px 10px;border-radius:6px;color:var(--mk-fg-dim);border:0.5px solid rgba(255,255,255,0.08);cursor:pointer;transition:all .2s ease;user-select:none}
-.mp-tf .tfc:hover{color:#c4c4cb}
-.mp-tf .tfc.on{color:#34D0D8;background:rgba(9,177,186,0.12);border-color:rgba(9,177,186,0.25)}
-.mp-lg{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:11px;padding:5px 11px;border-radius:8px;border:0.5px solid rgba(255,255,255,0.07);cursor:pointer;transition:opacity .2s ease,border-color .2s ease;color:#c4c4cb;user-select:none}
+.mp-seg>div:hover{color:var(--mk-fg-muted)}
+.mp-seg>div.on{color:var(--mk-fg);background:var(--mk-surface-3)}
+.mp-tf .tfc{font-family:var(--font-mono);font-size:11px;padding:4px 10px;border-radius:6px;color:var(--mk-fg-dim);border:0.5px solid var(--mk-divider);cursor:pointer;transition:all .2s ease;user-select:none}
+.mp-tf .tfc:hover{color:var(--mk-fg-muted)}
+.mp-tf .tfc.on{color:var(--mk-fg);background:var(--mk-surface-3);border-color:rgba(255,255,255,0.14)}
+.mp-lg{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:11px;padding:5px 11px;border-radius:8px;border:0.5px solid var(--mk-divider);cursor:pointer;transition:opacity .2s ease,border-color .2s ease;color:var(--mk-fg-muted);user-select:none}
 .mp-lg:hover{opacity:1 !important}
 .mp-lg .d{width:9px;height:9px;border-radius:3px;display:inline-block;box-sizing:border-box;transition:all .2s ease}
-.mp-tile{position:absolute;box-sizing:border-box;border-radius:6px;display:flex;flex-direction:column;justify-content:center;padding:6px 8px;overflow:hidden;opacity:0;transform:scale(.95);transition:opacity .45s ease,transform .45s ease,filter .15s ease;cursor:default}
+.mp-term{cursor:help;border-bottom:1px dotted var(--mk-fg-faint)}
+.mp-tile{position:absolute;box-sizing:border-box;border-radius:6px;display:flex;flex-direction:column;justify-content:center;padding:6px 8px;overflow:hidden;opacity:0;transform:scale(.96);transition:opacity .4s ease,transform .4s ease,filter .15s ease;cursor:pointer}
 .mp-tile.in{opacity:1;transform:scale(1)}
-.mp-tile:hover{filter:brightness(1.18)}
+.mp-tile:hover{filter:brightness(1.16)}
+.mp-msg{display:flex;align-items:center;justify-content:center;height:100%;font-family:var(--font-mono);font-size:12px;color:var(--mk-fg-faint)}
+.mp-float{position:absolute;display:none;pointer-events:none;z-index:6;max-width:230px;background:rgba(20,20,22,0.96);border:0.5px solid rgba(255,255,255,0.1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 4px 20px rgba(0,0,0,0.4);border-radius:8px;padding:9px 11px;font-family:var(--font-mono);font-size:11px;color:#e4e4e7;line-height:1.55}
 `;
 
 export function MarketPulse() {
   const rootRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const navRef = useRef(navigate);
+  navRef.current = navigate;
 
   useEffect(() => {
     if (!rootRef.current) return;
     const root: HTMLDivElement = rootRef.current;
     const ac = new AbortController();
     const sig = { signal: ac.signal } as AddEventListenerOptions;
+    let alive = true;
     const NS = "http://www.w3.org/2000/svg";
     const S = (t: string, a?: Record<string, string | number>): SVGElement => {
       const e = document.createElementNS(NS, t);
@@ -46,6 +57,8 @@ export function MarketPulse() {
       "30J": ["J\u201130", "J\u201120", "J\u201110", "Auj."],
       "90J": ["J\u201190", "J\u201160", "J\u201130", "Auj."],
     };
+    // prix médian indicatif par série, pour enrichir le survol mono-courbe (mock)
+    const PB: Record<string, number> = { Indice: 360, GPU: 430, CPU: 205, RAM: 95, SSD: 115, MOBO: 135, PSU: 85 };
     const N = 30, W = 660, H = 250, PADL = 12, PADR = 30, PADT = 16, PADB = 40;
     const PW = W - PADL - PADR, PH = H - PADT - PADB, BASE = PADT + PH / 2;
 
@@ -87,7 +100,8 @@ export function MarketPulse() {
     const numEl = q(".mp-idxn") as HTMLElement, deltaEl = q(".mp-idxd") as HTMLElement,
       legendEl = q(".mp-legend") as HTMLElement, chartView = q(".mp-chart") as HTMLElement,
       mapView = q(".mp-map-view") as HTMLElement, svg = q(".mp-svg"),
-      ctip = q(".mp-tip") as HTMLElement, mkmap = q(".mp-map") as HTMLElement;
+      ctip = q(".mp-ctip") as HTMLElement, mkmap = q(".mp-map") as HTMLElement,
+      maptip = q(".mp-maptip") as HTMLElement, tfg = q(".mp-tf") as HTMLElement;
 
     const area = S("path", { fill: "none", opacity: 0 }); Larea.appendChild(area);
 
@@ -111,14 +125,14 @@ export function MarketPulse() {
 
     const glines: SVGElement[] = [], glabels: SVGElement[] = [];
     for (let k = 0; k < 4; k++) {
-      const ln = S("line", { x1: PADL, x2: PADL + PW, stroke: "rgba(255,255,255,0.05)", "stroke-width": 1 });
+      const ln = S("line", { x1: PADL, x2: PADL + PW, stroke: "var(--mk-grid-color)", "stroke-width": 1 });
       Lgrid.appendChild(ln); glines.push(ln);
       const tx = S("text", { x: W - PADR + 6, "text-anchor": "start", "font-size": 12, fill: "#4A4A52" });
       tx.setAttribute("font-family", "var(--font-mono)"); Lgrid.appendChild(tx); glabels.push(tx);
     }
     const xlabels: SVGElement[] = [], xlx = [PADL, PADL + PW * 0.34, PADL + PW * 0.67, PADL + PW], xan = ["start", "middle", "middle", "end"];
     for (let k = 0; k < 4; k++) {
-      const tx = S("text", { x: xlx[k], y: H - PADB + 22, "text-anchor": xan[k], "font-size": 12, fill: "#52525b" });
+      const tx = S("text", { x: xlx[k], y: H - PADB + 22, "text-anchor": xan[k], "font-size": 12, fill: "var(--mk-fg-faint)" });
       tx.setAttribute("font-family", "var(--font-mono)"); Lgrid.appendChild(tx); xlabels.push(tx);
     }
     const vline = S("line", { stroke: "rgba(255,255,255,0.18)", "stroke-width": 1, opacity: 0 }); Lcross.appendChild(vline);
@@ -136,7 +150,7 @@ export function MarketPulse() {
       const chip = legendEl.querySelector('[data-s="' + n + '"]') as HTMLElement; if (!chip) return;
       const s = findS(n); const dot = chip.querySelector(".d") as HTMLElement;
       if (state.vis[n]) { chip.style.opacity = "1"; chip.style.borderColor = s.c + "66"; dot.style.background = s.c; dot.style.border = "none"; }
-      else { chip.style.opacity = ".42"; chip.style.borderColor = "rgba(255,255,255,0.07)"; dot.style.background = "transparent"; dot.style.border = "1.5px solid #52525b"; }
+      else { chip.style.opacity = ".42"; chip.style.borderColor = "var(--mk-divider)"; dot.style.background = "transparent"; dot.style.border = "1.5px solid var(--mk-fg-faint)"; }
     };
     SER.forEach((s) => chipStyle(s.n));
 
@@ -215,19 +229,36 @@ export function MarketPulse() {
       let i = Math.round(((mx - PADL) / PW) * (N - 1)); if (i < 0) i = 0; if (i > N - 1) i = N - 1;
       const d = dataFor(state.tf), xx = xs[i];
       vline.setAttribute("x1", String(xx)); vline.setAttribute("x2", String(xx)); vline.setAttribute("y1", String(PADT)); vline.setAttribute("y2", String(PADT + PH)); vline.setAttribute("opacity", "1");
-      let rows = "";
       SER.forEach((s) => {
         const cd = cdots[s.n];
-        if (state.vis[s.n]) {
-          const yy = ymap(d[s.n][i], curLo, curHi);
-          cd.setAttribute("cx", String(xx)); cd.setAttribute("cy", String(yy)); cd.setAttribute("opacity", "1");
-          rows += '<div style="display:flex;align-items:center;gap:7px;margin-top:3px"><span style="width:8px;height:8px;border-radius:2px;background:' + s.c + '"></span><span style="color:#a1a1aa;min-width:46px">' + s.n + '</span><span style="color:#fafafa">' + d[s.n][i].toFixed(1) + "</span></div>";
-        } else cd.setAttribute("opacity", "0");
+        if (state.vis[s.n]) { const yy = ymap(d[s.n][i], curLo, curHi); cd.setAttribute("cx", String(xx)); cd.setAttribute("cy", String(yy)); cd.setAttribute("opacity", "1"); }
+        else cd.setAttribute("opacity", "0");
       });
-      ctip.innerHTML = '<div style="color:#52525b;margin-bottom:2px">' + XL[state.tf][0].replace("\u2011", "-") + " \u2192 Auj.</div>" + rows;
+      const bucket = XL[state.tf][0].replace("\u2011", "-") + " \u2192 Auj.";
+      let html: string;
+      if (vis.length === 1) {
+        const nm = vis[0], a = d[nm], val = a[i], dl = a[N - 1] - a[0];
+        const eur = Math.round((PB[nm] ?? 300) * val / 100);
+        let mn = 1e9, mx = -1e9; for (let j = 0; j < N; j++) { if (a[j] < mn) mn = a[j]; if (a[j] > mx) mx = a[j]; }
+        const dCol = dl >= 0 ? "#34D399" : "#F87171";
+        html =
+          '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px"><span style="width:8px;height:8px;border-radius:2px;background:' + findS(nm).c + '"></span><span style="color:#fafafa;font-weight:500">' + nm + '</span></div>' +
+          '<div style="color:#71717a;margin-bottom:4px">' + bucket + '</div>' +
+          '<div style="color:#a1a1aa">base 100&nbsp;&nbsp;<span style="color:#fafafa">' + val.toFixed(1) + '</span></div>' +
+          '<div style="color:#a1a1aa">\u2248 m\u00e9dian&nbsp;&nbsp;<span style="color:#fafafa">' + eur + ' \u20ac</span></div>' +
+          '<div style="color:#a1a1aa">p\u00e9riode&nbsp;&nbsp;<span style="color:' + dCol + '">' + (dl >= 0 ? "+" : "\u2212") + Math.abs(dl).toFixed(1) + ' %</span></div>' +
+          '<div style="color:#a1a1aa">plage&nbsp;&nbsp;<span style="color:#fafafa">' + mn.toFixed(1) + "\u2013" + mx.toFixed(1) + '</span></div>';
+      } else {
+        let rows = "";
+        SER.forEach((s) => {
+          if (state.vis[s.n]) rows += '<div style="display:flex;align-items:center;gap:7px;margin-top:3px"><span style="width:8px;height:8px;border-radius:2px;background:' + s.c + '"></span><span style="color:#a1a1aa;min-width:46px">' + s.n + '</span><span style="color:#fafafa">' + d[s.n][i].toFixed(1) + "</span></div>";
+        });
+        html = '<div style="color:#71717a;margin-bottom:2px">' + bucket + "</div>" + rows;
+      }
+      ctip.innerHTML = html;
       ctip.style.display = "block";
       const cvRect = chartView.getBoundingClientRect(); let lx = e.clientX - cvRect.left + 14;
-      if (lx + 150 > cvRect.width) lx = e.clientX - cvRect.left - 150;
+      if (lx + 170 > cvRect.width) lx = e.clientX - cvRect.left - 170;
       ctip.style.left = lx + "px"; ctip.style.top = e.clientY - cvRect.top - 10 + "px";
     }, sig);
     svg.addEventListener("mouseleave", () => { vline.setAttribute("opacity", "0"); ctip.style.display = "none"; SER.forEach((s) => cdots[s.n].setAttribute("opacity", "0")); }, sig);
@@ -238,14 +269,30 @@ export function MarketPulse() {
       if (ch > -1.5) return ["#3D1414", "#FCA5A5"]; if (ch > -4) return ["#7A1D1D", "#FCA5A5"];
       return ["#991B1B", "#FECACA"];
     };
-    const MD: [string, number][] = [["RTX 3060", 320], ["RTX 4070", 180], ["Ryzen 5 5600", 165], ["RX 580", 160], ["GTX 1660 Super", 150], ["RTX 3070", 150], ["i5-12400F", 140], ["RX 6700 XT", 140], ["Ryzen 5 3600", 130], ["RTX 4060", 130], ["RTX 3080", 120], ["i5-10400F", 120], ["RTX 2060", 110], ["DDR4 16GB", 110], ["RX 7600", 95], ["990 Pro 1TB", 90], ["i7-12700K", 85], ["870 EVO 1TB", 80], ["Ryzen 7 5800X", 75], ["DDR4 32GB", 70], ["B550", 65], ["DDR5 32GB", 60], ["SN850X 2TB", 55], ["RM750", 45]];
 
-    function buildMap(tf: string) {
+    // ── Carte du marché : vraies données catalogue (front pur, aucune API marché dédiée) ──
+    let catalog: CatalogModel[] | null = null;
+    let catalogReq = false;
+    async function ensureCatalog() {
+      if (catalog !== null || catalogReq) return;
+      catalogReq = true;
+      try { catalog = await fetchAllCatalogModels(); }
+      catch { catalog = []; }
+    }
+    function topModels(): CatalogModel[] {
+      if (!catalog) return [];
+      return catalog.filter((m) => (m.n_obs ?? 0) > 0).sort((a, b) => b.n_obs - a.n_obs).slice(0, 28);
+    }
+    async function buildMap() {
+      mkmap.innerHTML = '<div class="mp-msg">Chargement de la carte\u2026</div>';
+      await ensureCatalog();
+      if (!alive || state.view !== "map") return;
+      const models = topModels();
       mkmap.innerHTML = "";
-      const Wm = mkmap.offsetWidth || 636, Hm = 300; let tot = 0; MD.forEach((d) => (tot += d[1]));
-      const arr = MD.map((d) => { const r = rng(hash(d[0] + tf + "v")); const ch = r() * 12 - 6; return { name: d[0], ch: Math.round(ch * 10) / 10, a: (d[1] / tot) * Wm * Hm }; });
-      arr.sort((a, b) => b.a - a.a);
-      type R = { d: (typeof arr)[number]; x: number; y: number; w: number; h: number };
+      if (!models.length) { mkmap.innerHTML = '<div class="mp-msg">Donn\u00e9es march\u00e9 indisponibles pour le moment.</div>'; return; }
+      const Wm = mkmap.offsetWidth || 636, Hm = 300; let tot = 0; models.forEach((m) => (tot += m.n_obs));
+      const arr = models.map((m) => ({ m, a: (m.n_obs / tot) * Wm * Hm }));
+      type R = { m: CatalogModel; x: number; y: number; w: number; h: number };
       const out: R[] = [];
       const worst = (rowv: number[], L: number) => { let s = 0, mx = -1e9, mn = 1e9; for (let i = 0; i < rowv.length; i++) { s += rowv[i]; if (rowv[i] > mx) mx = rowv[i]; if (rowv[i] < mn) mn = rowv[i]; } return Math.max((L * L * mx) / (s * s), (s * s) / (L * L * mn)); };
       let rect = { x: 0, y: 0, w: Wm, h: Hm }, i = 0;
@@ -253,18 +300,35 @@ export function MarketPulse() {
         const vert = rect.w >= rect.h, L = vert ? rect.h : rect.w; const row: typeof arr = [], vals: number[] = [];
         while (i < arr.length) { const nv = vals.concat(arr[i].a); if (row.length === 0 || worst(vals, L) >= worst(nv, L)) { row.push(arr[i]); vals.push(arr[i].a); i++; } else break; }
         let s = 0; vals.forEach((v) => (s += v));
-        if (vert) { const sw = s / rect.h; let cy = rect.y; row.forEach((n, j) => { const hh = vals[j] / sw; out.push({ d: n, x: rect.x, y: cy, w: sw, h: hh }); cy += hh; }); rect = { x: rect.x + sw, y: rect.y, w: rect.w - sw, h: rect.h }; }
-        else { const sh = s / rect.w; let cx = rect.x; row.forEach((n, j) => { const ww = vals[j] / sh; out.push({ d: n, x: cx, y: rect.y, w: ww, h: sh }); cx += ww; }); rect = { x: rect.x, y: rect.y + sh, w: rect.w, h: rect.h - sh }; }
+        if (vert) { const sw = s / rect.h; let cy = rect.y; row.forEach((n, j) => { const hh = vals[j] / sw; out.push({ m: n.m, x: rect.x, y: cy, w: sw, h: hh }); cy += hh; }); rect = { x: rect.x + sw, y: rect.y, w: rect.w - sw, h: rect.h }; }
+        else { const sh = s / rect.w; let cx = rect.x; row.forEach((n, j) => { const ww = vals[j] / sh; out.push({ m: n.m, x: cx, y: rect.y, w: ww, h: sh }); cx += ww; }); rect = { x: rect.x, y: rect.y + sh, w: rect.w, h: rect.h - sh }; }
       }
       out.forEach((r, idx) => {
-        const c = col(r.d.ch); const el = document.createElement("div"); el.className = "mp-tile";
+        const ch = r.m.trend_30d_pct, c = col(ch); const el = document.createElement("div"); el.className = "mp-tile";
         el.style.left = r.x + 2 + "px"; el.style.top = r.y + 2 + "px"; el.style.width = Math.max(0, r.w - 4) + "px"; el.style.height = Math.max(0, r.h - 4) + "px"; el.style.background = c[0]; el.style.color = c[1];
         const fs = Math.max(11, Math.min(20, Math.round(Math.sqrt(r.w * r.h) / 6))); let html = "";
         if (r.w > 44 && r.h > 26) {
-          html += '<span style="font-family:var(--font-mono);font-weight:500;font-size:' + Math.min(fs, 15) + 'px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + r.d.name + "</span>";
-          if (r.h > 44) { const sg = (r.d.ch > 0 ? "+" : "") + r.d.ch.toFixed(1) + "%"; html += '<span style="font-family:var(--font-mono);font-size:' + Math.min(fs + 2, 21) + 'px;font-weight:600;margin-top:3px">' + sg + "</span>"; }
+          html += '<span style="font-family:var(--font-mono);font-weight:500;font-size:' + Math.min(fs, 15) + 'px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + r.m.name + "</span>";
+          if (r.h > 44) { const sg = (ch > 0 ? "+" : "") + ch.toFixed(1) + "%"; html += '<span style="font-family:var(--font-mono);font-size:' + Math.min(fs + 2, 21) + 'px;font-weight:600;margin-top:3px">' + sg + "</span>"; }
         }
-        el.innerHTML = html; mkmap.appendChild(el);
+        el.innerHTML = html;
+        el.addEventListener("click", () => navRef.current({ to: "/catalogue/$modelId", params: { modelId: r.m.id } }), sig);
+        el.addEventListener("mouseenter", () => {
+          const sg = (ch > 0 ? "+" : "") + ch.toFixed(1) + "%"; const sgCol = ch >= 0 ? "#34D399" : "#F87171";
+          maptip.innerHTML =
+            '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px"><span style="color:#fafafa;font-weight:500">' + r.m.name + '</span><span style="color:#71717a">' + r.m.category + '</span></div>' +
+            '<div style="color:#a1a1aa">m\u00e9dian&nbsp;&nbsp;<span style="color:#fafafa">' + Math.round(r.m.median_eur) + ' \u20ac</span></div>' +
+            '<div style="color:#a1a1aa">var. 30 j&nbsp;&nbsp;<span style="color:' + sgCol + '">' + sg + '</span></div>' +
+            '<div style="color:#a1a1aa">ventes 30 j&nbsp;&nbsp;<span style="color:#fafafa">' + r.m.n_obs + '</span></div>' +
+            '<div style="color:#52525b;margin-top:4px">Cliquer \u2192 fiche mod\u00e8le</div>';
+          maptip.style.display = "block";
+        }, sig);
+        el.addEventListener("mousemove", (ev: Event) => {
+          const e = ev as MouseEvent; const r2 = mapView.getBoundingClientRect();
+          let lx = e.clientX - r2.left + 14; if (lx + 200 > r2.width) lx = e.clientX - r2.left - 200;
+          maptip.style.left = lx + "px"; maptip.style.top = e.clientY - r2.top + 12 + "px";
+        }, sig);
+        el.addEventListener("mouseleave", () => { maptip.style.display = "none"; }, sig);
         const to = window.setTimeout(() => el.classList.add("in"), idx * 26); timers.push(to);
       });
     }
@@ -276,23 +340,23 @@ export function MarketPulse() {
     function showView(v: string) {
       if (v === state.view) return; state.view = v;
       root.querySelectorAll(".mp-seg > div").forEach((b) => b.classList.toggle("on", b.getAttribute("data-view") === v));
-      if (v === "chart") { mapView.style.display = "none"; chartView.style.display = "block"; fadeIn(chartView); render(true); }
-      else { chartView.style.display = "none"; mapView.style.display = "block"; fadeIn(mapView); buildMap(state.tf); }
+      if (v === "chart") { mapView.style.display = "none"; chartView.style.display = "block"; tfg.style.visibility = "visible"; fadeIn(chartView); render(true); }
+      else { chartView.style.display = "none"; mapView.style.display = "block"; tfg.style.visibility = "hidden"; fadeIn(mapView); void buildMap(); }
     }
     root.querySelectorAll(".mp-seg > div").forEach((b) => b.addEventListener("click", () => showView(b.getAttribute("data-view") as string), sig));
     root.querySelectorAll(".mp-tf .tfc").forEach((c) => c.addEventListener("click", () => {
       const tf = c.getAttribute("data-tf") as string; if (tf === state.tf) return; state.tf = tf;
       root.querySelectorAll(".mp-tf .tfc").forEach((x) => x.classList.toggle("on", x.getAttribute("data-tf") === tf));
-      if (state.view === "chart") render(false); else buildMap(tf);
+      if (state.view === "chart") render(false);
     }, sig));
 
     render(true);
 
-    return () => { ac.abort(); if (raf != null) cancelAnimationFrame(raf); timers.forEach((t) => clearTimeout(t)); };
+    return () => { alive = false; ac.abort(); if (raf != null) cancelAnimationFrame(raf); timers.forEach((t) => clearTimeout(t)); };
   }, []);
 
   return (
-    <div ref={rootRef} style={{ background: "var(--mk-surface-1)", border: "0.5px solid var(--mk-divider)", borderRadius: 16, padding: "18px 20px", color: "var(--mk-fg)" }}>
+    <div ref={rootRef} className="mk-card" style={{ padding: "18px 20px" }}>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <h2 className="sr-only">Marché : bascule entre courbes superposables et carte du marché</h2>
 
@@ -312,7 +376,16 @@ export function MarketPulse() {
         <div style={{ display: "flex", alignItems: "baseline", gap: 13, flexWrap: "wrap" }}>
           <span className="mp-idxn" style={{ fontFamily: "var(--font-mono)", fontSize: 42, fontWeight: 600, lineHeight: 1, color: "var(--mk-fg)" }}>100.0</span>
           <span className="mp-idxd" style={{ fontFamily: "var(--font-mono)", fontSize: 12, padding: "4px 10px", borderRadius: 7, color: "#34D399", background: "rgba(16,185,129,0.10)", border: "0.5px solid rgba(16,185,129,0.22)" }}>{"\u25B2 +0.0%"}</span>
-          <span style={{ fontSize: 12, color: "var(--mk-fg-faint)" }}>Indice Monark · base 100</span>
+          <Tooltip
+            content={
+              <span className="block">
+                <span className="mb-1 block font-mono text-[10px] tracking-[0.12em] text-blue-300">INDICE MONARK</span>
+                <span className="block">Indice composite du marché de l'occasion, pondéré par le volume des modèles suivis et ramené en base 100 (le niveau de départ de la période). Une hausse = les prix de revente progressent.</span>
+              </span>
+            }
+          >
+            <span className="mp-term" style={{ fontSize: 12, color: "var(--mk-fg-faint)" }}>Indice Monark · base 100</span>
+          </Tooltip>
         </div>
 
         <svg className="mp-svg" viewBox="0 0 660 250" width="100%" style={{ display: "block", marginTop: 10, height: "auto", overflow: "visible" }} role="img" aria-label="Courbes superposables par catégorie, base 100">
@@ -331,23 +404,43 @@ export function MarketPulse() {
           <g data-l="line" />
           <g data-l="dot" />
         </svg>
-        <div className="mp-tip" style={{ position: "absolute", display: "none", pointerEvents: "none", background: "#141417", border: "0.5px solid rgba(255,255,255,0.12)", borderRadius: 8, padding: "8px 10px", fontFamily: "var(--font-mono)", fontSize: 11, color: "#e4e4e7", zIndex: 5, whiteSpace: "nowrap" }} />
+        <div className="mp-float mp-ctip" />
         <div className="mp-legend" style={{ display: "flex", gap: 7, marginTop: 12, flexWrap: "wrap" }} />
       </div>
 
-      <div className="mp-map-view" style={{ display: "none", marginTop: 14 }}>
+      <div className="mp-map-view" style={{ display: "none", marginTop: 14, position: "relative" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 10 }}>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--mk-fg-faint)" }}>Top volumes</span>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Tooltip
+              content={
+                <span className="block">
+                  <span className="mb-1 block font-mono text-[10px] tracking-[0.12em] text-blue-300">COULEUR</span>
+                  <span className="block">Couleur = variation du prix médian sur 30 jours. Vert = hausse, rouge = baisse.</span>
+                </span>
+              }
+            >
+              <span className="mp-term" style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--mk-fg-faint)" }}>variation 30 j</span>
+            </Tooltip>
             <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--mk-fg-faint)" }}>{"\u22126%"}</span>
             <div style={{ display: "flex", gap: 3 }}>
               {["#991B1B", "#7A1D1D", "#3D1414", "#1C1C20", "#0E4D3A", "#065F46", "#047857"].map((c) => (<span key={c} style={{ width: 15, height: 10, borderRadius: 2, background: c }} />))}
             </div>
             <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--mk-fg-faint)" }}>+6%</span>
-            <span style={{ fontSize: 11, color: "var(--mk-fg-faint)", marginLeft: 8 }}>taille = volume</span>
+            <Tooltip
+              content={
+                <span className="block">
+                  <span className="mb-1 block font-mono text-[10px] tracking-[0.12em] text-blue-300">TAILLE</span>
+                  <span className="block">La taille de chaque tuile reflète le nombre de ventes réelles sur 30 jours : plus un modèle se vend, plus sa tuile est grande.</span>
+                </span>
+              }
+            >
+              <span className="mp-term" style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--mk-fg-faint)", marginLeft: 4 }}>taille = volume</span>
+            </Tooltip>
           </div>
         </div>
         <div className="mp-map" style={{ position: "relative", width: "100%", height: 300, overflow: "hidden" }} />
+        <div className="mp-float mp-maptip" />
       </div>
     </div>
   );
