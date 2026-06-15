@@ -18,9 +18,9 @@ const CSS = `
 .mp-term{cursor:help;border-bottom:1px dotted var(--mk-fg-faint)}
 .mp-tile{position:absolute;box-sizing:border-box;border-radius:6px;display:flex;flex-direction:column;justify-content:center;padding:6px 8px;overflow:hidden;opacity:0;transform:scale(.96);transition:opacity .4s ease,transform .4s ease,filter .15s ease;cursor:pointer}
 .mp-tile.in{opacity:1;transform:scale(1)}
-.mp-tile:hover{filter:brightness(1.16)}
-.mp-msg{display:flex;align-items:center;justify-content:center;height:100%;font-family:var(--font-mono);font-size:12px;color:var(--mk-fg-faint)}
-.mp-float{position:absolute;display:none;pointer-events:none;z-index:6;max-width:230px;background:rgba(20,20,22,0.96);border:0.5px solid rgba(255,255,255,0.1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 4px 20px rgba(0,0,0,0.4);border-radius:8px;padding:9px 11px;font-family:var(--font-mono);font-size:11px;color:#e4e4e7;line-height:1.55}
+.mp-tile:hover{filter:brightness(1.15)}
+.mp-msg{display:flex;align-items:center;justify-content:center;height:100%;font-family:var(--font-mono);font-size:12px;color:var(--mk-fg-dim);text-align:center;padding:0 16px}
+.mp-float{position:absolute;display:none;pointer-events:none;z-index:6;max-width:230px;background:#0A0A0B;border:0.5px solid rgba(250,250,250,0.22);box-shadow:0 6px 24px rgba(0,0,0,0.5);border-radius:8px;padding:9px 11px;font-family:var(--font-mono);font-size:11px;color:#e4e4e7;line-height:1.55}
 `;
 
 export function MarketPulse() {
@@ -57,7 +57,6 @@ export function MarketPulse() {
       "30J": ["J\u201130", "J\u201120", "J\u201110", "Auj."],
       "90J": ["J\u201190", "J\u201160", "J\u201130", "Auj."],
     };
-    // prix médian indicatif par série, pour enrichir le survol mono-courbe (mock)
     const PB: Record<string, number> = { Indice: 360, GPU: 430, CPU: 205, RAM: 95, SSD: 115, MOBO: 135, PSU: 85 };
     const N = 30, W = 660, H = 250, PADL = 12, PADR = 30, PADT = 16, PADB = 40;
     const PW = W - PADL - PADR, PH = H - PADT - PADB, BASE = PADT + PH / 2;
@@ -106,36 +105,31 @@ export function MarketPulse() {
     const area = S("path", { fill: "none", opacity: 0 }); Larea.appendChild(area);
 
     type Obj = {
-      s: (typeof SER)[number]; glow: SVGElement; line: SVGElement; dot: SVGElement;
+      s: (typeof SER)[number]; line: SVGElement; dot: SVGElement;
       cur: number[][] | null; op: number; wasVis: boolean;
       tgt?: number[][]; tOp?: number; sCur?: number[][]; sOp?: number;
     };
     const objs: Record<string, Obj> = {};
     SER.forEach((s) => {
-      const glow = S("path", { fill: "none", stroke: s.c, "stroke-width": 4.5, opacity: 0, "stroke-linecap": "round", "stroke-linejoin": "round" });
-      const line = S("path", { fill: "none", stroke: s.c, "stroke-width": 2, opacity: 0, "stroke-linecap": "round", "stroke-linejoin": "round" });
-      Lline.appendChild(glow); Lline.appendChild(line);
-      const dot = S("circle", { r: 2.8, fill: s.c, opacity: 0 }); Ldot.appendChild(dot);
-      objs[s.n] = { s, glow, line, dot, cur: null, op: 0, wasVis: false };
+      const line = S("path", { fill: "none", stroke: s.c, "stroke-width": 1.7, opacity: 0, "stroke-linecap": "round", "stroke-linejoin": "round" });
+      Lline.appendChild(line);
+      const dot = S("circle", { r: 3, fill: s.c, opacity: 0 }); Ldot.appendChild(dot);
+      objs[s.n] = { s, line, dot, cur: null, op: 0, wasVis: false };
     });
-    const ring = S("circle", { r: 5, fill: "none", stroke: "#09B1BA", "stroke-width": 1.5, opacity: 0 });
-    ring.appendChild(S("animate", { attributeName: "r", values: "5;15", dur: "2.1s", repeatCount: "indefinite" }));
-    ring.appendChild(S("animate", { attributeName: "opacity", values: "0.55;0", dur: "2.1s", repeatCount: "indefinite" }));
-    Ldot.appendChild(ring);
 
     const glines: SVGElement[] = [], glabels: SVGElement[] = [];
     for (let k = 0; k < 4; k++) {
       const ln = S("line", { x1: PADL, x2: PADL + PW, stroke: "var(--mk-grid-color)", "stroke-width": 1 });
       Lgrid.appendChild(ln); glines.push(ln);
-      const tx = S("text", { x: W - PADR + 6, "text-anchor": "start", "font-size": 12, fill: "#4A4A52" });
+      const tx = S("text", { x: W - PADR + 6, "text-anchor": "start", "font-size": 11, fill: "var(--mk-fg-faint)" });
       tx.setAttribute("font-family", "var(--font-mono)"); Lgrid.appendChild(tx); glabels.push(tx);
     }
     const xlabels: SVGElement[] = [], xlx = [PADL, PADL + PW * 0.34, PADL + PW * 0.67, PADL + PW], xan = ["start", "middle", "middle", "end"];
     for (let k = 0; k < 4; k++) {
-      const tx = S("text", { x: xlx[k], y: H - PADB + 22, "text-anchor": xan[k], "font-size": 12, fill: "var(--mk-fg-faint)" });
+      const tx = S("text", { x: xlx[k], y: H - PADB + 22, "text-anchor": xan[k], "font-size": 11, fill: "var(--mk-fg-faint)" });
       tx.setAttribute("font-family", "var(--font-mono)"); Lgrid.appendChild(tx); xlabels.push(tx);
     }
-    const vline = S("line", { stroke: "rgba(255,255,255,0.18)", "stroke-width": 1, opacity: 0 }); Lcross.appendChild(vline);
+    const vline = S("line", { stroke: "rgba(255,255,255,0.14)", "stroke-width": 1, opacity: 0 }); Lcross.appendChild(vline);
     const cdots: Record<string, SVGElement> = {};
     SER.forEach((s) => { const c = S("circle", { r: 3.4, fill: "#0A0A0B", stroke: s.c, "stroke-width": 2, opacity: 0 }); Lcross.appendChild(c); cdots[s.n] = c; });
 
@@ -199,8 +193,7 @@ export function MarketPulse() {
         for (let i = 0; i < N; i++) o.cur[i] = [o.tgt[i][0], o.sCur[i][1] + (o.tgt[i][1] - o.sCur[i][1]) * e];
         o.op = (o.sOp ?? 0) + ((o.tOp ?? 0) - (o.sOp ?? 0)) * e;
         const ds = pstr(o.cur);
-        o.glow.setAttribute("d", ds); o.line.setAttribute("d", ds);
-        o.glow.setAttribute("opacity", (o.op * 0.17).toFixed(3)); o.line.setAttribute("opacity", o.op.toFixed(3));
+        o.line.setAttribute("d", ds); o.line.setAttribute("opacity", o.op.toFixed(3));
         const lp = o.cur[N - 1]; o.dot.setAttribute("cx", String(lp[0])); o.dot.setAttribute("cy", String(lp[1])); o.dot.setAttribute("opacity", o.op.toFixed(3));
       });
       if (vis.length === 1) {
@@ -212,10 +205,6 @@ export function MarketPulse() {
           area.setAttribute("d", a); area.setAttribute("fill", "url(#grad-" + vis[0] + ")"); area.setAttribute("opacity", o.op.toFixed(3));
         }
       } else area.setAttribute("opacity", "0");
-      if (state.vis["Indice"]) {
-        const oi = objs["Indice"];
-        if (oi.cur) { const l2 = oi.cur[N - 1]; ring.setAttribute("cx", String(l2[0])); ring.setAttribute("cy", String(l2[1])); ring.setAttribute("opacity", oi.op.toFixed(3)); }
-      } else ring.setAttribute("opacity", "0");
       curNum = sNum + (tNum - sNum) * e; numEl.textContent = curNum.toFixed(1);
       if (t < 1) raf = requestAnimationFrame(frame); else raf = null;
     }
@@ -244,10 +233,10 @@ export function MarketPulse() {
         html =
           '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px"><span style="width:8px;height:8px;border-radius:2px;background:' + findS(nm).c + '"></span><span style="color:#fafafa;font-weight:500">' + nm + '</span></div>' +
           '<div style="color:#71717a;margin-bottom:4px">' + bucket + '</div>' +
-          '<div style="color:#a1a1aa">base 100&nbsp;&nbsp;<span style="color:#fafafa">' + val.toFixed(1) + '</span></div>' +
-          '<div style="color:#a1a1aa">\u2248 m\u00e9dian&nbsp;&nbsp;<span style="color:#fafafa">' + eur + ' \u20ac</span></div>' +
-          '<div style="color:#a1a1aa">p\u00e9riode&nbsp;&nbsp;<span style="color:' + dCol + '">' + (dl >= 0 ? "+" : "\u2212") + Math.abs(dl).toFixed(1) + ' %</span></div>' +
-          '<div style="color:#a1a1aa">plage&nbsp;&nbsp;<span style="color:#fafafa">' + mn.toFixed(1) + "\u2013" + mx.toFixed(1) + '</span></div>';
+          '<div style="color:#a1a1aa">niveau&nbsp;&nbsp;<span style="color:#fafafa">' + val.toFixed(1) + '</span></div>' +
+          '<div style="color:#a1a1aa">\u2248 prix moyen&nbsp;&nbsp;<span style="color:#fafafa">' + eur + ' \u20ac</span></div>' +
+          '<div style="color:#a1a1aa">sur la p\u00e9riode&nbsp;&nbsp;<span style="color:' + dCol + '">' + (dl >= 0 ? "+" : "\u2212") + Math.abs(dl).toFixed(1) + ' %</span></div>' +
+          '<div style="color:#a1a1aa">entre&nbsp;&nbsp;<span style="color:#fafafa">' + mn.toFixed(1) + " et " + mx.toFixed(1) + '</span></div>';
       } else {
         let rows = "";
         SER.forEach((s) => {
@@ -276,61 +265,68 @@ export function MarketPulse() {
     async function ensureCatalog() {
       if (catalog !== null || catalogReq) return;
       catalogReq = true;
-      try { catalog = await fetchAllCatalogModels(); }
-      catch { catalog = []; }
+      try { catalog = await fetchAllCatalogModels(); } catch { catalog = []; }
     }
     function topModels(): CatalogModel[] {
-      if (!catalog) return [];
-      return catalog.filter((m) => (m.n_obs ?? 0) > 0).sort((a, b) => b.n_obs - a.n_obs).slice(0, 28);
+      if (!catalog || !catalog.length) return [];
+      // pas de filtre dur sur le volume : on garde les 28 plus gros vendeurs,
+      // poids minimal plus bas pour que chaque tuile reste visible même si la donnée est éparse.
+      return [...catalog].sort((a, b) => (b.n_obs || 0) - (a.n_obs || 0)).slice(0, 28);
     }
     async function buildMap() {
       mkmap.innerHTML = '<div class="mp-msg">Chargement de la carte\u2026</div>';
       await ensureCatalog();
       if (!alive || state.view !== "map") return;
-      const models = topModels();
-      mkmap.innerHTML = "";
-      if (!models.length) { mkmap.innerHTML = '<div class="mp-msg">Donn\u00e9es march\u00e9 indisponibles pour le moment.</div>'; return; }
-      const Wm = mkmap.offsetWidth || 636, Hm = 300; let tot = 0; models.forEach((m) => (tot += m.n_obs));
-      const arr = models.map((m) => ({ m, a: (m.n_obs / tot) * Wm * Hm }));
-      type R = { m: CatalogModel; x: number; y: number; w: number; h: number };
-      const out: R[] = [];
-      const worst = (rowv: number[], L: number) => { let s = 0, mx = -1e9, mn = 1e9; for (let i = 0; i < rowv.length; i++) { s += rowv[i]; if (rowv[i] > mx) mx = rowv[i]; if (rowv[i] < mn) mn = rowv[i]; } return Math.max((L * L * mx) / (s * s), (s * s) / (L * L * mn)); };
-      let rect = { x: 0, y: 0, w: Wm, h: Hm }, i = 0;
-      while (i < arr.length) {
-        const vert = rect.w >= rect.h, L = vert ? rect.h : rect.w; const row: typeof arr = [], vals: number[] = [];
-        while (i < arr.length) { const nv = vals.concat(arr[i].a); if (row.length === 0 || worst(vals, L) >= worst(nv, L)) { row.push(arr[i]); vals.push(arr[i].a); i++; } else break; }
-        let s = 0; vals.forEach((v) => (s += v));
-        if (vert) { const sw = s / rect.h; let cy = rect.y; row.forEach((n, j) => { const hh = vals[j] / sw; out.push({ m: n.m, x: rect.x, y: cy, w: sw, h: hh }); cy += hh; }); rect = { x: rect.x + sw, y: rect.y, w: rect.w - sw, h: rect.h }; }
-        else { const sh = s / rect.w; let cx = rect.x; row.forEach((n, j) => { const ww = vals[j] / sh; out.push({ m: n.m, x: cx, y: rect.y, w: ww, h: sh }); cx += ww; }); rect = { x: rect.x, y: rect.y + sh, w: rect.w, h: rect.h - sh }; }
-      }
-      out.forEach((r, idx) => {
-        const ch = r.m.trend_30d_pct, c = col(ch); const el = document.createElement("div"); el.className = "mp-tile";
-        el.style.left = r.x + 2 + "px"; el.style.top = r.y + 2 + "px"; el.style.width = Math.max(0, r.w - 4) + "px"; el.style.height = Math.max(0, r.h - 4) + "px"; el.style.background = c[0]; el.style.color = c[1];
-        const fs = Math.max(11, Math.min(20, Math.round(Math.sqrt(r.w * r.h) / 6))); let html = "";
-        if (r.w > 44 && r.h > 26) {
-          html += '<span style="font-family:var(--font-mono);font-weight:500;font-size:' + Math.min(fs, 15) + 'px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + r.m.name + "</span>";
-          if (r.h > 44) { const sg = (ch > 0 ? "+" : "") + ch.toFixed(1) + "%"; html += '<span style="font-family:var(--font-mono);font-size:' + Math.min(fs + 2, 21) + 'px;font-weight:600;margin-top:3px">' + sg + "</span>"; }
+      try {
+        const models = topModels();
+        mkmap.innerHTML = "";
+        if (!models.length) { mkmap.innerHTML = '<div class="mp-msg">Donn\u00e9es march\u00e9 indisponibles pour le moment.</div>'; return; }
+        const rectBox = mkmap.getBoundingClientRect();
+        const Wm = Math.max(Math.round(rectBox.width) || 0, 0) || 636, Hm = 300;
+        let tot = 0; const wt = models.map((m) => { const w = Math.max(m.n_obs || 0, 1); tot += w; return w; });
+        const arr = models.map((m, k) => ({ m, a: (wt[k] / tot) * Wm * Hm }));
+        type R = { m: CatalogModel; x: number; y: number; w: number; h: number };
+        const out: R[] = [];
+        const worst = (rowv: number[], L: number) => { let s = 0, mx = -1e9, mn = 1e9; for (let i = 0; i < rowv.length; i++) { s += rowv[i]; if (rowv[i] > mx) mx = rowv[i]; if (rowv[i] < mn) mn = rowv[i]; } return Math.max((L * L * mx) / (s * s), (s * s) / (L * L * mn)); };
+        let rect = { x: 0, y: 0, w: Wm, h: Hm }, i = 0;
+        while (i < arr.length) {
+          const vert = rect.w >= rect.h, L = vert ? rect.h : rect.w; const row: typeof arr = [], vals: number[] = [];
+          while (i < arr.length) { const nv = vals.concat(arr[i].a); if (row.length === 0 || worst(vals, L) >= worst(nv, L)) { row.push(arr[i]); vals.push(arr[i].a); i++; } else break; }
+          let s = 0; vals.forEach((v) => (s += v));
+          if (vert) { const sw = s / rect.h; let cy = rect.y; row.forEach((n, j) => { const hh = vals[j] / sw; out.push({ m: n.m, x: rect.x, y: cy, w: sw, h: hh }); cy += hh; }); rect = { x: rect.x + sw, y: rect.y, w: rect.w - sw, h: rect.h }; }
+          else { const sh = s / rect.w; let cx = rect.x; row.forEach((n, j) => { const ww = vals[j] / sh; out.push({ m: n.m, x: cx, y: rect.y, w: ww, h: sh }); cx += ww; }); rect = { x: rect.x, y: rect.y + sh, w: rect.w, h: rect.h - sh }; }
         }
-        el.innerHTML = html;
-        el.addEventListener("click", () => navRef.current({ to: "/catalogue/$modelId", params: { modelId: r.m.id } }), sig);
-        el.addEventListener("mouseenter", () => {
-          const sg = (ch > 0 ? "+" : "") + ch.toFixed(1) + "%"; const sgCol = ch >= 0 ? "#34D399" : "#F87171";
-          maptip.innerHTML =
-            '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px"><span style="color:#fafafa;font-weight:500">' + r.m.name + '</span><span style="color:#71717a">' + r.m.category + '</span></div>' +
-            '<div style="color:#a1a1aa">m\u00e9dian&nbsp;&nbsp;<span style="color:#fafafa">' + Math.round(r.m.median_eur) + ' \u20ac</span></div>' +
-            '<div style="color:#a1a1aa">var. 30 j&nbsp;&nbsp;<span style="color:' + sgCol + '">' + sg + '</span></div>' +
-            '<div style="color:#a1a1aa">ventes 30 j&nbsp;&nbsp;<span style="color:#fafafa">' + r.m.n_obs + '</span></div>' +
-            '<div style="color:#52525b;margin-top:4px">Cliquer \u2192 fiche mod\u00e8le</div>';
-          maptip.style.display = "block";
-        }, sig);
-        el.addEventListener("mousemove", (ev: Event) => {
-          const e = ev as MouseEvent; const r2 = mapView.getBoundingClientRect();
-          let lx = e.clientX - r2.left + 14; if (lx + 200 > r2.width) lx = e.clientX - r2.left - 200;
-          maptip.style.left = lx + "px"; maptip.style.top = e.clientY - r2.top + 12 + "px";
-        }, sig);
-        el.addEventListener("mouseleave", () => { maptip.style.display = "none"; }, sig);
-        const to = window.setTimeout(() => el.classList.add("in"), idx * 26); timers.push(to);
-      });
+        out.forEach((r, idx) => {
+          const ch = r.m.trend_30d_pct, c = col(ch); const el = document.createElement("div"); el.className = "mp-tile";
+          el.style.left = r.x + 2 + "px"; el.style.top = r.y + 2 + "px"; el.style.width = Math.max(0, r.w - 4) + "px"; el.style.height = Math.max(0, r.h - 4) + "px"; el.style.background = c[0]; el.style.color = c[1];
+          const fs = Math.max(11, Math.min(20, Math.round(Math.sqrt(r.w * r.h) / 6))); let html = "";
+          if (r.w > 44 && r.h > 26) {
+            html += '<span style="font-family:var(--font-mono);font-weight:500;font-size:' + Math.min(fs, 15) + 'px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + r.m.name + "</span>";
+            if (r.h > 44) { const sg = (ch > 0 ? "+" : "") + ch.toFixed(1) + "%"; html += '<span style="font-family:var(--font-mono);font-size:' + Math.min(fs + 2, 21) + 'px;font-weight:600;margin-top:3px">' + sg + "</span>"; }
+          }
+          el.innerHTML = html;
+          el.addEventListener("click", () => navRef.current({ to: "/catalogue/$modelId", params: { modelId: r.m.id } }), sig);
+          el.addEventListener("mouseenter", () => {
+            const sg = (ch > 0 ? "+" : "") + ch.toFixed(1) + "%"; const sgCol = ch >= 0 ? "#34D399" : "#F87171";
+            maptip.innerHTML =
+              '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px"><span style="color:#fafafa;font-weight:500">' + r.m.name + '</span><span style="color:#71717a">' + r.m.category + '</span></div>' +
+              '<div style="color:#a1a1aa">prix m\u00e9dian&nbsp;&nbsp;<span style="color:#fafafa">' + Math.round(r.m.median_eur) + ' \u20ac</span></div>' +
+              '<div style="color:#a1a1aa">sur 1 mois&nbsp;&nbsp;<span style="color:' + sgCol + '">' + sg + '</span></div>' +
+              '<div style="color:#a1a1aa">ventes / mois&nbsp;&nbsp;<span style="color:#fafafa">' + (r.m.n_obs || 0) + '</span></div>' +
+              '<div style="color:#52525b;margin-top:4px">Cliquer \u2192 fiche du mod\u00e8le</div>';
+            maptip.style.display = "block";
+          }, sig);
+          el.addEventListener("mousemove", (ev: Event) => {
+            const e = ev as MouseEvent; const r2 = mapView.getBoundingClientRect();
+            let lx = e.clientX - r2.left + 14; if (lx + 200 > r2.width) lx = e.clientX - r2.left - 200;
+            maptip.style.left = lx + "px"; maptip.style.top = e.clientY - r2.top + 12 + "px";
+          }, sig);
+          el.addEventListener("mouseleave", () => { maptip.style.display = "none"; }, sig);
+          const to = window.setTimeout(() => { if (alive) el.classList.add("in"); }, idx * 24); timers.push(to);
+        });
+      } catch {
+        mkmap.innerHTML = '<div class="mp-msg">Carte momentan\u00e9ment indisponible.</div>';
+      }
     }
 
     function fadeIn(el: HTMLElement) {
@@ -379,8 +375,8 @@ export function MarketPulse() {
           <Tooltip
             content={
               <span className="block">
-                <span className="mb-1 block font-mono text-[10px] tracking-[0.12em] text-blue-300">INDICE MONARK</span>
-                <span className="block">Indice composite du marché de l'occasion, pondéré par le volume des modèles suivis et ramené en base 100 (le niveau de départ de la période). Une hausse = les prix de revente progressent.</span>
+                <span className="mb-1 block font-mono text-[10px] tracking-[0.12em] text-blue-300">L'INDICE EN BREF</span>
+                <span className="block">Un seul chiffre qui dit si les prix d'occasion montent ou baissent en ce moment. On part de 100 au début de la période : 105 = +5 % en moyenne, 95 = −5 %.</span>
               </span>
             }
           >
@@ -390,13 +386,13 @@ export function MarketPulse() {
 
         <svg className="mp-svg" viewBox="0 0 660 250" width="100%" style={{ display: "block", marginTop: 10, height: "auto", overflow: "visible" }} role="img" aria-label="Courbes superposables par catégorie, base 100">
           <defs>
-            <linearGradient id="grad-Indice" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#09B1BA" stopOpacity="0.32" /><stop offset="60%" stopColor="#09B1BA" stopOpacity="0.07" /><stop offset="100%" stopColor="#09B1BA" stopOpacity="0" /></linearGradient>
-            <linearGradient id="grad-GPU" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#3B82F6" stopOpacity="0.32" /><stop offset="60%" stopColor="#3B82F6" stopOpacity="0.07" /><stop offset="100%" stopColor="#3B82F6" stopOpacity="0" /></linearGradient>
-            <linearGradient id="grad-CPU" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#F59E0B" stopOpacity="0.32" /><stop offset="60%" stopColor="#F59E0B" stopOpacity="0.07" /><stop offset="100%" stopColor="#F59E0B" stopOpacity="0" /></linearGradient>
-            <linearGradient id="grad-RAM" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.32" /><stop offset="60%" stopColor="#8B5CF6" stopOpacity="0.07" /><stop offset="100%" stopColor="#8B5CF6" stopOpacity="0" /></linearGradient>
-            <linearGradient id="grad-SSD" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#10B981" stopOpacity="0.32" /><stop offset="60%" stopColor="#10B981" stopOpacity="0.07" /><stop offset="100%" stopColor="#10B981" stopOpacity="0" /></linearGradient>
-            <linearGradient id="grad-MOBO" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#F472B6" stopOpacity="0.32" /><stop offset="60%" stopColor="#F472B6" stopOpacity="0.07" /><stop offset="100%" stopColor="#F472B6" stopOpacity="0" /></linearGradient>
-            <linearGradient id="grad-PSU" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#FB923C" stopOpacity="0.32" /><stop offset="60%" stopColor="#FB923C" stopOpacity="0.07" /><stop offset="100%" stopColor="#FB923C" stopOpacity="0" /></linearGradient>
+            <linearGradient id="grad-Indice" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#09B1BA" stopOpacity="0.12" /><stop offset="65%" stopColor="#09B1BA" stopOpacity="0.04" /><stop offset="100%" stopColor="#09B1BA" stopOpacity="0" /></linearGradient>
+            <linearGradient id="grad-GPU" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#3B82F6" stopOpacity="0.12" /><stop offset="65%" stopColor="#3B82F6" stopOpacity="0.04" /><stop offset="100%" stopColor="#3B82F6" stopOpacity="0" /></linearGradient>
+            <linearGradient id="grad-CPU" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#F59E0B" stopOpacity="0.12" /><stop offset="65%" stopColor="#F59E0B" stopOpacity="0.04" /><stop offset="100%" stopColor="#F59E0B" stopOpacity="0" /></linearGradient>
+            <linearGradient id="grad-RAM" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.12" /><stop offset="65%" stopColor="#8B5CF6" stopOpacity="0.04" /><stop offset="100%" stopColor="#8B5CF6" stopOpacity="0" /></linearGradient>
+            <linearGradient id="grad-SSD" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#10B981" stopOpacity="0.12" /><stop offset="65%" stopColor="#10B981" stopOpacity="0.04" /><stop offset="100%" stopColor="#10B981" stopOpacity="0" /></linearGradient>
+            <linearGradient id="grad-MOBO" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#F472B6" stopOpacity="0.12" /><stop offset="65%" stopColor="#F472B6" stopOpacity="0.04" /><stop offset="100%" stopColor="#F472B6" stopOpacity="0" /></linearGradient>
+            <linearGradient id="grad-PSU" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#FB923C" stopOpacity="0.12" /><stop offset="65%" stopColor="#FB923C" stopOpacity="0.04" /><stop offset="100%" stopColor="#FB923C" stopOpacity="0" /></linearGradient>
           </defs>
           <g data-l="grid" />
           <g data-l="area" />
@@ -416,7 +412,7 @@ export function MarketPulse() {
               content={
                 <span className="block">
                   <span className="mb-1 block font-mono text-[10px] tracking-[0.12em] text-blue-300">COULEUR</span>
-                  <span className="block">Couleur = variation du prix médian sur 30 jours. Vert = hausse, rouge = baisse.</span>
+                  <span className="block">La couleur dit si le prix du modèle a monté (vert) ou baissé (rouge) sur le dernier mois.</span>
                 </span>
               }
             >
@@ -431,7 +427,7 @@ export function MarketPulse() {
               content={
                 <span className="block">
                   <span className="mb-1 block font-mono text-[10px] tracking-[0.12em] text-blue-300">TAILLE</span>
-                  <span className="block">La taille de chaque tuile reflète le nombre de ventes réelles sur 30 jours : plus un modèle se vend, plus sa tuile est grande.</span>
+                  <span className="block">Plus un modèle se vend, plus sa case est grande. Les gros blocs = ce qui part le plus vite en ce moment.</span>
                 </span>
               }
             >
