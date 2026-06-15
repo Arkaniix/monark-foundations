@@ -53,6 +53,10 @@ interface ApiOverview {
   recent_estimates: ApiOverviewItem[];
   estimations_month: number;
   avg_margin_month: number;
+  estimations_series?: number[];
+  margin_series?: number[];
+  watchlist_series?: number[];
+  credits_series?: number[];
 }
 
 function toRecentEstimation(it: ApiOverviewItem): RecentEstimation {
@@ -85,11 +89,21 @@ function series(target: number, n = 16): number[] {
   return out;
 }
 
+function pickSeries(real: number[] | undefined, fallbackTarget: number): number[] {
+  return real && real.length >= 2 ? real : series(fallbackTarget);
+}
+
 function buildStats(
   estimationsMonth: number,
   avgMargin: number,
   creditsBalance: number,
   watchlistCount: number,
+  seriesData: {
+    estimations?: number[];
+    margin?: number[];
+    watchlist?: number[];
+    credits?: number[];
+  },
 ): StatTileData[] {
   return [
     {
@@ -97,7 +111,7 @@ function buildStats(
       label: "Estimations ce mois",
       value: estimationsMonth,
       delta_pct: null,
-      sparkline: series(estimationsMonth),
+      sparkline: pickSeries(seriesData.estimations, estimationsMonth),
       format_hint: "integer",
       accent_color: "#3B82F6",
     },
@@ -106,7 +120,7 @@ function buildStats(
       label: "Marge nette moyenne",
       value: avgMargin,
       delta_pct: null,
-      sparkline: series(avgMargin),
+      sparkline: pickSeries(seriesData.margin, avgMargin),
       format_hint: "euro",
       accent_color: "#10B981",
     },
@@ -115,7 +129,7 @@ function buildStats(
       label: "Watchlist",
       value: watchlistCount,
       delta_pct: null,
-      sparkline: series(watchlistCount),
+      sparkline: pickSeries(seriesData.watchlist, watchlistCount),
       format_hint: "integer",
       accent_color: "#A855F7",
     },
@@ -124,7 +138,7 @@ function buildStats(
       label: "Crédits restants",
       value: creditsBalance,
       delta_pct: null,
-      sparkline: series(creditsBalance),
+      sparkline: pickSeries(seriesData.credits, creditsBalance),
       format_hint: "integer",
       accent_color: "#F59E0B",
     },
@@ -171,6 +185,12 @@ export async function getOverview(): Promise<DashboardOverview> {
       overview.avg_margin_month ?? 0,
       overview.credits.balance,
       watchlistCount,
+      {
+        estimations: overview.estimations_series,
+        margin: overview.margin_series,
+        watchlist: overview.watchlist_series,
+        credits: overview.credits_series,
+      },
     ),
     recent_estimations: (overview.recent_estimates ?? [])
       .slice(0, RECENT_LIMIT)
