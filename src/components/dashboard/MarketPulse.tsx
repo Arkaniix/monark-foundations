@@ -20,8 +20,8 @@ export function MarketPulse() {
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const root = rootRef.current;
-    if (!root) return;
+    if (!rootRef.current) return;
+    const root: HTMLDivElement = rootRef.current;
     const ac = new AbortController();
     const sig = { signal: ac.signal } as AddEventListenerOptions;
     const NS = "http://www.w3.org/2000/svg";
