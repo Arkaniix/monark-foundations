@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui";
 import { DashboardStatTile } from "@/components/dashboard/DashboardStatTile";
 import { RecentEstimations } from "@/components/dashboard/RecentEstimations";
 import { WatchlistPreview } from "@/components/dashboard/WatchlistPreview";
+import { MarketPulse } from "@/components/dashboard/MarketPulse";
 import { EmptyEstimations } from "@/components/dashboard/EmptyEstimations";
 import { EmptyWatchlist } from "@/components/dashboard/EmptyWatchlist";
 import { DashboardError } from "@/components/dashboard/DashboardError";
