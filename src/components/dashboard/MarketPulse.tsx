@@ -265,7 +265,7 @@ export function MarketPulse() {
     async function ensureCatalog() {
       if (catalog !== null || catalogReq) return;
       catalogReq = true;
-      try { catalog = await fetchAllCatalogModels(); } catch { catalog = []; }
+      try { catalog = await catalogApi.getAllModels(); } catch { catalog = []; }
     }
     function topModels(): CatalogModel[] {
       if (!catalog || !catalog.length) return [];
