@@ -85,6 +85,20 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   return (
     <AuthProvider>
+      <div
+        style={{
+          background: "#F59E0B",
+          color: "#1F2937",
+          fontSize: 12,
+          fontWeight: 600,
+          textAlign: "center",
+          padding: "6px 12px",
+          letterSpacing: "0.05em",
+          fontFamily: "'Inter', system-ui, sans-serif",
+        }}
+      >
+        🚧 Site en cours de développement — certaines fonctionnalités peuvent être incomplètes.
+      </div>
       <Outlet />
     </AuthProvider>
   );
