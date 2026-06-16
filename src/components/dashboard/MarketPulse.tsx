@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import Tooltip from "@/components/ui/Tooltip";
-import { fetchAllCatalogModels } from "@/lib/catalogSource";
+import { catalogApi } from "@/lib/api";
 import type { CatalogModel } from "@/components/catalog/datasets";
 
 const CSS = `
