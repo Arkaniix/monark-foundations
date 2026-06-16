@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import Tooltip from "@/components/ui/Tooltip";
-import { fetchAllCatalogModels } from "@/lib/catalogSource";
+import { catalogApi } from "@/lib/api";
 import type { CatalogModel } from "@/components/catalog/datasets";
 
 const CSS = `
@@ -265,7 +265,7 @@ export function MarketPulse() {
     async function ensureCatalog() {
       if (catalog !== null || catalogReq) return;
       catalogReq = true;
-      try { catalog = await fetchAllCatalogModels(); } catch { catalog = []; }
+      try { catalog = await catalogApi.getAllModels(); } catch { catalog = []; }
     }
     function topModels(): CatalogModel[] {
       if (!catalog || !catalog.length) return [];
