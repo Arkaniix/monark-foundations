@@ -322,6 +322,8 @@ export function MarketPulse() {
             maptip.style.left = lx + "px"; maptip.style.top = e.clientY - r2.top + 12 + "px";
           }, sig);
           el.addEventListener("mouseleave", () => { maptip.style.display = "none"; }, sig);
+          mkmap.appendChild(el);
+
           const to = window.setTimeout(() => { if (alive) el.classList.add("in"); }, idx * 24); timers.push(to);
         });
       } catch {
