@@ -70,6 +70,12 @@ export async function forgotPassword(_email: string): Promise<ForgotPasswordResp
   };
 }
 
+export async function resetPassword(_token: string, _newPassword: string): Promise<{ message: string }> {
+  // mock : succès simulé, aligné sur le forgotPassword mock de ce fichier
+  await mockDelay();
+  return { message: "Password has been reset successfully." };
+}
+
 export async function getMe(): Promise<User> {
   await mockDelay(200);
   const token = getAccessToken();
