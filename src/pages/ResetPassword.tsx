@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Link, getRouteApi } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { Eye, EyeOff, Check, AlertCircle, Loader2 } from "lucide-react";
 import BackgroundTicker from "@/components/auth/BackgroundTicker";
 import Field from "@/components/auth/Field";
 import PasswordStrength from "@/components/auth/PasswordStrength";
 import { authApi } from "@/lib/api";
 
-const routeApi = getRouteApi("/auth/reset-password");
+
 
 type Phase = "idle" | "submitting" | "done" | "error";
 
@@ -32,7 +32,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 }
 
 export default function ResetPassword() {
-  const { token } = routeApi.useSearch();
+  const token = new URLSearchParams(window.location.search).get("token") ?? "";
   const [pwd, setPwd] = useState("");
   const [confirm, setConfirm] = useState("");
   const [showPwd, setShowPwd] = useState(false);
