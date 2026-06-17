@@ -3,13 +3,6 @@ import { useAuth } from "@/context/AuthContext";
 import { fetchCreditPacks, createTopup, type CreditPack } from "@/lib/api/billing";
 import { ApiException } from "@/lib/api/client";
 
-// Tarifs d'affichage prod-ready. price_cents = prix réel facturé ; original_cents = prix d'ancrage barré.
-const PACK_PRICING: Record<string, { price_cents: number; original_cents?: number }> = {
-  pack_50: { price_cents: 499 },
-  pack_120: { price_cents: 1099, original_cents: 1199 },
-  pack_300: { price_cents: 2399, original_cents: 2999 },
-};
-
 const eur = (cents: number) =>
   (cents / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
 
@@ -21,8 +14,8 @@ const eurPerCredit = (priceCents: number, credits: number) =>
     maximumFractionDigits: 3,
   });
 
-const discountPct = (p?: { price_cents: number; original_cents?: number }) =>
-  p?.original_cents ? Math.round((1 - p.price_cents / p.original_cents) * 100) : 0;
+const discountPct = (p?: { price_cents: number; original_price_cents?: number | null }) =>
+  p?.original_price_cents ? Math.round((1 - p.price_cents / p.original_price_cents) * 100) : 0;
 
 type PackState = {
   status: "idle" | "loading" | "success" | "error";
@@ -105,7 +98,7 @@ export default function Credits() {
   let highlightId: number | null = null;
   let bestPct = 0;
   for (const p of packs) {
-    const pct = discountPct(PACK_PRICING[p.code]);
+    const pct = discountPct(p);
     if (pct > bestPct) {
       bestPct = pct;
       highlightId = p.id;
@@ -185,8 +178,7 @@ export default function Credits() {
           {fetchState.packs.map((pack) => {
             const st = packStates[pack.id] ?? { status: "idle" as const };
             const loading = st.status === "loading";
-            const pricing = PACK_PRICING[pack.code];
-            const pct = discountPct(pricing);
+            const pct = discountPct(pack);
             const isHighlight = pack.id === highlightId && bestPct >= 1;
 
             return (
@@ -264,26 +256,26 @@ export default function Credits() {
 
                 {/* 3. Prix */}
                 <div className="mt-4">
-                  {pricing && (
+                  {pack.price_cents != null && (
                     <>
                       <div className="flex items-baseline gap-2">
-                        {pricing.original_cents && (
+                        {pack.original_price_cents && (
                           <span
                             className="font-mono tabular-nums text-zinc-600 line-through"
                             style={{ fontSize: 14 }}
                           >
-                            {eur(pricing.original_cents)}
+                            {eur(pack.original_price_cents)}
                           </span>
                         )}
                         <span
                           className="font-mono tabular-nums text-zinc-100"
                           style={{ fontSize: 22, fontWeight: 500 }}
                         >
-                          {eur(pricing.price_cents)}
+                          {eur(pack.price_cents)}
                         </span>
                       </div>
                       <div className="mt-1 font-mono text-[10px] tabular-nums text-zinc-500">
-                        {eurPerCredit(pricing.price_cents, pack.credits_per_cycle)} /crédit
+                        {eurPerCredit(pack.price_cents, pack.credits_per_cycle)} /crédit
                       </div>
                     </>
                   )}
