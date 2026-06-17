@@ -82,6 +82,11 @@ export async function verifyEmail(_token: string): Promise<{ message: string }> 
   return { message: "Email verified successfully." };
 }
 
+export async function resendVerification(): Promise<{ message: string }> {
+  await mockDelay();
+  return { message: "Verification email sent." };
+}
+
 export async function getMe(): Promise<User> {
   await mockDelay(200);
   const token = getAccessToken();
