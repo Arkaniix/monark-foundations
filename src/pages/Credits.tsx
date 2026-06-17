@@ -178,8 +178,7 @@ export default function Credits() {
           {fetchState.packs.map((pack) => {
             const st = packStates[pack.id] ?? { status: "idle" as const };
             const loading = st.status === "loading";
-            const pricing = PACK_PRICING[pack.code];
-            const pct = discountPct(pricing);
+            const pct = discountPct(pack);
             const isHighlight = pack.id === highlightId && bestPct >= 1;
 
             return (
@@ -257,26 +256,26 @@ export default function Credits() {
 
                 {/* 3. Prix */}
                 <div className="mt-4">
-                  {pricing && (
+                  {pack.price_cents != null && (
                     <>
                       <div className="flex items-baseline gap-2">
-                        {pricing.original_cents && (
+                        {pack.original_price_cents && (
                           <span
                             className="font-mono tabular-nums text-zinc-600 line-through"
                             style={{ fontSize: 14 }}
                           >
-                            {eur(pricing.original_cents)}
+                            {eur(pack.original_price_cents)}
                           </span>
                         )}
                         <span
                           className="font-mono tabular-nums text-zinc-100"
                           style={{ fontSize: 22, fontWeight: 500 }}
                         >
-                          {eur(pricing.price_cents)}
+                          {eur(pack.price_cents)}
                         </span>
                       </div>
                       <div className="mt-1 font-mono text-[10px] tabular-nums text-zinc-500">
-                        {eurPerCredit(pricing.price_cents, pack.credits_per_cycle)} /crédit
+                        {eurPerCredit(pack.price_cents, pack.credits_per_cycle)} /crédit
                       </div>
                     </>
                   )}
