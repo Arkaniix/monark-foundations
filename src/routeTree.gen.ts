@@ -29,6 +29,7 @@ import { Route as SettingsAboutRouteImport } from './routes/settings_.about'
 import { Route as RepairHistoryRouteImport } from './routes/repair_.history'
 import { Route as RepairSlugRouteImport } from './routes/repair_.$slug'
 import { Route as CatalogueModelIdRouteImport } from './routes/catalogue_.$modelId'
+import { Route as AuthVerifyEmailRouteImport } from './routes/auth_.verify-email'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth_.reset-password'
 import { Route as Char91_devChar93UiRouteImport } from './routes/[_dev].ui'
 import { Route as Char91_devChar93EstimatorStatesRouteImport } from './routes/[_dev].estimator-states'
@@ -135,6 +136,11 @@ const CatalogueModelIdRoute = CatalogueModelIdRouteImport.update({
   path: '/catalogue/$modelId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
+  id: '/auth_/verify-email',
+  path: '/auth/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
   id: '/auth_/reset-password',
   path: '/auth/reset-password',
@@ -181,6 +187,7 @@ export interface FileRoutesByFullPath {
   '/_dev/estimator-states': typeof Char91_devChar93EstimatorStatesRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/catalogue/$modelId': typeof CatalogueModelIdRoute
   '/repair/$slug': typeof RepairSlugRoute
   '/repair/history': typeof RepairHistoryRoute
@@ -208,6 +215,7 @@ export interface FileRoutesByTo {
   '/_dev/estimator-states': typeof Char91_devChar93EstimatorStatesRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/catalogue/$modelId': typeof CatalogueModelIdRoute
   '/repair/$slug': typeof RepairSlugRoute
   '/repair/history': typeof RepairHistoryRoute
@@ -236,6 +244,7 @@ export interface FileRoutesById {
   '/_dev/estimator-states': typeof Char91_devChar93EstimatorStatesRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
   '/auth_/reset-password': typeof AuthResetPasswordRoute
+  '/auth_/verify-email': typeof AuthVerifyEmailRoute
   '/catalogue_/$modelId': typeof CatalogueModelIdRoute
   '/repair_/$slug': typeof RepairSlugRoute
   '/repair_/history': typeof RepairHistoryRoute
@@ -265,6 +274,7 @@ export interface FileRouteTypes {
     | '/_dev/estimator-states'
     | '/_dev/ui'
     | '/auth/reset-password'
+    | '/auth/verify-email'
     | '/catalogue/$modelId'
     | '/repair/$slug'
     | '/repair/history'
@@ -292,6 +302,7 @@ export interface FileRouteTypes {
     | '/_dev/estimator-states'
     | '/_dev/ui'
     | '/auth/reset-password'
+    | '/auth/verify-email'
     | '/catalogue/$modelId'
     | '/repair/$slug'
     | '/repair/history'
@@ -319,6 +330,7 @@ export interface FileRouteTypes {
     | '/_dev/estimator-states'
     | '/_dev/ui'
     | '/auth_/reset-password'
+    | '/auth_/verify-email'
     | '/catalogue_/$modelId'
     | '/repair_/$slug'
     | '/repair_/history'
@@ -347,6 +359,7 @@ export interface RootRouteChildren {
   Char91_devChar93EstimatorStatesRoute: typeof Char91_devChar93EstimatorStatesRoute
   Char91_devChar93UiRoute: typeof Char91_devChar93UiRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
+  AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
   CatalogueModelIdRoute: typeof CatalogueModelIdRoute
   RepairSlugRoute: typeof RepairSlugRoute
   RepairHistoryRoute: typeof RepairHistoryRoute
@@ -500,6 +513,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CatalogueModelIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth_/verify-email': {
+      id: '/auth_/verify-email'
+      path: '/auth/verify-email'
+      fullPath: '/auth/verify-email'
+      preLoaderRoute: typeof AuthVerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth_/reset-password': {
       id: '/auth_/reset-password'
       path: '/auth/reset-password'
@@ -555,6 +575,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91_devChar93EstimatorStatesRoute: Char91_devChar93EstimatorStatesRoute,
   Char91_devChar93UiRoute: Char91_devChar93UiRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
+  AuthVerifyEmailRoute: AuthVerifyEmailRoute,
   CatalogueModelIdRoute: CatalogueModelIdRoute,
   RepairSlugRoute: RepairSlugRoute,
   RepairHistoryRoute: RepairHistoryRoute,
