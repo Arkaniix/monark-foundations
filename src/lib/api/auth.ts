@@ -30,6 +30,7 @@ interface ApiUser {
   last_login: string | null;
   pending_deletion?: boolean;
   deletion_scheduled_at?: string | null;
+  email_verified: boolean;
 }
 
 /** Mappe `role` API → `subscription_tier` front (union stricte free/standard/pro). */
@@ -61,6 +62,7 @@ function mapUser(u: ApiUser, creditsRemaining: number): User {
     credits_remaining: creditsRemaining,
     pending_deletion: u.pending_deletion ?? false,
     deletion_scheduled_at: u.deletion_scheduled_at ?? null,
+    email_verified: u.email_verified ?? false,
   };
 }
 
@@ -117,6 +119,10 @@ export async function verifyEmail(token: string): Promise<{ message: string }> {
     method: "POST",
     body: JSON.stringify({ token }),
   });
+}
+
+export async function resendVerification(): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>(ENDPOINTS.RESEND_VERIFICATION, { method: "POST" });
 }
 
 export async function getMe(): Promise<User> {

@@ -50,6 +50,7 @@ export type User = {
   credits_remaining: number;
   pending_deletion?: boolean;
   deletion_scheduled_at?: string | null;
+  email_verified?: boolean;
 };
 export type LoginResponse = {
   access_token: string;
