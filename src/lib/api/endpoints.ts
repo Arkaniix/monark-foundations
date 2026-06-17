@@ -6,6 +6,7 @@ export const ENDPOINTS = {
   LOGOUT: "/v1/auth/logout",
   FORGOT_PASSWORD: "/v1/auth/forgot_password",
   RESET_PASSWORD: "/v1/auth/reset_password",
+  VERIFY_EMAIL: "/v1/auth/verify_email",
   // ⚠️ Route corrigée : l'utilisateur courant est sur /v1/users/me (et NON /v1/auth/me,
   // qui renvoie 404 en prod). C'était la cause des échecs de login/bootstrap.
   ME: "/v1/users/me",

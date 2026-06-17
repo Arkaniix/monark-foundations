@@ -76,6 +76,12 @@ export async function resetPassword(_token: string, _newPassword: string): Promi
   return { message: "Password has been reset successfully." };
 }
 
+export async function verifyEmail(_token: string): Promise<{ message: string }> {
+  // mock : succès simulé, aligné sur le resetPassword mock de ce fichier
+  await mockDelay();
+  return { message: "Email verified successfully." };
+}
+
 export async function getMe(): Promise<User> {
   await mockDelay(200);
   const token = getAccessToken();
