@@ -1,20 +1,45 @@
 import { Check } from "lucide-react";
+import { useEffect, useState } from "react";
 import { SectionLabel } from "@/components/ui";
+import { fetchSubscriptions, type Subscription } from "@/lib/api/billing";
 
-type Tier = { name: string; price: string; credits: string; features: string[]; cta: string; primary: boolean };
+type TierMeta = { code: string; name: string; features: string[]; cta: string; primary: boolean };
+
+const TIERS_META: TierMeta[] = [
+  { code: "free", name: "Free",
+    features: ["Lens basique", "Estimator basic (1 cr)", "Verdict reseller", "Stock manager (5 lignes)"],
+    cta: "Commencer", primary: false },
+  { code: "standard", name: "Standard",
+    features: ["Lens complet · 4 plateformes", "Estimator complete (3 cr)", "Stock manager illimité", "Modifiers + confiance bayésienne"],
+    cta: "Choisir Standard", primary: true },
+  { code: "pro", name: "Pro",
+    features: ["Tout Standard", "Estimator pro tier (5 cr)", "Repair Guide deep diagnostic", "Historique price_observations 24 mois"],
+    cta: "Choisir Pro", primary: false },
+];
+
+const eur = (cents: number) =>
+  (cents / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
 
 export default function PricingSection() {
-  const tiers: Tier[] = [
-    { name: "Free", price: "0 €", credits: "10 crédits / mois",
-      features: ["Lens basique", "Estimator basic (1 cr)", "Verdict reseller", "Stock manager (5 lignes)"],
-      cta: "Commencer", primary: false },
-    { name: "Standard", price: "11,99 €", credits: "180 crédits / mois",
-      features: ["Lens complet · 4 plateformes", "Estimator complete (3 cr)", "Stock manager illimité", "Modifiers + confiance bayésienne"],
-      cta: "Choisir Standard", primary: true },
-    { name: "Pro", price: "24,99 €", credits: "600 crédits / mois",
-      features: ["Tout Standard", "Estimator pro tier (5 cr)", "Repair Guide deep diagnostic", "Historique price_observations 24 mois"],
-      cta: "Choisir Pro", primary: false },
-  ];
+  const [subs, setSubs] = useState<Subscription[] | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    fetchSubscriptions()
+      .then((s) => { if (alive) { setSubs(s); setLoading(false); } })
+      .catch(() => { if (alive) { setSubs([]); setLoading(false); } });
+    return () => { alive = false; };
+  }, []);
+
+  const byCode = new Map((subs ?? []).map((s) => [s.code, s]));
+  const tiers = TIERS_META.map((meta) => {
+    const sub = byCode.get(meta.code);
+    const price = sub ? (sub.price_cents === 0 ? "0 €" : eur(sub.price_cents)) : null;
+    const credits = sub ? `${sub.credits_per_cycle} crédits / mois` : null;
+    return { ...meta, price, credits };
+  });
+
   return (
     <section id="tarifs" className="py-24 border-t border-white/5">
       <div className="max-w-[1320px] mx-auto px-6">
@@ -38,10 +63,14 @@ export default function PricingSection() {
               <div className="relative">
                 <div className="font-mono text-[11px] tracking-wider text-zinc-500 mb-4">{t.name.toUpperCase()}</div>
                 <div className="flex items-baseline gap-2 mb-1">
-                  <span className="text-[40px] font-semibold tracking-tight font-mono">{t.price}</span>
+                  <span className="text-[40px] font-semibold tracking-tight font-mono">
+                    {t.price ?? (loading ? "…" : "—")}
+                  </span>
                   <span className="text-[12px] text-zinc-500">/ mois</span>
                 </div>
-                <div className="font-mono text-[12px] text-zinc-400 mb-6">{t.credits}</div>
+                <div className="font-mono text-[12px] text-zinc-400 mb-6">
+                  {t.credits ?? (loading ? "…" : "—")}
+                </div>
                 <ul className="space-y-2.5 mb-7">
                   {t.features.map(f => (
                     <li key={f} className="flex gap-2.5 text-[13px] text-zinc-300">
