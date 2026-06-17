@@ -3,13 +3,6 @@ import { useAuth } from "@/context/AuthContext";
 import { fetchCreditPacks, createTopup, type CreditPack } from "@/lib/api/billing";
 import { ApiException } from "@/lib/api/client";
 
-// Tarifs d'affichage prod-ready. price_cents = prix réel facturé ; original_cents = prix d'ancrage barré.
-const PACK_PRICING: Record<string, { price_cents: number; original_cents?: number }> = {
-  pack_50: { price_cents: 499 },
-  pack_120: { price_cents: 1099, original_cents: 1199 },
-  pack_300: { price_cents: 2399, original_cents: 2999 },
-};
-
 const eur = (cents: number) =>
   (cents / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
 
@@ -21,8 +14,8 @@ const eurPerCredit = (priceCents: number, credits: number) =>
     maximumFractionDigits: 3,
   });
 
-const discountPct = (p?: { price_cents: number; original_cents?: number }) =>
-  p?.original_cents ? Math.round((1 - p.price_cents / p.original_cents) * 100) : 0;
+const discountPct = (p?: { price_cents: number; original_price_cents?: number | null }) =>
+  p?.original_price_cents ? Math.round((1 - p.price_cents / p.original_price_cents) * 100) : 0;
 
 type PackState = {
   status: "idle" | "loading" | "success" | "error";
@@ -105,7 +98,7 @@ export default function Credits() {
   let highlightId: number | null = null;
   let bestPct = 0;
   for (const p of packs) {
-    const pct = discountPct(PACK_PRICING[p.code]);
+    const pct = discountPct(p);
     if (pct > bestPct) {
       bestPct = pct;
       highlightId = p.id;
