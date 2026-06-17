@@ -112,6 +112,13 @@ export async function resetPassword(token: string, newPassword: string): Promise
   });
 }
 
+export async function verifyEmail(token: string): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>(ENDPOINTS.VERIFY_EMAIL, {
+    method: "POST",
+    body: JSON.stringify({ token }),
+  });
+}
+
 export async function getMe(): Promise<User> {
   const raw = await apiFetch<ApiUser>(ENDPOINTS.ME, { method: "GET" });
   // Les crédits ne sont pas sur /users/me → on les lit sur le dashboard (best effort).
