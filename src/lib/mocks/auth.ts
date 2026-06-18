@@ -71,6 +71,14 @@ export async function logoutAll(): Promise<void> {
   clearTokens();
 }
 
+export async function changePassword(
+  _current_password: string,
+  _new_password: string,
+): Promise<{ message: string }> {
+  await mockDelay(200);
+  return { message: "Password changed successfully." };
+}
+
 export async function forgotPassword(_email: string): Promise<ForgotPasswordResponse> {
   await mockDelay();
   return {
