@@ -6,7 +6,7 @@ export type SettingsCategoryKey =
   | "data"
   | "about";
 
-export type SettingsCategoryStatus = "ready" | "p2";
+export type SettingsCategoryStatus = "ready" | "p2" | "soon";
 
 export type SettingsCategoryDef = {
   key: SettingsCategoryKey;
@@ -82,7 +82,7 @@ export const SETTINGS_CATEGORIES: SettingsCategoryDef[] = [
     iconName: "bell",
     iconColorHex: "#09B1BA",
     iconBgRgba: "rgba(9,177,186,0.10)",
-    status: "p2",
+    status: "soon",
     futurePatch: "P1E",
   },
   {
