@@ -9,6 +9,7 @@ type AuthContextValue = AuthState & {
   login: (email: string, password: string) => Promise<void>;
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
+  logoutEverywhere: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   refreshUser: () => Promise<void>;
 };
@@ -64,6 +65,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus("unauthenticated");
   }, []);
 
+  const logoutEverywhere = useCallback(async () => {
+    await authApi.logoutAll();
+    setUser(null);
+    setStatus("unauthenticated");
+  }, []);
+
   const forgotPassword = useCallback(async (email: string) => {
     await authApi.forgotPassword(email);
   }, []);
@@ -77,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const value: AuthContextValue = { user, status, login, register, logout, forgotPassword, refreshUser };
+  const value: AuthContextValue = { user, status, login, register, logout, logoutEverywhere, forgotPassword, refreshUser };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
