@@ -23,30 +23,10 @@ type Props = { category: SettingsCategoryDef };
 
 export default function SettingsCategoryTile({ category }: Props) {
   const Icon = ICON_MAP[category.iconName] ?? Info;
+  const isSoon = category.status === "soon";
 
-  return (
-    <Link
-      to={category.path}
-      style={{
-        display: "block",
-        textDecoration: "none",
-        padding: 16,
-        borderRadius: 8,
-        background: "rgba(255,255,255,0.015)",
-        border: "1px solid rgba(255,255,255,0.06)",
-        cursor: "pointer",
-        transition:
-          "background 200ms cubic-bezier(0.16,1,0.3,1), border-color 200ms cubic-bezier(0.16,1,0.3,1)",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = "rgba(255,255,255,0.030)";
-        e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = "rgba(255,255,255,0.015)";
-        e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
-      }}
-    >
+  const inner = (
+    <>
       <div
         style={{
           width: 32,
@@ -104,6 +84,56 @@ export default function SettingsCategoryTile({ category }: Props) {
       >
         {category.tileSublabel}
       </div>
+    </>
+  );
+
+  if (isSoon) {
+    return (
+      <div
+        aria-disabled="true"
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          display: "block",
+          padding: 16,
+          borderRadius: 8,
+          background: "rgba(255,255,255,0.015)",
+          border: "1px solid rgba(255,255,255,0.06)",
+          opacity: 0.7,
+          cursor: "not-allowed",
+          userSelect: "none",
+        }}
+      >
+        {inner}
+        <span className="soon-ribbon">Prochainement</span>
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      to={category.path}
+      style={{
+        display: "block",
+        textDecoration: "none",
+        padding: 16,
+        borderRadius: 8,
+        background: "rgba(255,255,255,0.015)",
+        border: "1px solid rgba(255,255,255,0.06)",
+        cursor: "pointer",
+        transition:
+          "background 200ms cubic-bezier(0.16,1,0.3,1), border-color 200ms cubic-bezier(0.16,1,0.3,1)",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = "rgba(255,255,255,0.030)";
+        e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = "rgba(255,255,255,0.015)";
+        e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
+      }}
+    >
+      {inner}
     </Link>
   );
 }
