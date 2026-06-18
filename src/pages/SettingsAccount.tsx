@@ -141,17 +141,22 @@ function DisabledBtn({ label, variant = "ghost" }: DisabledBtnProps) {
 }
 
 type RecoveryStatus = "idle" | "sending" | "sent";
+type SaveStatus = "idle" | "saving" | "saved" | "error";
+type LogoutAllStatus = "idle" | "confirm" | "loading";
+type ResendStatus = "idle" | "sending" | "sent" | "error";
 
 export default function SettingsAccount() {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, logoutEverywhere } = useAuth();
   if (!user) return null;
 
   const initialFullName = user.full_name ?? "";
-  const initialEmail = user.email;
 
   const [fullName, setFullName] = useState(initialFullName);
-  const [email, setEmail] = useState(initialEmail);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [recoveryStatus, setRecoveryStatus] = useState<RecoveryStatus>("idle");
+  const [resendStatus, setResendStatus] = useState<ResendStatus>("idle");
+  const [logoutAllStatus, setLogoutAllStatus] = useState<LogoutAllStatus>("idle");
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const tier = (user.subscription_tier ?? "free") as SubscriptionTier;
@@ -160,9 +165,30 @@ export default function SettingsAccount() {
   const pct = Math.max(0, Math.min(100, (credits / plan.cap) * 100));
   const fillColor = pct > 50 ? "#10B981" : pct > 20 ? "#F59E0B" : "#EF4444";
 
+  const trimmedName = fullName.trim();
+  const isDirty = trimmedName !== initialFullName;
+
   function handleCancel() {
     setFullName(initialFullName);
-    setEmail(initialEmail);
+    setSaveStatus("idle");
+    setSaveError(null);
+  }
+
+  async function handleSaveProfile() {
+    if (!isDirty || saveStatus === "saving") return;
+    setSaveStatus("saving");
+    setSaveError(null);
+    try {
+      await authApi.updateProfile({
+        display_name: trimmedName.length > 0 ? trimmedName : null,
+      });
+      await refreshUser();
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 3000);
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "Échec de l'enregistrement.");
+      setSaveStatus("error");
+    }
   }
 
   async function handleSendRecovery() {
@@ -174,6 +200,35 @@ export default function SettingsAccount() {
       setTimeout(() => setRecoveryStatus("idle"), 5000);
     } catch {
       setRecoveryStatus("idle");
+    }
+  }
+
+  async function handleResendVerification() {
+    if (resendStatus === "sending" || resendStatus === "sent") return;
+    setResendStatus("sending");
+    try {
+      await authApi.resendVerification();
+      setResendStatus("sent");
+      setTimeout(() => setResendStatus("idle"), 5000);
+    } catch {
+      setResendStatus("error");
+      setTimeout(() => setResendStatus("idle"), 4000);
+    }
+  }
+
+  async function handleLogoutAll() {
+    if (logoutAllStatus === "idle") {
+      setLogoutAllStatus("confirm");
+      return;
+    }
+    if (logoutAllStatus === "confirm") {
+      setLogoutAllStatus("loading");
+      try {
+        await logoutEverywhere();
+        // RequireAuth redirige vers /auth quand le statut passe a "unauthenticated".
+      } catch {
+        setLogoutAllStatus("idle");
+      }
     }
   }
 
