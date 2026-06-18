@@ -1,3 +1,6 @@
+import { apiFetch } from "@/lib/api/client";
+import { ENDPOINTS } from "@/lib/api/endpoints";
+
 export type ExportPayload = {
   schema_version: "1.0";
   exported_at: string;
@@ -140,6 +143,27 @@ function formatFilenameDate(d: Date): string {
 
 export function downloadPayloadAsFile(p: ExportPayload): void {
   const json = JSON.stringify(p, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const filename = `monark-export-${formatFilenameDate(new Date())}.json`;
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Export RÉEL des données serveur — GET /v1/users/me/export (JWT).
+ * Récupère le JSON agrégé côté compte (profil, réglages, stock, builds,
+ * comptabilité, watchlist, estimations, alertes, historique de réparation)
+ * et déclenche le téléchargement. Remplace l'ancien export localStorage.
+ */
+export async function fetchAndDownloadServerExport(): Promise<void> {
+  const data = await apiFetch<unknown>(ENDPOINTS.USER_EXPORT);
+  const json = JSON.stringify(data, null, 2);
   const blob = new Blob([json], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const filename = `monark-export-${formatFilenameDate(new Date())}.json`;
