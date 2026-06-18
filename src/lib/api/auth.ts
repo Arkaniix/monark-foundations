@@ -148,3 +148,21 @@ export async function deleteAccount(): Promise<void> {
 export async function restoreAccount(): Promise<void> {
   await apiFetch<void>(ENDPOINTS.RESTORE_ME, { method: "POST" });
 }
+
+/** Met à jour le profil de l'utilisateur courant (PATCH partiel). */
+export async function updateProfile(patch: { display_name?: string | null }): Promise<void> {
+  await apiFetch<void>(ENDPOINTS.ME, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  });
+}
+
+/** Déconnecte TOUTES les sessions du compte, puis purge les tokens locaux. */
+export async function logoutAll(): Promise<void> {
+  try {
+    await apiFetch<void>(ENDPOINTS.LOGOUT_ALL, { method: "POST" });
+  } catch {
+    // best effort : on purge les tokens quoi qu'il arrive
+  }
+  clearTokens();
+}
