@@ -166,3 +166,14 @@ export async function logoutAll(): Promise<void> {
   }
   clearTokens();
 }
+
+/** Change le mot de passe de l'utilisateur connecté. */
+export async function changePassword(
+  current_password: string,
+  new_password: string,
+): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>(ENDPOINTS.CHANGE_PASSWORD, {
+    method: "POST",
+    body: JSON.stringify({ current_password, new_password }),
+  });
+}
