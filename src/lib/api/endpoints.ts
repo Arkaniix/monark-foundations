@@ -4,6 +4,7 @@ export const ENDPOINTS = {
   REGISTER: "/v1/auth/register",
   REFRESH: "/v1/auth/refresh",
   LOGOUT: "/v1/auth/logout",
+  LOGOUT_ALL: "/v1/auth/logout_all",
   FORGOT_PASSWORD: "/v1/auth/forgot_password",
   RESET_PASSWORD: "/v1/auth/reset_password",
   VERIFY_EMAIL: "/v1/auth/verify_email",
