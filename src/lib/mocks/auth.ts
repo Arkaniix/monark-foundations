@@ -62,6 +62,15 @@ export async function logout(): Promise<void> {
   clearTokens();
 }
 
+export async function updateProfile(_patch: { display_name?: string | null }): Promise<void> {
+  await mockDelay(200);
+}
+
+export async function logoutAll(): Promise<void> {
+  await mockDelay(150);
+  clearTokens();
+}
+
 export async function forgotPassword(_email: string): Promise<ForgotPasswordResponse> {
   await mockDelay();
   return {

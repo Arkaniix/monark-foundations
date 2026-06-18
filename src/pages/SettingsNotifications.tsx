@@ -86,12 +86,12 @@ export default function SettingsNotifications() {
               marginBottom: 4,
             }}
           >
-            Aperçu de la fonctionnalité · Activation à venir
+            Notifications actives
           </div>
           <div style={{ fontSize: 12, color: "#A1A1AA", lineHeight: 1.5 }}>
-            Les préférences saisies ici sont enregistrées localement et seront
-            automatiquement appliquées dès l'activation du service de notifications.
-            En attendant, aucun email ni alerte in-app n'est émis.
+            Vos préférences sont enregistrées sur votre compte et déterminent les
+            emails et alertes in-app que vous recevez. Les alertes prix se déclenchent
+            selon les prix cibles définis sur vos items.
           </div>
         </div>
       </div>

@@ -141,17 +141,22 @@ function DisabledBtn({ label, variant = "ghost" }: DisabledBtnProps) {
 }
 
 type RecoveryStatus = "idle" | "sending" | "sent";
+type SaveStatus = "idle" | "saving" | "saved" | "error";
+type LogoutAllStatus = "idle" | "confirm" | "loading";
+type ResendStatus = "idle" | "sending" | "sent" | "error";
 
 export default function SettingsAccount() {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, logoutEverywhere } = useAuth();
   if (!user) return null;
 
   const initialFullName = user.full_name ?? "";
-  const initialEmail = user.email;
 
   const [fullName, setFullName] = useState(initialFullName);
-  const [email, setEmail] = useState(initialEmail);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [recoveryStatus, setRecoveryStatus] = useState<RecoveryStatus>("idle");
+  const [resendStatus, setResendStatus] = useState<ResendStatus>("idle");
+  const [logoutAllStatus, setLogoutAllStatus] = useState<LogoutAllStatus>("idle");
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const tier = (user.subscription_tier ?? "free") as SubscriptionTier;
@@ -160,9 +165,30 @@ export default function SettingsAccount() {
   const pct = Math.max(0, Math.min(100, (credits / plan.cap) * 100));
   const fillColor = pct > 50 ? "#10B981" : pct > 20 ? "#F59E0B" : "#EF4444";
 
+  const trimmedName = fullName.trim();
+  const isDirty = trimmedName !== initialFullName;
+
   function handleCancel() {
     setFullName(initialFullName);
-    setEmail(initialEmail);
+    setSaveStatus("idle");
+    setSaveError(null);
+  }
+
+  async function handleSaveProfile() {
+    if (!isDirty || saveStatus === "saving") return;
+    setSaveStatus("saving");
+    setSaveError(null);
+    try {
+      await authApi.updateProfile({
+        display_name: trimmedName.length > 0 ? trimmedName : null,
+      });
+      await refreshUser();
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 3000);
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "Échec de l'enregistrement.");
+      setSaveStatus("error");
+    }
   }
 
   async function handleSendRecovery() {
@@ -174,6 +200,35 @@ export default function SettingsAccount() {
       setTimeout(() => setRecoveryStatus("idle"), 5000);
     } catch {
       setRecoveryStatus("idle");
+    }
+  }
+
+  async function handleResendVerification() {
+    if (resendStatus === "sending" || resendStatus === "sent") return;
+    setResendStatus("sending");
+    try {
+      await authApi.resendVerification();
+      setResendStatus("sent");
+      setTimeout(() => setResendStatus("idle"), 5000);
+    } catch {
+      setResendStatus("error");
+      setTimeout(() => setResendStatus("idle"), 4000);
+    }
+  }
+
+  async function handleLogoutAll() {
+    if (logoutAllStatus === "idle") {
+      setLogoutAllStatus("confirm");
+      return;
+    }
+    if (logoutAllStatus === "confirm") {
+      setLogoutAllStatus("loading");
+      try {
+        await logoutEverywhere();
+        // RequireAuth redirige vers /auth quand le statut passe a "unauthenticated".
+      } catch {
+        setLogoutAllStatus("idle");
+      }
     }
   }
 
@@ -206,58 +261,147 @@ export default function SettingsAccount() {
       <section>
         <div style={subLabelStyle}>§ 01.1 — IDENTITÉ</div>
         <div style={cardStyle}>
-          {[
-            {
-              label: "Nom complet",
-              node: (
-                <input
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  style={inputStyle}
-                />
-              ),
-            },
-            {
-              label: "Email",
-              node: (
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  style={inputStyle}
-                />
-              ),
-            },
-            {
-              label: "Membre depuis",
-              node: (
-                <div
-                  style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: 12,
-                    color: "#71717A",
-                  }}
-                >
-                  {formatIsoDate(user.created_at)} · {daysSince(user.created_at)} jours
-                </div>
-              ),
-            },
-          ].map((row, i) => (
+          {/* Nom complet — éditable */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "140px 1fr",
+              gap: 12,
+              alignItems: "center",
+              marginBottom: 12,
+            }}
+          >
+            <div style={rowLabelStyle}>Nom complet</div>
+            <div>
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Votre nom"
+                style={inputStyle}
+              />
+            </div>
+          </div>
+
+          {/* Email — lecture seule + état de vérification */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "140px 1fr",
+              gap: 12,
+              alignItems: "center",
+              marginBottom: 12,
+            }}
+          >
+            <div style={rowLabelStyle}>Email</div>
             <div
-              key={row.label}
               style={{
-                display: "grid",
-                gridTemplateColumns: "140px 1fr",
-                gap: 12,
+                display: "flex",
                 alignItems: "center",
-                marginBottom: i < 2 ? 12 : 0,
+                gap: 10,
+                flexWrap: "wrap",
               }}
             >
-              <div style={rowLabelStyle}>{row.label}</div>
-              <div>{row.node}</div>
+              <span
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 12,
+                  color: "#D4D4D8",
+                }}
+              >
+                {user.email}
+              </span>
+              {user.email_verified ? (
+                <span
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 10,
+                    letterSpacing: "0.10em",
+                    padding: "2px 8px",
+                    borderRadius: 4,
+                    background: "rgba(16,185,129,0.10)",
+                    color: "#10B981",
+                  }}
+                >
+                  ✓ VÉRIFIÉ
+                </span>
+              ) : (
+                <>
+                  <span
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 10,
+                      letterSpacing: "0.10em",
+                      padding: "2px 8px",
+                      borderRadius: 4,
+                      background: "rgba(245,158,11,0.10)",
+                      color: "#F59E0B",
+                    }}
+                  >
+                    ⚠ NON VÉRIFIÉ
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    style={{
+                      ...ghostBtnStyle,
+                      ...(resendStatus === "sent" ? { color: "#10B981" } : {}),
+                      ...(resendStatus === "sending"
+                        ? { opacity: 0.6, cursor: "wait" }
+                        : {}),
+                    }}
+                  >
+                    {resendStatus === "sending"
+                      ? "ENVOI…"
+                      : resendStatus === "sent"
+                        ? "✓ EMAIL ENVOYÉ"
+                        : resendStatus === "error"
+                          ? "ÉCHEC — RÉESSAYER"
+                          : "RENVOYER LA VÉRIFICATION →"}
+                  </button>
+                </>
+              )}
             </div>
-          ))}
+          </div>
+
+          {/* Membre depuis */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "140px 1fr",
+              gap: 12,
+              alignItems: "center",
+              marginBottom: 0,
+            }}
+          >
+            <div style={rowLabelStyle}>Membre depuis</div>
+            <div
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 12,
+                color: "#71717A",
+              }}
+            >
+              {formatIsoDate(user.created_at)} · {daysSince(user.created_at)} jours
+            </div>
+          </div>
+
+          {saveError && (
+            <div
+              style={{
+                marginTop: 12,
+                padding: "8px 12px",
+                background: "rgba(239,68,68,0.10)",
+                border: "1px solid rgba(239,68,68,0.30)",
+                borderRadius: 6,
+                fontSize: 12,
+                color: "#EF4444",
+              }}
+            >
+              {saveError}
+            </div>
+          )}
+
           <div
             style={{
               display: "flex",
@@ -266,10 +410,43 @@ export default function SettingsAccount() {
               marginTop: 14,
             }}
           >
-            <button type="button" onClick={handleCancel} style={ghostBtnStyle}>
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={!isDirty || saveStatus === "saving"}
+              style={{
+                ...ghostBtnStyle,
+                opacity: !isDirty || saveStatus === "saving" ? 0.45 : 1,
+                cursor:
+                  !isDirty || saveStatus === "saving" ? "not-allowed" : "pointer",
+              }}
+            >
               ANNULER
             </button>
-            <DisabledBtn label="ENREGISTRER" variant="primary" />
+            <button
+              type="button"
+              onClick={handleSaveProfile}
+              disabled={!isDirty || saveStatus === "saving"}
+              style={{
+                ...primaryBtnStyle,
+                ...(saveStatus === "saved"
+                  ? {
+                      color: "#10B981",
+                      borderColor: "rgba(16,185,129,0.40)",
+                      background: "rgba(16,185,129,0.15)",
+                    }
+                  : {}),
+                opacity: !isDirty && saveStatus !== "saved" ? 0.45 : 1,
+                cursor:
+                  !isDirty || saveStatus === "saving" ? "not-allowed" : "pointer",
+              }}
+            >
+              {saveStatus === "saving"
+                ? "ENREGISTREMENT…"
+                : saveStatus === "saved"
+                  ? "✓ ENREGISTRÉ"
+                  : "ENREGISTRER"}
+            </button>
           </div>
         </div>
       </section>
@@ -478,10 +655,31 @@ export default function SettingsAccount() {
             <div>
               <div style={titleStyle}>Déconnexion globale</div>
               <div style={subTitleStyle}>
-                Révoque tous les appareils actuellement connectés à ce compte
+                {logoutAllStatus === "confirm"
+                  ? "Confirmer ? Tous les appareils connectés seront déconnectés."
+                  : "Révoque tous les appareils actuellement connectés à ce compte"}
               </div>
             </div>
-            <DisabledBtn label="DÉCONNECTER PARTOUT" variant="danger" />
+            <button
+              type="button"
+              onClick={handleLogoutAll}
+              disabled={logoutAllStatus === "loading"}
+              style={{
+                ...dangerBtnStyle,
+                ...(logoutAllStatus === "confirm"
+                  ? { color: "#FFFFFF", background: "rgba(239,68,68,0.20)" }
+                  : {}),
+                ...(logoutAllStatus === "loading"
+                  ? { opacity: 0.6, cursor: "wait" }
+                  : {}),
+              }}
+            >
+              {logoutAllStatus === "loading"
+                ? "DÉCONNEXION…"
+                : logoutAllStatus === "confirm"
+                  ? "CONFIRMER"
+                  : "DÉCONNECTER PARTOUT"}
+            </button>
           </div>
           <div
             style={{
