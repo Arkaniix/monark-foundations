@@ -2,6 +2,7 @@ import { useState, type CSSProperties } from "react";
 import SettingsBreadcrumb from "../components/settings/SettingsBreadcrumb";
 import SettingsHeader from "../components/settings/SettingsHeader";
 import DeleteAccountModal from "../components/settings/DeleteAccountModal";
+import ChangePasswordModal from "../components/settings/ChangePasswordModal";
 import { useAuth } from "@/context/AuthContext";
 import { authApi } from "@/lib/api";
 
@@ -158,6 +159,7 @@ export default function SettingsAccount() {
   const [resendStatus, setResendStatus] = useState<ResendStatus>("idle");
   const [logoutAllStatus, setLogoutAllStatus] = useState<LogoutAllStatus>("idle");
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [pwdOpen, setPwdOpen] = useState(false);
 
   const tier = (user.subscription_tier ?? "free") as SubscriptionTier;
   const plan = PLAN_INFO[tier];
@@ -602,10 +604,16 @@ export default function SettingsAccount() {
             <div>
               <div style={titleStyle}>Mot de passe</div>
               <div style={subTitleStyle}>
-                Modifiable une fois le backend câblé
+                Modifiez votre mot de passe (8 caractères minimum)
               </div>
             </div>
-            <DisabledBtn label="MODIFIER →" />
+            <button
+              type="button"
+              onClick={() => setPwdOpen(true)}
+              style={ghostBtnStyle}
+            >
+              MODIFIER →
+            </button>
           </div>
           <div
             style={{
@@ -718,6 +726,10 @@ export default function SettingsAccount() {
         onConfirmed={() => {
           void refreshUser();
         }}
+      />
+      <ChangePasswordModal
+        open={pwdOpen}
+        onClose={() => setPwdOpen(false)}
       />
     </div>
   );
