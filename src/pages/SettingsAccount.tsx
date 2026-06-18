@@ -655,10 +655,31 @@ export default function SettingsAccount() {
             <div>
               <div style={titleStyle}>Déconnexion globale</div>
               <div style={subTitleStyle}>
-                Révoque tous les appareils actuellement connectés à ce compte
+                {logoutAllStatus === "confirm"
+                  ? "Confirmer ? Tous les appareils connectés seront déconnectés."
+                  : "Révoque tous les appareils actuellement connectés à ce compte"}
               </div>
             </div>
-            <DisabledBtn label="DÉCONNECTER PARTOUT" variant="danger" />
+            <button
+              type="button"
+              onClick={handleLogoutAll}
+              disabled={logoutAllStatus === "loading"}
+              style={{
+                ...dangerBtnStyle,
+                ...(logoutAllStatus === "confirm"
+                  ? { color: "#FFFFFF", background: "rgba(239,68,68,0.20)" }
+                  : {}),
+                ...(logoutAllStatus === "loading"
+                  ? { opacity: 0.6, cursor: "wait" }
+                  : {}),
+              }}
+            >
+              {logoutAllStatus === "loading"
+                ? "DÉCONNEXION…"
+                : logoutAllStatus === "confirm"
+                  ? "CONFIRMER"
+                  : "DÉCONNECTER PARTOUT"}
+            </button>
           </div>
           <div
             style={{
