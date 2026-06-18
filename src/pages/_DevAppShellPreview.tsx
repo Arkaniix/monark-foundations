@@ -60,6 +60,7 @@ function MockAuthProvider({
         login: noop,
         register: noop,
         logout: noop,
+        logoutEverywhere: noop,
         forgotPassword: noop,
         refreshUser: noop,
       };
@@ -70,6 +71,7 @@ function MockAuthProvider({
       login: noop,
       register: noop,
       logout: noop,
+      logoutEverywhere: noop,
       forgotPassword: noop,
       refreshUser: noop,
     };
