@@ -11,6 +11,7 @@ type Props<T extends string> = {
   options: SegmentedOption<T>[];
   onChange: (next: T) => void;
   ariaLabel: string;
+  disabled?: boolean;
 };
 
 const groupStyle: CSSProperties = {
@@ -27,9 +28,14 @@ export default function SettingsSegmented<T extends string>({
   options,
   onChange,
   ariaLabel,
+  disabled = false,
 }: Props<T>) {
   return (
-    <div role="radiogroup" aria-label={ariaLabel} style={groupStyle}>
+    <div
+      role="radiogroup"
+      aria-label={ariaLabel}
+      style={{ ...groupStyle, opacity: disabled ? 0.5 : 1 }}
+    >
       {options.map((opt) => {
         const active = opt.value === value;
         const btnStyle: CSSProperties = {
@@ -44,7 +50,7 @@ export default function SettingsSegmented<T extends string>({
           color: active ? "#FAFAFA" : "#A1A1AA",
           borderRadius: 6,
           border: "none",
-          cursor: "pointer",
+          cursor: disabled ? "not-allowed" : "pointer",
           transition:
             "background 200ms cubic-bezier(0.16,1,0.3,1), color 200ms cubic-bezier(0.16,1,0.3,1)",
           outline: "none",
@@ -55,12 +61,15 @@ export default function SettingsSegmented<T extends string>({
             type="button"
             role="radio"
             aria-checked={active}
-            onClick={() => onChange(opt.value)}
+            disabled={disabled}
+            onClick={() => {
+              if (!disabled) onChange(opt.value);
+            }}
             onMouseEnter={(e) => {
-              if (!active) e.currentTarget.style.color = "#FAFAFA";
+              if (!active && !disabled) e.currentTarget.style.color = "#FAFAFA";
             }}
             onMouseLeave={(e) => {
-              if (!active) e.currentTarget.style.color = "#A1A1AA";
+              if (!active && !disabled) e.currentTarget.style.color = "#A1A1AA";
             }}
             style={btnStyle}
           >
