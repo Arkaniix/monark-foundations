@@ -2,6 +2,7 @@ import { useState, type CSSProperties } from "react";
 import { Download, Upload, Check } from "lucide-react";
 import SettingsBreadcrumb from "../components/settings/SettingsBreadcrumb";
 import SettingsHeader from "../components/settings/SettingsHeader";
+import ResetConfirmModal from "../components/settings/ResetConfirmModal";
 import { fetchAndDownloadServerExport } from "@/lib/dataExport";
 import { ApiException } from "@/lib/api/client";
 
@@ -17,16 +18,9 @@ const dangerCardStyle: CSSProperties = {
   border: "1px solid rgba(239,68,68,0.20)",
 };
 
-// Cartes « Prochainement » : ruban diagonal ambre + carte atténuée.
+// Carte « Prochainement » : ruban diagonal ambre + carte atténuée.
 const soonCardStyle: CSSProperties = {
   ...cardStyle,
-  position: "relative",
-  overflow: "hidden",
-  opacity: 0.7,
-};
-
-const soonDangerCardStyle: CSSProperties = {
-  ...dangerCardStyle,
   position: "relative",
   overflow: "hidden",
   opacity: 0.7,
@@ -117,7 +111,6 @@ const dangerBtn: CSSProperties = {
 };
 
 const disabledGhostBtn: CSSProperties = { ...ghostBtn, cursor: "not-allowed", opacity: 0.5 };
-const disabledDangerBtn: CSSProperties = { ...dangerBtn, cursor: "not-allowed", opacity: 0.5 };
 
 const errorBox: CSSProperties = {
   marginTop: 12,
@@ -132,6 +125,7 @@ const errorBox: CSSProperties = {
 export default function SettingsData() {
   const [exportStatus, setExportStatus] = useState<"idle" | "loading" | "success">("idle");
   const [exportError, setExportError] = useState<string | null>(null);
+  const [resetOpen, setResetOpen] = useState(false);
 
   async function handleExport() {
     setExportError(null);
@@ -214,19 +208,25 @@ export default function SettingsData() {
         </button>
       </div>
 
-      {/* § 05.3 RÉINITIALISATION — Prochainement */}
-      <div style={soonDangerCardStyle}>
-        <span className="soon-ribbon">Prochainement</span>
+      {/* § 05.3 RÉINITIALISATION — fonctionnel (serveur, ré-auth mot de passe) */}
+      <div style={dangerCardStyle}>
         <div style={dangerSubLabelStyle}>§ 05.3 — ZONE DANGEREUSE</div>
         <div style={titleStyle}>Réinitialiser toutes les données</div>
         <div style={descStyle}>
-          La réinitialisation de l'ensemble de vos données depuis le serveur sera disponible
-          prochainement.
+          Efface définitivement votre stock, vos builds, votre comptabilité, vos favoris, vos
+          estimations, vos alertes et votre historique de réparation. Votre compte, vos réglages et
+          vos crédits sont conservés. Pensez à exporter vos données avant.
         </div>
-        <button type="button" disabled aria-disabled="true" style={disabledDangerBtn}>
+        <button type="button" onClick={() => setResetOpen(true)} style={dangerBtn}>
           Réinitialiser toutes les données
         </button>
       </div>
+
+      <ResetConfirmModal
+        open={resetOpen}
+        onClose={() => setResetOpen(false)}
+        onConfirmed={() => window.location.reload()}
+      />
     </div>
   );
 }

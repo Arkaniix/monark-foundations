@@ -15,6 +15,7 @@ export const ENDPOINTS = {
   ME: "/v1/users/me",
   USER_SETTINGS: "/v1/users/me/settings",
   USER_EXPORT: "/v1/users/me/export",
+  DATA_RESET: "/v1/users/me/data-reset",
   DELETE_ME: "/v1/users/me",
   RESTORE_ME: "/v1/users/me/restore",
 

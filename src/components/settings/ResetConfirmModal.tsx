@@ -1,13 +1,13 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import type { ImportPreview } from "@/lib/dataExport";
+import { resetServerData } from "@/lib/dataExport";
+import { ApiException } from "@/lib/api/client";
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  onConfirm: () => void;
-  countersSummary: ImportPreview | null;
+  onConfirmed: () => void;
 };
 
 const overlayStyle: CSSProperties = {
@@ -30,50 +30,62 @@ const modalStyle: CSSProperties = {
   boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
 };
 
-const rowStyle: CSSProperties = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  padding: "4px 0",
-  fontSize: 12,
-  color: "#D4D4D8",
-};
-
-const KEYWORD = "RÉINITIALISER";
-
-function normalize(s: string): string {
-  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-}
-
-export default function ResetConfirmModal({ open, onClose, onConfirm, countersSummary }: Props) {
-  const [typed, setTyped] = useState("");
+export default function ResetConfirmModal({ open, onClose, onConfirmed }: Props) {
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!open) setTyped("");
+    if (!open) {
+      setPassword("");
+      setError(null);
+      setLoading(false);
+    }
   }, [open]);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && !loading) onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  }, [open, onClose, loading]);
 
   if (!open) return null;
 
-  const trimmed = typed.trim();
-  const matches = trimmed === KEYWORD || normalize(trimmed) === normalize(KEYWORD);
+  const canSubmit = password.length > 0 && !loading;
+
+  async function handleConfirm() {
+    if (password.length === 0 || loading) return;
+    setError(null);
+    setLoading(true);
+    try {
+      await resetServerData(password);
+      onConfirmed();
+    } catch (err) {
+      setLoading(false);
+      setError(
+        err instanceof ApiException && err.status === 400
+          ? "Mot de passe incorrect."
+          : "Échec de la réinitialisation. Réessayez dans un instant.",
+      );
+    }
+  }
 
   return createPortal(
     <div
       style={overlayStyle}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget && !loading) onClose();
       }}
     >
-      <div style={modalStyle} role="dialog" aria-modal="true" aria-label="Réinitialiser toutes les données">
+      <div
+        style={modalStyle}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Réinitialiser toutes les données"
+      >
         <div
           style={{
             display: "flex",
@@ -89,12 +101,13 @@ export default function ResetConfirmModal({ open, onClose, onConfirm, countersSu
           <button
             type="button"
             onClick={onClose}
+            disabled={loading}
             aria-label="Fermer"
             style={{
               background: "transparent",
               border: "none",
               color: "#A1A1AA",
-              cursor: "pointer",
+              cursor: loading ? "not-allowed" : "pointer",
               padding: 4,
               display: "flex",
             }}
@@ -115,66 +128,34 @@ export default function ResetConfirmModal({ open, onClose, onConfirm, countersSu
               lineHeight: 1.5,
             }}
           >
-            Action irréversible. Toutes les données métier et préférences seront définitivement effacées de ce navigateur.
+            Action irréversible. Votre stock, vos builds, votre comptabilité, vos favoris, vos
+            estimations, vos alertes et votre historique de réparation seront définitivement
+            supprimés de votre compte. Votre compte, vos réglages et vos crédits sont conservés.
           </div>
 
-          {countersSummary && (
-            <div
-              style={{
-                padding: "12px 14px",
-                background: "rgba(255,255,255,0.02)",
-                border: "1px solid rgba(255,255,255,0.05)",
-                borderRadius: 6,
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 11,
-                  letterSpacing: "0.18em",
-                  color: "#71717A",
-                  marginBottom: 8,
-                }}
-              >
-                CE QUI SERA EFFACÉ
-              </div>
-              {[
-                ["Items de stock", countersSummary.stock_items],
-                ["Builds", countersSummary.builds],
-                ["Entrées de comptabilité", countersSummary.accounting_entries],
-                ["Favoris catalogue", countersSummary.catalog_favorites],
-                ["Historique estimations", countersSummary.estimator_history],
-                ["Préférences", countersSummary.preferences_keys],
-              ].map(([k, v]) => (
-                <div key={k as string} style={rowStyle}>
-                  <span style={{ color: "#A1A1AA" }}>{k}</span>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", color: "#FAFAFA" }}>{v}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
           <div style={{ fontSize: 11, color: "#A1A1AA" }}>
-            Astuce : exportez d'abord vos données pour pouvoir les restaurer.
+            Astuce : téléchargez d'abord un export depuis la section ci-dessus pour pouvoir
+            restaurer vos données plus tard.
           </div>
 
           <div>
             <label
-              style={{
-                display: "block",
-                fontSize: 12,
-                color: "#D4D4D8",
-                marginBottom: 6,
-              }}
+              htmlFor="reset-password"
+              style={{ display: "block", fontSize: 12, color: "#D4D4D8", marginBottom: 6 }}
             >
-              Tapez <span style={{ fontFamily: "'JetBrains Mono', monospace", color: "#FAFAFA" }}>{KEYWORD}</span> pour confirmer
+              Saisissez votre mot de passe pour confirmer
             </label>
             <input
-              type="text"
-              value={typed}
-              onChange={(e) => setTyped(e.target.value)}
-              autoComplete="off"
+              id="reset-password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void handleConfirm();
+              }}
+              autoComplete="current-password"
               autoFocus
+              disabled={loading}
               style={{
                 width: "100%",
                 background: "rgba(255,255,255,0.02)",
@@ -184,10 +165,24 @@ export default function ResetConfirmModal({ open, onClose, onConfirm, countersSu
                 fontSize: 13,
                 color: "#FAFAFA",
                 outline: "none",
-                fontFamily: "'JetBrains Mono', monospace",
               }}
             />
           </div>
+
+          {error && (
+            <div
+              style={{
+                padding: "10px 12px",
+                background: "rgba(239,68,68,0.10)",
+                border: "1px solid rgba(239,68,68,0.30)",
+                borderRadius: 6,
+                fontSize: 12,
+                color: "#EF4444",
+              }}
+            >
+              {error}
+            </div>
+          )}
         </div>
 
         <div
@@ -202,6 +197,7 @@ export default function ResetConfirmModal({ open, onClose, onConfirm, countersSu
           <button
             type="button"
             onClick={onClose}
+            disabled={loading}
             style={{
               padding: "8px 14px",
               background: "transparent",
@@ -209,17 +205,15 @@ export default function ResetConfirmModal({ open, onClose, onConfirm, countersSu
               borderRadius: 6,
               color: "#D4D4D8",
               fontSize: 12,
-              cursor: "pointer",
+              cursor: loading ? "not-allowed" : "pointer",
             }}
           >
             Annuler
           </button>
           <button
             type="button"
-            aria-disabled={!matches}
-            onClick={() => {
-              if (matches) onConfirm();
-            }}
+            onClick={() => void handleConfirm()}
+            disabled={!canSubmit}
             style={{
               padding: "8px 14px",
               background: "#EF4444",
@@ -228,15 +222,15 @@ export default function ResetConfirmModal({ open, onClose, onConfirm, countersSu
               color: "#FAFAFA",
               fontSize: 12,
               fontWeight: 500,
-              cursor: matches ? "pointer" : "not-allowed",
-              opacity: matches ? 1 : 0.45,
+              cursor: canSubmit ? "pointer" : "not-allowed",
+              opacity: canSubmit ? 1 : 0.45,
             }}
           >
-            Tout effacer
+            {loading ? "Réinitialisation…" : "Tout effacer"}
           </button>
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }
