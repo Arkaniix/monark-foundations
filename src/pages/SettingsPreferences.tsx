@@ -95,12 +95,13 @@ export default function SettingsPreferences() {
             isFirst
             label="Densité d'affichage"
             sublabel="Compact réduit l'espace entre les éléments des tableaux et des cartes"
-            status="deferred"
+            status="soon"
           >
             <SettingsSegmented<UiDensity>
               ariaLabel="Densité d'affichage"
               value={settings.density}
               onChange={setDensity}
+              disabled
               options={[
                 { value: "comfortable", label: "Confortable" },
                 { value: "compact", label: "Compact" },
@@ -110,12 +111,13 @@ export default function SettingsPreferences() {
           <SettingsRow
             label="Format des nombres et des prix"
             sublabel="Détermine le séparateur de milliers et le séparateur décimal"
-            status="deferred"
+            status="soon"
           >
             <SettingsSegmented<NumberFormat>
               ariaLabel="Format des nombres"
               value={settings.numberFormat}
               onChange={setNumberFormat}
+              disabled
               options={[
                 { value: "fr-FR", label: "Français", sublabel: "1 234,56 €" },
                 { value: "en-US", label: "Anglais", sublabel: "1,234.56 €" },
@@ -133,7 +135,6 @@ export default function SettingsPreferences() {
             isFirst
             label="Animations et transitions"
             sublabel="Auto suit la préférence système (prefers-reduced-motion). Réduit désactive les transitions non-essentielles."
-            status="deferred"
           >
             <SettingsSegmented<MotionPreference>
               ariaLabel="Animations"
