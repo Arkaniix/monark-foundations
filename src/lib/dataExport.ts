@@ -176,6 +176,23 @@ export async function fetchAndDownloadServerExport(): Promise<void> {
   URL.revokeObjectURL(url);
 }
 
+export type DataResetResult = {
+  reset_at: string;
+  deleted: Record<string, number>;
+};
+
+/**
+ * Réinitialisation RÉELLE des données métier — POST /v1/users/me/data-reset (JWT + mot de passe).
+ * Efface côté serveur : stock, builds, comptabilité, watchlist, estimations, alertes et
+ * historique de réparation. Le compte, les réglages et les crédits sont préservés.
+ */
+export async function resetServerData(currentPassword: string): Promise<DataResetResult> {
+  return apiFetch<DataResetResult>(ENDPOINTS.DATA_RESET, {
+    method: "POST",
+    body: JSON.stringify({ current_password: currentPassword }),
+  });
+}
+
 export async function readPayloadFromFile(file: File): Promise<ExportPayload> {
   const text = await file.text();
   let parsed: unknown;
