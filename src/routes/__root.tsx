@@ -1,7 +1,9 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/context/AuthContext";
+import { applyMotion, readMotion } from "@/lib/useUiSettings";
 
 function NotFoundComponent() {
   return (
@@ -70,7 +72,7 @@ export const Route = createRootRoute({
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" data-motion="auto">
       <head>
         <HeadContent />
       </head>
@@ -83,6 +85,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  useEffect(() => {
+    applyMotion(readMotion());
+  }, []);
+
   return (
     <AuthProvider>
       <div
