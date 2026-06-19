@@ -8,8 +8,8 @@ import DropdownSelect, {
 } from "@/components/stock/DropdownSelect";
 import {
   useUiSettings,
+  persistNumberFormat,
   type StartScreen,
-  type UiDensity,
   type NumberFormat,
   type MotionPreference,
 } from "@/lib/useUiSettings";
@@ -46,13 +46,7 @@ const START_SCREEN_LABELS: Record<StartScreen, string> = {
 };
 
 export default function SettingsPreferences() {
-  const {
-    settings,
-    setDensity,
-    setNumberFormat,
-    setMotion,
-    setStartScreen,
-  } = useUiSettings();
+  const { settings, setMotion, setStartScreen } = useUiSettings();
 
   return (
     <div className="flex flex-col gap-6">
@@ -63,7 +57,7 @@ export default function SettingsPreferences() {
       />
       <SettingsHeader
         sectionLabel="§ 02 — PRÉFÉRENCES"
-        title="Interface, densité et formats"
+        title="Interface et formats"
         marginBottom={24}
       />
 
@@ -93,31 +87,16 @@ export default function SettingsPreferences() {
         <div style={cardStyle}>
           <SettingsRow
             isFirst
-            label="Densité d'affichage"
-            sublabel="Compact réduit l'espace entre les éléments des tableaux et des cartes"
-            status="soon"
-          >
-            <SettingsSegmented<UiDensity>
-              ariaLabel="Densité d'affichage"
-              value={settings.density}
-              onChange={setDensity}
-              disabled
-              options={[
-                { value: "comfortable", label: "Confortable" },
-                { value: "compact", label: "Compact" },
-              ]}
-            />
-          </SettingsRow>
-          <SettingsRow
             label="Format des nombres et des prix"
-            sublabel="Détermine le séparateur de milliers et le séparateur décimal"
-            status="soon"
+            sublabel="Détermine le séparateur de milliers et le séparateur décimal. Le changement recharge la page."
           >
             <SettingsSegmented<NumberFormat>
               ariaLabel="Format des nombres"
               value={settings.numberFormat}
-              onChange={setNumberFormat}
-              disabled
+              onChange={(fmt) => {
+                persistNumberFormat(fmt);
+                window.location.reload();
+              }}
               options={[
                 { value: "fr-FR", label: "Français", sublabel: "1 234,56 €" },
                 { value: "en-US", label: "Anglais", sublabel: "1,234.56 €" },

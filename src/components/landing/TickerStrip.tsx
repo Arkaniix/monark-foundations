@@ -1,3 +1,4 @@
+import { getNumberLocale } from "@/lib/numberFormat";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { Sparkline } from "@/components/ui";
 
@@ -34,7 +35,7 @@ export default function TickerStrip() {
                 {(up ? "+" : "") + it.chg.toFixed(1)}%
               </span>
               <Sparkline points={it.spark} color={color} w={48} h={16} />
-              <span className="text-zinc-100 font-medium">{it.price.toLocaleString("fr-FR")} €</span>
+              <span className="text-zinc-100 font-medium">{it.price.toLocaleString(getNumberLocale())} €</span>
               <span className="text-zinc-700">·</span>
             </div>
           );

@@ -1,3 +1,4 @@
+import { getNumberLocale } from "@/lib/numberFormat";
 import {
   Star,
   ArrowRight,
@@ -272,7 +273,7 @@ function TableRow({
       <div className="flex w-[100px] flex-col gap-0.5">
         <span className="font-mono text-[12px] tabular-nums text-zinc-500">
           {entry && entry.snapshot_eur !== null
-            ? `${Math.round(entry.snapshot_eur).toLocaleString("fr-FR")} €`
+            ? `${Math.round(entry.snapshot_eur).toLocaleString(getNumberLocale())} €`
             : "—"}
         </span>
         <span className="font-mono text-[9px] tracking-[0.1em] text-zinc-700">

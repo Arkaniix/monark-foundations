@@ -1,3 +1,4 @@
+import { getNumberLocale } from "@/lib/numberFormat";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -386,14 +387,14 @@ function SnapshotPanel({
       </div>
       <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1 font-mono text-[12px] tabular-nums">
         <span className="text-zinc-300">
-          {Math.round(snapshotEur).toLocaleString("fr-FR")} €
+          {Math.round(snapshotEur).toLocaleString(getNumberLocale())} €
         </span>
         <span className="text-[10.5px] text-zinc-500">
           ({formatRelativeShort(snapshotAt)})
         </span>
         <span className="text-zinc-600">→</span>
         <span className="text-zinc-100">
-          {Math.round(currentMedian).toLocaleString("fr-FR")} €
+          {Math.round(currentMedian).toLocaleString(getNumberLocale())} €
         </span>
         <span style={{ color: accent }}>
           {deltaPct >= 0 ? "+" : ""}
@@ -543,7 +544,7 @@ function DistributionPanel({
         distribution={distribution}
         color={scoreColor}
         chartTitle="DISTRIBUTION P10 → P90 · COMPARABLES SOLD"
-        chartHint={`Médiane actuelle ${Math.round(currentMedian).toLocaleString("fr-FR")} €. Plus la barre est haute, plus il y a de transactions à ce prix.`}
+        chartHint={`Médiane actuelle ${Math.round(currentMedian).toLocaleString(getNumberLocale())} €. Plus la barre est haute, plus il y a de transactions à ce prix.`}
       />
     </div>
   );

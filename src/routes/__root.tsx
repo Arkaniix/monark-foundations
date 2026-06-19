@@ -3,7 +3,8 @@ import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/context/AuthContext";
-import { applyMotion, readMotion } from "@/lib/useUiSettings";
+import { applyMotion, readMotion, readNumberFormat } from "@/lib/useUiSettings";
+import { setNumberLocale } from "@/lib/numberFormat";
 
 function NotFoundComponent() {
   return (
@@ -87,6 +88,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   useEffect(() => {
     applyMotion(readMotion());
+    setNumberLocale(readNumberFormat());
   }, []);
 
   return (

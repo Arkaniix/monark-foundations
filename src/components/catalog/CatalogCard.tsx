@@ -1,3 +1,4 @@
+import { getNumberLocale } from "@/lib/numberFormat";
 import {
   Star,
   ArrowRight,
@@ -238,7 +239,7 @@ function IconButton({ label, onClick, active, activeColor, children }: IconButto
 
 function formatPrice(eur: number): string {
   return (
-    new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(eur) + " €"
+    new Intl.NumberFormat(getNumberLocale(), { maximumFractionDigits: 0 }).format(eur) + " €"
   );
 }
 

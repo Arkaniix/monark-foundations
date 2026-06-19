@@ -1,3 +1,4 @@
+import { getNumberLocale } from "@/lib/numberFormat";
 /**
  * Types et helpers Inventaire (Stock Manager).
  */
@@ -213,7 +214,7 @@ export function formatDateShortFR(iso: string): string {
 }
 
 export function formatEur(value: number): string {
-  return new Intl.NumberFormat("fr-FR", {
+  return new Intl.NumberFormat(getNumberLocale(), {
     maximumFractionDigits: 0,
   }).format(value);
 }

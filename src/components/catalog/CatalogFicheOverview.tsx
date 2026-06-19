@@ -1,3 +1,4 @@
+import { getNumberLocale } from "@/lib/numberFormat";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import SectionLabel from "../ui/SectionLabel";
 import GlossaryTooltip from "../ui/GlossaryTooltip";
@@ -165,7 +166,7 @@ function Stat({
 }
 
 function formatPrice(eur: number): string {
-  return new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(eur) + " €";
+  return new Intl.NumberFormat(getNumberLocale(), { maximumFractionDigits: 0 }).format(eur) + " €";
 }
 
 function Sparkline90d({ points, color }: { points: number[]; color: string }) {

@@ -1,3 +1,4 @@
+import { getNumberLocale } from "@/lib/numberFormat";
 import type { StockItem } from "./datasets";
 import type { Build } from "./buildsDatasets";
 import { getBuildTotalCost } from "./buildsDatasets";
@@ -481,7 +482,7 @@ export function projectCaMensuelRestant(
 const NBSP = "\u00A0";
 
 export function formatEurInt(v: number): string {
-  return new Intl.NumberFormat("fr-FR", {
+  return new Intl.NumberFormat(getNumberLocale(), {
     maximumFractionDigits: 0,
   }).format(v);
 }

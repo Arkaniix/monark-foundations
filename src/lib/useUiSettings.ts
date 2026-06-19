@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
+import { setNumberLocale } from "./numberFormat";
+
 export type UiDensity = "comfortable" | "compact";
 export type NumberFormat = "fr-FR" | "en-US";
 export type MotionPreference = "auto" | "reduced" | "full";
@@ -108,12 +110,23 @@ export function applyMotion(motion: MotionPreference): void {
   document.documentElement.setAttribute("data-motion", motion);
 }
 
+export function readNumberFormat(): NumberFormat {
+  return load().numberFormat;
+}
+
+export function persistNumberFormat(fmt: NumberFormat): void {
+  const s = load();
+  save({ ...s, numberFormat: fmt });
+  setNumberLocale(fmt);
+}
+
 export function useUiSettings() {
   const [settings, setSettings] = useState<UiSettings>(() => load());
 
   useEffect(() => {
     save(settings);
     applyMotion(settings.motion);
+    setNumberLocale(settings.numberFormat);
   }, [settings]);
 
   const setDensity = useCallback(

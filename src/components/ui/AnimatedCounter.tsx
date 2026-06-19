@@ -1,3 +1,4 @@
+import { getNumberLocale } from "@/lib/numberFormat";
 import { useEffect, useRef, useState } from "react";
 import useReducedMotion from "@/lib/useReducedMotion";
 import { isEntranceComplete, markEntranceCompleteSoon } from "@/lib/entranceAnimation";
@@ -72,7 +73,7 @@ export default function AnimatedCounter({
 
   const d = decimals ?? (Number.isInteger(value) ? 0 : 1);
   const displayValue = frenchLocale
-    ? new Intl.NumberFormat("fr-FR", {
+    ? new Intl.NumberFormat(getNumberLocale(), {
         minimumFractionDigits: d,
         maximumFractionDigits: d,
       }).format(current)
