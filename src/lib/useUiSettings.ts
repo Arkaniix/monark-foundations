@@ -99,11 +99,21 @@ export function readStartScreenPath(): string {
   return getStartScreenPath(load().startScreen);
 }
 
+export function readMotion(): MotionPreference {
+  return load().motion;
+}
+
+export function applyMotion(motion: MotionPreference): void {
+  if (typeof document === "undefined") return;
+  document.documentElement.setAttribute("data-motion", motion);
+}
+
 export function useUiSettings() {
   const [settings, setSettings] = useState<UiSettings>(() => load());
 
   useEffect(() => {
     save(settings);
+    applyMotion(settings.motion);
   }, [settings]);
 
   const setDensity = useCallback(
