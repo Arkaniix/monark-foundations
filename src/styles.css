@@ -620,3 +620,26 @@ body::before {
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 .fade-in { animation: fade-in 400ms ease both; }
 .hr-soft { height: 1px; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.07), transparent); }
+
+/* ====== Préférence de mouvement (data-motion sur <html>) ====== */
+/* "Réduit" : coupe animations + transitions quel que soit le réglage système */
+:root[data-motion="reduced"] *,
+:root[data-motion="reduced"] *::before,
+:root[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* "Auto" : suit la préférence système (sauf si l'utilisateur force "Complet") */
+@media (prefers-reduced-motion: reduce) {
+  :root[data-motion="auto"] *,
+  :root[data-motion="auto"] *::before,
+  :root[data-motion="auto"] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
