@@ -5,7 +5,7 @@ type Props = {
   label: string;
   sublabel?: string;
   children: ReactNode;
-  status?: "deferred";
+  status?: "deferred" | "soon";
   isFirst?: boolean;
   footerAction?: { label: string; href: string };
   labelBadge?: ReactNode;
@@ -30,6 +30,12 @@ const badgeStyle: CSSProperties = {
   marginLeft: 8,
   display: "inline-block",
   verticalAlign: "middle",
+};
+
+const soonBadgeStyle: CSSProperties = {
+  ...badgeStyle,
+  background: "rgba(245,158,11,0.12)",
+  color: "#F59E0B",
 };
 
 export default function SettingsRow({
@@ -73,6 +79,7 @@ export default function SettingsRow({
             {status === "deferred" && (
               <span style={badgeStyle}>ACTIVATION PROGRESSIVE</span>
             )}
+            {status === "soon" && <span style={soonBadgeStyle}>PROCHAINEMENT</span>}
           </div>
           {sublabel && (
             <div
