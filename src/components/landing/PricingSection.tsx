@@ -1,3 +1,4 @@
+import { getNumberLocale } from "@/lib/numberFormat";
 import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SectionLabel } from "@/components/ui";
@@ -18,7 +19,7 @@ const TIERS_META: TierMeta[] = [
 ];
 
 const eur = (cents: number) =>
-  (cents / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
+  (cents / 100).toLocaleString(getNumberLocale(), { style: "currency", currency: "EUR" });
 
 export default function PricingSection() {
   const [subs, setSubs] = useState<Subscription[] | null>(null);

@@ -1,13 +1,14 @@
+import { getNumberLocale } from "@/lib/numberFormat";
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { fetchCreditPacks, createTopup, type CreditPack } from "@/lib/api/billing";
 import { ApiException } from "@/lib/api/client";
 
 const eur = (cents: number) =>
-  (cents / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
+  (cents / 100).toLocaleString(getNumberLocale(), { style: "currency", currency: "EUR" });
 
 const eurPerCredit = (priceCents: number, credits: number) =>
-  (priceCents / 100 / credits).toLocaleString("fr-FR", {
+  (priceCents / 100 / credits).toLocaleString(getNumberLocale(), {
     style: "currency",
     currency: "EUR",
     minimumFractionDigits: 3,

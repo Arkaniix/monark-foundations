@@ -1,3 +1,4 @@
+import { getNumberLocale } from "@/lib/numberFormat";
 import { useEffect, useRef, useState } from "react";
 
 type CounterProps = {
@@ -44,7 +45,7 @@ export function Counter({
 
   const display =
     decimals === 0
-      ? Math.round(v).toLocaleString("fr-FR")
+      ? Math.round(v).toLocaleString(getNumberLocale())
       : v.toFixed(decimals).replace(".", ",");
 
   return (

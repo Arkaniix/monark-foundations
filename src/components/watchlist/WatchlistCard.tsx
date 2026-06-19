@@ -1,3 +1,4 @@
+import { getNumberLocale } from "@/lib/numberFormat";
 import { Star, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import type { CatalogModel } from "../catalog/datasets";
 import {
@@ -136,7 +137,7 @@ export default function WatchlistCard({
           <div className="flex flex-col gap-1">
             <span className="font-mono text-[10px] tracking-[0.14em] text-zinc-600">MÉDIANE</span>
             <span className="font-mono text-[20px] tabular-nums text-zinc-100">
-              {Math.round(model.median_eur).toLocaleString("fr-FR")} €
+              {Math.round(model.median_eur).toLocaleString(getNumberLocale())} €
             </span>
           </div>
 
@@ -161,7 +162,7 @@ export default function WatchlistCard({
                 </span>
                 {entry && entry.snapshot_eur !== null && (
                   <span className="font-mono text-[9px] tracking-[0.1em] text-zinc-700">
-                    vs {Math.round(entry.snapshot_eur).toLocaleString("fr-FR")} €
+                    vs {Math.round(entry.snapshot_eur).toLocaleString(getNumberLocale())} €
                   </span>
                 )}
               </>

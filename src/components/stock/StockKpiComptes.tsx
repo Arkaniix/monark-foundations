@@ -1,3 +1,4 @@
+import { getNumberLocale } from "@/lib/numberFormat";
 import {
   computeMargeNetteGlobaleEur,
   computeRatioDepensesCa,
@@ -14,7 +15,7 @@ type Props = {
 const NBSP = "\u00A0";
 
 function fmt(v: number): string {
-  return new Intl.NumberFormat("fr-FR", {
+  return new Intl.NumberFormat(getNumberLocale(), {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(v);

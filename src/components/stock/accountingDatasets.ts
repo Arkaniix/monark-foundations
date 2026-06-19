@@ -1,3 +1,4 @@
+import { getNumberLocale } from "@/lib/numberFormat";
 import {
   Send,
   Package,
@@ -158,7 +159,7 @@ const NBSP = "\u00A0";
 
 export function formatSignedEur(entry: AccountingEntry): string {
   const sign = entry.kind === "expense" ? "−" : "+";
-  const value = new Intl.NumberFormat("fr-FR", {
+  const value = new Intl.NumberFormat(getNumberLocale(), {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(entry.amount_eur);
@@ -168,7 +169,7 @@ export function formatSignedEur(entry: AccountingEntry): string {
 export function formatEurSigned(value: number): string {
   const sign = value > 0 ? "+" : value < 0 ? "−" : "";
   const abs = Math.abs(value);
-  const v = new Intl.NumberFormat("fr-FR", {
+  const v = new Intl.NumberFormat(getNumberLocale(), {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(abs);

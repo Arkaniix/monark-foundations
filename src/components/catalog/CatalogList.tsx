@@ -1,3 +1,4 @@
+import { getNumberLocale } from "@/lib/numberFormat";
 import { Star, ArrowRight, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import type { CatalogModel } from "./datasets";
 import { MANUFACTURER_DOT_COLOR, getLiquidityColor, getTrendColor, hasMarketData, formatFreshness } from "./datasets";
@@ -13,7 +14,7 @@ type Props = {
   gridKey?: string;
 };
 
-const eur = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
+const eur = new Intl.NumberFormat(getNumberLocale(), { maximumFractionDigits: 0 });
 
 export default function CatalogList({
   models,
