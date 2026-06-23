@@ -643,3 +643,38 @@ body::before {
     scroll-behavior: auto !important;
   }
 }
+
+/* ============================================================
+   DASHBOARD — motion + segmented toggle (command center)
+   Pas de wrapper @media : la réduction de motion est gérée
+   globalement par le système data-motion en fin de fichier.
+   ============================================================ */
+
+/* entrée de section au montage */
+@keyframes sec-in { from { transform: translateY(14px); } to { transform: translateY(0); } }
+.sec-in { animation: sec-in 560ms cubic-bezier(0.16,1,0.3,1) both; }
+
+/* halo d'icône KPI — au survol uniquement */
+@keyframes kpi-ring { 0% { transform: scale(0.9); opacity: 0.55; } 70% { transform: scale(1.5); opacity: 0; } 100% { opacity: 0; } }
+.kpi-ring { position: absolute; inset: 0; border-radius: 0.5rem; }
+.kpi-ring::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: 0 0 0 1px currentColor; opacity: 0; }
+.kpi-card:hover .kpi-ring::after { animation: kpi-ring 1.3s ease-out; }
+.kpi-card:hover .kpi-icon { transform: translateY(-1px) scale(1.06); }
+.kpi-icon { transition: transform 260ms cubic-bezier(0.16,1,0.3,1); }
+
+/* point pulsé (stock dormant / alerte) */
+@keyframes live-pulse { 0% { box-shadow: 0 0 0 0 currentColor; opacity: 1; } 70% { box-shadow: 0 0 0 5px transparent; opacity: 0.85; } 100% { box-shadow: 0 0 0 0 transparent; opacity: 1; } }
+.live-dot { animation: live-pulse 1.9s ease-out infinite; }
+
+/* halo vert statique sur la barre courante du graphe perf */
+.bar-glow { box-shadow: 0 0 18px -4px rgba(16,185,129,0.55); }
+
+/* lien avec flèche qui glisse au survol */
+.arrow-link { transition: color 160ms ease; }
+.arrow-link .arr { display: inline-block; transition: transform 220ms cubic-bezier(0.16,1,0.3,1); }
+.arrow-link:hover .arr { transform: translateX(3px); }
+
+/* toggle segmenté (Catégorie/Statut, 4 sem/8 sem/Trim.) */
+.mode-seg { position: relative; display: inline-flex; padding: 3px; border-radius: 10px; background: rgba(0,0,0,0.4); box-shadow: inset 0 0 0 1px var(--mk-section-border); }
+.mode-seg__pill { position: absolute; top: 3px; bottom: 3px; border-radius: 7px; background: var(--mk-surface-3); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); transition: transform 280ms cubic-bezier(0.16,1,0.3,1), width 280ms cubic-bezier(0.16,1,0.3,1); z-index: 0; }
+.mode-seg__btn { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 7px; padding: 7px 16px; border-radius: 7px; font-size: 13px; font-weight: 500; transition: color 200ms ease; white-space: nowrap; }
