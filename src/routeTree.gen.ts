@@ -33,7 +33,6 @@ import { Route as AuthVerifyEmailRouteImport } from './routes/auth_.verify-email
 import { Route as AuthResetPasswordRouteImport } from './routes/auth_.reset-password'
 import { Route as Char91_devChar93UiRouteImport } from './routes/[_dev].ui'
 import { Route as Char91_devChar93EstimatorStatesRouteImport } from './routes/[_dev].estimator-states'
-import { Route as Char91_devChar93DashboardStatesRouteImport } from './routes/[_dev].dashboard-states'
 import { Route as Char91_devChar93AppshellRouteImport } from './routes/[_dev].appshell'
 
 const WatchlistRoute = WatchlistRouteImport.update({
@@ -157,12 +156,6 @@ const Char91_devChar93EstimatorStatesRoute =
     path: '/_dev/estimator-states',
     getParentRoute: () => rootRouteImport,
   } as any)
-const Char91_devChar93DashboardStatesRoute =
-  Char91_devChar93DashboardStatesRouteImport.update({
-    id: '/_dev/dashboard-states',
-    path: '/_dev/dashboard-states',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const Char91_devChar93AppshellRoute =
   Char91_devChar93AppshellRouteImport.update({
     id: '/_dev/appshell',
@@ -183,7 +176,6 @@ export interface FileRoutesByFullPath {
   '/stock': typeof StockRoute
   '/watchlist': typeof WatchlistRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
-  '/_dev/dashboard-states': typeof Char91_devChar93DashboardStatesRoute
   '/_dev/estimator-states': typeof Char91_devChar93EstimatorStatesRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
@@ -211,7 +203,6 @@ export interface FileRoutesByTo {
   '/stock': typeof StockRoute
   '/watchlist': typeof WatchlistRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
-  '/_dev/dashboard-states': typeof Char91_devChar93DashboardStatesRoute
   '/_dev/estimator-states': typeof Char91_devChar93EstimatorStatesRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
@@ -240,7 +231,6 @@ export interface FileRoutesById {
   '/stock': typeof StockRoute
   '/watchlist': typeof WatchlistRoute
   '/_dev/appshell': typeof Char91_devChar93AppshellRoute
-  '/_dev/dashboard-states': typeof Char91_devChar93DashboardStatesRoute
   '/_dev/estimator-states': typeof Char91_devChar93EstimatorStatesRoute
   '/_dev/ui': typeof Char91_devChar93UiRoute
   '/auth_/reset-password': typeof AuthResetPasswordRoute
@@ -270,7 +260,6 @@ export interface FileRouteTypes {
     | '/stock'
     | '/watchlist'
     | '/_dev/appshell'
-    | '/_dev/dashboard-states'
     | '/_dev/estimator-states'
     | '/_dev/ui'
     | '/auth/reset-password'
@@ -298,7 +287,6 @@ export interface FileRouteTypes {
     | '/stock'
     | '/watchlist'
     | '/_dev/appshell'
-    | '/_dev/dashboard-states'
     | '/_dev/estimator-states'
     | '/_dev/ui'
     | '/auth/reset-password'
@@ -326,7 +314,6 @@ export interface FileRouteTypes {
     | '/stock'
     | '/watchlist'
     | '/_dev/appshell'
-    | '/_dev/dashboard-states'
     | '/_dev/estimator-states'
     | '/_dev/ui'
     | '/auth_/reset-password'
@@ -355,7 +342,6 @@ export interface RootRouteChildren {
   StockRoute: typeof StockRoute
   WatchlistRoute: typeof WatchlistRoute
   Char91_devChar93AppshellRoute: typeof Char91_devChar93AppshellRoute
-  Char91_devChar93DashboardStatesRoute: typeof Char91_devChar93DashboardStatesRoute
   Char91_devChar93EstimatorStatesRoute: typeof Char91_devChar93EstimatorStatesRoute
   Char91_devChar93UiRoute: typeof Char91_devChar93UiRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
@@ -541,13 +527,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91_devChar93EstimatorStatesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_dev/dashboard-states': {
-      id: '/_dev/dashboard-states'
-      path: '/_dev/dashboard-states'
-      fullPath: '/_dev/dashboard-states'
-      preLoaderRoute: typeof Char91_devChar93DashboardStatesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_dev/appshell': {
       id: '/_dev/appshell'
       path: '/_dev/appshell'
@@ -571,7 +550,6 @@ const rootRouteChildren: RootRouteChildren = {
   StockRoute: StockRoute,
   WatchlistRoute: WatchlistRoute,
   Char91_devChar93AppshellRoute: Char91_devChar93AppshellRoute,
-  Char91_devChar93DashboardStatesRoute: Char91_devChar93DashboardStatesRoute,
   Char91_devChar93EstimatorStatesRoute: Char91_devChar93EstimatorStatesRoute,
   Char91_devChar93UiRoute: Char91_devChar93UiRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
