@@ -678,3 +678,18 @@ body::before {
 .mode-seg { position: relative; display: inline-flex; padding: 3px; border-radius: 10px; background: rgba(0,0,0,0.4); box-shadow: inset 0 0 0 1px var(--mk-section-border); }
 .mode-seg__pill { position: absolute; top: 3px; bottom: 3px; border-radius: 7px; background: var(--mk-surface-3); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); transition: transform 280ms cubic-bezier(0.16,1,0.3,1), width 280ms cubic-bezier(0.16,1,0.3,1); z-index: 0; }
 .mode-seg__btn { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 7px; padding: 7px 16px; border-radius: 7px; font-size: 13px; font-weight: 500; transition: color 200ms ease; white-space: nowrap; }
+
+/* ====== ÉTAT VIDE — visuel fantôme (donut + barres) ====== */
+@keyframes ghost-breathe { 0%,100% { opacity:.5 } 50% { opacity:.9 } }
+@keyframes ghost-sweep   { 0% { transform:translateX(-120%) } 100% { transform:translateX(120%) } }
+@keyframes ghost-rise    { 0%,100% { transform:scaleY(.82) } 50% { transform:scaleY(1) } }
+@keyframes ghost-spin    { from { transform:rotate(0deg) } to { transform:rotate(360deg) } }
+.ghost-halo     { background: radial-gradient(circle at 50% 45%, rgba(59,130,246,.16), rgba(59,130,246,.04) 42%, transparent 68%); }
+.ghost-breathe  { animation: ghost-breathe 4.5s ease-in-out infinite; }
+.ghost-bar      { animation: ghost-rise 3.6s ease-in-out infinite; transform-origin: bottom; }
+.ghost-ring-rot { animation: ghost-spin 28s linear infinite; }
+.ghost-sweep::after {
+  content:""; position:absolute; inset:0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.05) 50%, transparent 70%);
+  animation: ghost-sweep 4.2s ease-in-out infinite;
+}
