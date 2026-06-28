@@ -38,7 +38,7 @@ export type StockRow = {
 };
 export type MoverRow = { id: string; name: string; category: HardwareCategory; base: number; trendPct: number };
 export type KpiSet = {
-  profit30j: number; profit30jDeltaPct: number | null; sold30jCount: number;
+  profit30j: number; profit30jDeltaPct: number | null; sold30jCount: number; soldCount: number;
   capital: number; stockCount: number; potential: number;
   credits: number; creditsCap: number; tier: string;
 };
@@ -118,6 +118,7 @@ function buildKpis(items: StockItem[], byId: Map<string, CatalogModel>, now: Dat
     profit30j: Math.round(profit30j),
     profit30jDeltaPct: prevProfit !== 0 ? ((profit30j - prevProfit) / Math.abs(prevProfit)) * 100 : null,
     sold30jCount: cur.length,
+    soldCount: soldCounted.length,
     capital: Math.round(capital),
     stockCount: active.length,
     potential: Math.round(potential),
