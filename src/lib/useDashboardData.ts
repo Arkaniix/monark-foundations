@@ -8,7 +8,7 @@ export function useDashboardData(): { loading: boolean; model: DashboardModel | 
   const { user } = useAuth();
   const { items, loading: stockLoading, refresh } = useStockItems();
   const { byId, loaded: catalogLoaded } = useCatalogModelMap();
-  const loading = stockLoading || !catalogLoaded;
+  const loading = stockLoading || !catalogLoaded || !user;
   const model = useMemo(() => {
     if (loading) return null;
     const models = Array.from(byId.values());
