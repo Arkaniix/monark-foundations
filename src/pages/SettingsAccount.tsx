@@ -3,6 +3,7 @@ import SettingsBreadcrumb from "../components/settings/SettingsBreadcrumb";
 import SettingsHeader from "../components/settings/SettingsHeader";
 import DeleteAccountModal from "../components/settings/DeleteAccountModal";
 import ChangePasswordModal from "../components/settings/ChangePasswordModal";
+import CreditsBalanceBar from "../components/settings/CreditsBalanceBar";
 import { useAuth } from "@/context/AuthContext";
 import { authApi } from "@/lib/api";
 
@@ -164,8 +165,6 @@ export default function SettingsAccount() {
   const tier = (user.subscription_tier ?? "free") as SubscriptionTier;
   const plan = PLAN_INFO[tier];
   const credits = user.credits_remaining ?? 0;
-  const pct = Math.max(0, Math.min(100, (credits / plan.cap) * 100));
-  const fillColor = pct > 50 ? "#10B981" : pct > 20 ? "#F59E0B" : "#EF4444";
 
   const trimmedName = fullName.trim();
   const isDirty = trimmedName !== initialFullName;
@@ -532,34 +531,25 @@ export default function SettingsAccount() {
                 >
                   {credits}
                 </span>
-                <span
-                  style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: 12,
-                    color: "#71717A",
-                  }}
-                >
-                  / {plan.cap}
-                </span>
+                {plan.cap > 0 && (
+                  <span
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 12,
+                      color: "#71717A",
+                    }}
+                  >
+                    / {plan.cap}
+                  </span>
+                )}
               </div>
-              <div
-                style={{
-                  height: 4,
-                  background: "rgba(255,255,255,0.04)",
-                  borderRadius: 2,
-                  overflow: "hidden",
-                  marginBottom: 8,
-                }}
-              >
-                <div
-                  style={{
-                    height: "100%",
-                    width: `${pct}%`,
-                    background: fillColor,
-                  }}
-                />
-              </div>
-              <div style={{ fontSize: 11, color: "#71717A" }}>
+              <CreditsBalanceBar
+                currentMonth={credits}
+                previousMonth={0}
+                bonus={0}
+                cap={plan.cap}
+              />
+              <div style={{ fontSize: 11, color: "#71717A", marginTop: 6 }}>
                 Renouvellement le {nextRenewalLabel()}.
               </div>
             </div>
