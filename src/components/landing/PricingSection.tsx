@@ -1,6 +1,7 @@
 import { getNumberLocale } from "@/lib/numberFormat";
 import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { SectionLabel } from "@/components/ui";
 import { fetchSubscriptions, type Subscription } from "@/lib/api/billing";
 
@@ -80,12 +81,15 @@ export default function PricingSection() {
                     </li>
                   ))}
                 </ul>
-                <button className={"btn-shimmer w-full py-2.5 rounded-md font-medium text-[13px] ease-expo transition-colors " +
+                <Link
+                  to="/auth"
+                  search={{ plan: t.code as "free" | "standard" | "pro" }}
+                  className={"btn-shimmer w-full py-2.5 rounded-md font-medium text-[13px] ease-expo transition-colors inline-flex items-center justify-center " +
                   (t.primary
                     ? "bg-blue-500 hover:bg-blue-400 text-white shadow-[0_8px_30px_-8px_rgba(59,130,246,0.6)]"
                     : "bg-white/5 hover:bg-white/10 text-zinc-200")}>
                   {t.cta}
-                </button>
+                </Link>
               </div>
             </div>
           ))}

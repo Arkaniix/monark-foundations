@@ -136,11 +136,11 @@ function PlanDetailsModal({ open, onClose, value, onChange }: { open: boolean; o
   );
 }
 
-export default function AuthCard() {
+export default function AuthCard({ initialPlan }: { initialPlan?: PlanId } = {}) {
   const auth = useAuth();
   const navigate = useNavigate();
 
-  const [mode, setMode] = useState<AuthMode>("login");
+  const [mode, setMode] = useState<AuthMode>(initialPlan ? "signup" : "login");
   const [contentKey, setContentKey] = useState<number>(0);
 
   const [email, setEmail] = useState<string>("");
@@ -160,7 +160,7 @@ export default function AuthCard() {
   const [forceFail, setForceFail] = useState<boolean>(false);
   const [forgotOpen, setForgotOpen] = useState<boolean>(false);
   const [apiLoading, setApiLoading] = useState<boolean>(false);
-  const [plan, setPlan] = useState<PlanId>("standard");
+  const [plan, setPlan] = useState<PlanId>(initialPlan ?? "standard");
   const [showPlanDetails, setShowPlanDetails] = useState<boolean>(false);
 
   const switchMode = (m: AuthMode) => {
