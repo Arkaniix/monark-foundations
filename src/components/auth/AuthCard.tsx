@@ -425,9 +425,9 @@ export default function AuthCard({ initialPlan }: { initialPlan?: PlanId } = {})
                   </>
                 ) : (
                   <>
-                    {mode === "login"
-                      ? "Se connecter"
-                      : (plan === "free" ? "Créer mon compte" : `Continuer avec ${PLAN_META[plan].name} · ${PLAN_META[plan].price}/mois`)}
+                {mode === "login"
+                  ? "Se connecter"
+                  : (plan === "free" ? "Créer mon compte" : `Continuer avec ${PLAN_META[plan].name}`)}
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
