@@ -1,7 +1,9 @@
 import BackgroundTicker from "@/components/auth/BackgroundTicker";
 import AuthCard from "@/components/auth/AuthCard";
 
-export default function Auth() {
+type PlanId = "free" | "standard" | "pro";
+
+export default function Auth({ initialPlan }: { initialPlan?: PlanId }) {
   return (
     <div className="relative min-h-screen overflow-hidden">
       <BackgroundTicker />
@@ -14,7 +16,7 @@ export default function Auth() {
         }}
       />
       <div className="relative z-10 min-h-screen flex items-center justify-center px-6 py-16">
-        <AuthCard />
+        <AuthCard initialPlan={initialPlan} />
       </div>
     </div>
   );
