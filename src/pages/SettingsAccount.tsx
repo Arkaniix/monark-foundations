@@ -3,7 +3,7 @@ import SettingsBreadcrumb from "../components/settings/SettingsBreadcrumb";
 import SettingsHeader from "../components/settings/SettingsHeader";
 import DeleteAccountModal from "../components/settings/DeleteAccountModal";
 import ChangePasswordModal from "../components/settings/ChangePasswordModal";
-import CreditsBalanceBar from "../components/settings/CreditsBalanceBar";
+
 import { useAuth } from "@/context/AuthContext";
 import { authApi } from "@/lib/api";
 
@@ -165,6 +165,9 @@ export default function SettingsAccount() {
   const tier = (user.subscription_tier ?? "free") as SubscriptionTier;
   const plan = PLAN_INFO[tier];
   const credits = user.credits_remaining ?? 0;
+  const cap = plan.cap;
+  const pct = cap > 0 ? Math.min(100, Math.max(0, (credits / cap) * 100)) : 0;
+  const fillColor = pct > 50 ? "#10B981" : pct > 20 ? "#F59E0B" : "#EF4444";
 
   const trimmedName = fullName.trim();
   const isDirty = trimmedName !== initialFullName;
@@ -543,12 +546,19 @@ export default function SettingsAccount() {
                   </span>
                 )}
               </div>
-              <CreditsBalanceBar
-                currentMonth={credits}
-                previousMonth={0}
-                bonus={0}
-                cap={plan.cap}
-              />
+              <div
+                className="mt-2 h-1 overflow-hidden rounded-full"
+                style={{ background: "rgba(255,255,255,0.04)" }}
+              >
+                <div
+                  className="h-full rounded-full"
+                  style={{
+                    width: `${pct}%`,
+                    background: fillColor,
+                    transition: "width 700ms cubic-bezier(0.16,1,0.3,1)",
+                  }}
+                />
+              </div>
               <div style={{ fontSize: 11, color: "#71717A", marginTop: 6 }}>
                 Renouvellement le {nextRenewalLabel()}.
               </div>
